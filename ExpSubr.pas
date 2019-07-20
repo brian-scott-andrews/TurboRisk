@@ -56,7 +56,7 @@ procedure UBufferSet(B: integer; V: double);
 function UBufferGet(B: integer): double;
 function URandom(R: integer): double;
 procedure UTakeSnapshot(M: string);
-function UDialog(M, B: string): integer;
+function UDialogO(M, B: string): integer;
 procedure UAbortGame;
 procedure ULogOff;
 procedure ULogOn;
@@ -1176,7 +1176,7 @@ begin
   end;
 end;
 
-function UDialog(M, B: string): integer;
+function UDialogO(M, B: string): integer;
 // display a modal window with message M and B buttons
 // B is a comma-separated string (like 'Continue;Dump;Stop') max 5 buttons
 // returns a number corresponding to the button pressed by
