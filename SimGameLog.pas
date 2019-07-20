@@ -1,11 +1,13 @@
 unit SimGameLog;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Globals, ComCtrls, ExtCtrls, StdCtrls, Buttons, Grids, JvExGrids,
-  JvStringGrid;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Globals, ComCtrls, ExtCtrls, StdCtrls, Buttons, Grids{, JvExGrids,
+  JvStringGrid};
 
 type
 
@@ -90,9 +92,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses StdPas;
+{uses StdPas;}
 
 procedure TfSimGameLog.FormCreate(Sender: TObject);
 begin

@@ -1,0 +1,114 @@
+object fPlayers: TfPlayers
+  Left = 220
+  Top = 107
+  HelpContext = 410
+  BorderStyle = bsDialog
+  Caption = 'Players'
+  ClientHeight = 362
+  ClientWidth = 191
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object lblName: TLabel
+    Left = 5
+    Top = 80
+    Width = 28
+    Height = 13
+    Caption = 'Name'
+  end
+  object Label3: TLabel
+    Left = 5
+    Top = 120
+    Width = 24
+    Height = 13
+    Caption = 'Color'
+  end
+  object cboPrgFile: TEdisComboDialog
+    Left = 5
+    Top = 95
+    Width = 181
+    Height = 21
+    TabOrder = 5
+    OnCustomDlg = cboPrgFileCustomDlg
+  end
+  object txtName: TEdit
+    Left = 5
+    Top = 95
+    Width = 181
+    Height = 21
+    MaxLength = 15
+    TabOrder = 0
+  end
+  object optTipo: TRadioGroup
+    Left = 5
+    Top = 5
+    Width = 181
+    Height = 71
+    Caption = 'Type'
+    Items.Strings = (
+      'Human'
+      'Computer'
+    )
+    TabOrder = 1
+    OnClick = optTipoClick
+  end
+  object cmdOK: TBitBtn
+    Left = 8
+    Top = 320
+    Width = 76
+    Height = 26
+    DoubleBuffered = True
+    Kind = bkOK
+    ParentDoubleBuffered = False
+    TabOrder = 4
+    OnClick = cmdOKClick
+  end
+  object optCarte: TRadioGroup
+    Left = 5
+    Top = 170
+    Width = 181
+    Height = 96
+    Caption = 'Cards handling'
+    Items.Strings = (
+      'Manual'
+      'Smart'
+      'Full auto'
+    )
+    TabOrder = 2
+  end
+  object chkLog: TCheckBox
+    Left = 5
+    Top = 280
+    Width = 148
+    Height = 17
+    Caption = 'Keep log'
+    TabOrder = 3
+  end
+  object cboColor: TColorBox
+    Left = 5
+    Top = 135
+    Width = 181
+    Height = 22
+    DefaultColorColor = clRed
+    Selected = clRed
+    Style = [cbStandardColors, cbExtendedColors, cbPrettyNames]
+    TabOrder = 6
+    OnChange = cboColorChange
+  end
+  object BitBtn1: TBitBtn
+    Left = 105
+    Top = 320
+    Width = 76
+    Height = 26
+    DoubleBuffered = True
+    Kind = bkCancel
+    ParentDoubleBuffered = False
+    TabOrder = 7
+  end
+end

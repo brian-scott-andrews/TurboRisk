@@ -1,10 +1,12 @@
 unit Sim;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, Globals, ExtCtrls, Buttons, EdisCustom;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, StdCtrls, Globals, ExtCtrls, Buttons{, EdisCustom};
 
 type
   TfSim = class(TForm)
@@ -76,9 +78,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses IniFiles, StrUtils, DateUtils, StdPas, SimRun, SimMap, Stats, Territ,
+uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
   SimCPULog, SimGameLog;
 
 procedure TfSim.FormShow(Sender: TObject);

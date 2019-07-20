@@ -12,11 +12,9 @@ object fPref: TfPref
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
   object tabPref: TPageControl
     Left = 5
     Top = 5
@@ -74,22 +72,22 @@ object fPref: TfPref
         BevelOuter = bvNone
         TabOrder = 2
         object Label1: TLabel
-          Left = 4
-          Top = 37
+          Left = 2
+          Top = 35
           Width = 32
           Height = 13
           Caption = 'Darker'
         end
         object Label2: TLabel
-          Left = 191
-          Top = 37
+          Left = 189
+          Top = 35
           Width = 33
           Height = 13
           Caption = 'Lighter'
         end
         object trbMapHoover: TTrackBar
-          Left = 10
-          Top = 5
+          Left = 8
+          Top = 3
           Width = 206
           Height = 33
           LineSize = 5
@@ -101,8 +99,8 @@ object fPref: TfPref
           OnChange = trbMapHooverChange
         end
         object txtMapHoover: TEdit
-          Left = 96
-          Top = 34
+          Left = 94
+          Top = 32
           Width = 36
           Height = 21
           Alignment = taCenter
@@ -119,22 +117,22 @@ object fPref: TfPref
         BevelOuter = bvNone
         TabOrder = 3
         object Label3: TLabel
-          Left = 4
-          Top = 37
+          Left = 2
+          Top = 35
           Width = 32
           Height = 13
           Caption = 'Darker'
         end
         object Label4: TLabel
-          Left = 191
-          Top = 37
+          Left = 189
+          Top = 35
           Width = 33
           Height = 13
           Caption = 'Lighter'
         end
         object trbMapSelected: TTrackBar
-          Left = 10
-          Top = 5
+          Left = 8
+          Top = 3
           Width = 206
           Height = 33
           LineSize = 5
@@ -146,8 +144,8 @@ object fPref: TfPref
           OnChange = trbMapSelectedChange
         end
         object txtMapSelected: TEdit
-          Left = 96
-          Top = 34
+          Left = 94
+          Top = 32
           Width = 36
           Height = 21
           Alignment = taCenter
@@ -200,7 +198,6 @@ object fPref: TfPref
     Height = 31
     Caption = 'OK'
     Default = True
-    DoubleBuffered = True
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
       0400000000006801000000000000000000001000000000000000000000000000
@@ -219,7 +216,6 @@ object fPref: TfPref
       333A333333333333333338330000333333333333333333333333333333333333
       0000}
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 1
     OnClick = cmdOKClick
   end
@@ -228,9 +224,7 @@ object fPref: TfPref
     Top = 245
     Width = 81
     Height = 31
-    DoubleBuffered = True
     Kind = bkCancel
-    ParentDoubleBuffered = False
     TabOrder = 2
   end
   object cmdResetRules: TBitBtn
@@ -239,7 +233,6 @@ object fPref: TfPref
     Width = 151
     Height = 31
     Caption = 'Reset to default'
-    DoubleBuffered = True
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
       0400000000006801000000000000000000001000000000000000000000000000
@@ -258,7 +251,6 @@ object fPref: TfPref
       3333333333338888883333330000333333333333333333333333333333333333
       0000}
     NumGlyphs = 2
-    ParentDoubleBuffered = False
     TabOrder = 3
     OnClick = cmdResetRulesClick
   end

@@ -12,10 +12,8 @@ object fSplashScreen: TfSplashScreen
   Font.Name = 'Tahoma'
   Font.Style = []
   FormStyle = fsStayOnTop
-  OldCreateOrder = False
   Position = poScreenCenter
   PixelsPerInch = 96
-  TextHeight = 13
   object Panel1: TPanel
     Left = 0
     Top = 0
@@ -32,9 +30,5 @@ object fSplashScreen: TfSplashScreen
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 0
-    ExplicitLeft = 60
-    ExplicitTop = 30
-    ExplicitWidth = 185
-    ExplicitHeight = 41
   end
 end

@@ -1,5 +1,7 @@
 unit Computer;
 
+{$MODE Delphi}
+
 interface
 
 // Esecuzione mossa computer
@@ -7,8 +9,8 @@ procedure EseguiTurnoComputer;
 
 implementation
 
-uses Windows, Forms, Controls, SysUtils, Dialogs,
-  uPSRuntime, uPSUtils, StdPas,
+uses LCLIntf, LCLType, LMessages, Forms, Controls, SysUtils, Dialogs,
+  uPSRuntime, uPSUtils, {StdPas,}
   Main, Globals, Territ, Stats, Log, TRPError, Sim;
 
 var
@@ -109,7 +111,7 @@ begin
   // Preparazione messaggio di errore
   sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Assignment' +
   #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-  // Verifica validit‡ richiesta
+  // Verifica validit√† richiesta
   if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> 0) then
   begin
     sMsg := sMsg + 'Invalid "To" territory';
@@ -170,7 +172,7 @@ begin
     // Preparazione messaggio di errore
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Placement' +
     #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> iTurn)
     then begin
       sMsg := sMsg + 'Invalid "To" territory';
@@ -239,7 +241,7 @@ begin
     'Routine: Occupation' + #13#10 + 'From territory: ' + arTerritory[iFrom]
     .Name + #13#10 + 'To territory: ' + arTerritory[iTo].Name + #13#10 +
     'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if iArmies > arTerritory[iFrom].Army - 1 then begin
       sMsg := sMsg + 'Invalid number of armies';
       ShowError(sMsg);
@@ -310,7 +312,7 @@ begin
       #13#10 + 'From territory: ' + IntToStr(iFrom)
       + #13#10 + 'To territory: ' + IntToStr(iTo)
       + #13#10 + 'Error: ';
-      // Verifica validit‡ richiesta
+      // Verifica validit√† richiesta
       if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
       begin
         sMsg := sMsg + 'Invalid "From" territory';
@@ -410,7 +412,7 @@ begin
     'Routine: Fortification' + #13#10 + 'From territory: ' + IntToStr(iFrom)
     + #13#10 + 'To territory: ' + IntToStr(iTo)
     + #13#10 + 'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
     begin
       sMsg := sMsg + 'Invalid "From" territory';

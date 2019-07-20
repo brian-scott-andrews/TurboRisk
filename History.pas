@@ -1,10 +1,12 @@
 unit History;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Grids, ComCtrls, JvExGrids, JvStringGrid, Contnrs, ExtCtrls,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, Grids, ComCtrls, {JvExGrids, JvStringGrid,} Contnrs, ExtCtrls,
   StdCtrls, Buttons;
 
 type
@@ -63,9 +65,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses Globals, StdPas;
+uses Globals{, StdPas};
 
 procedure TfHistory.FormCreate(Sender: TObject);
 var

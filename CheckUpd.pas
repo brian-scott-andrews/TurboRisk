@@ -1,12 +1,14 @@
 unit CheckUpd;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
-  IdFTP, StdCtrls, IdHTTP, Buttons, CheckLst, ComCtrls, ExtCtrls, OleCtrls,
-  SHDocVw;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, {IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
+  IdFTP,} StdCtrls, {IdHTTP,} Buttons, CheckLst, ComCtrls, ExtCtrls{, OleCtrls,
+  SHDocVw};
 
 type
   TUpdNews = record
@@ -57,9 +59,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses ActiveX, DateUtils, StrUtils, IniFiles, StdPas, Globals;
+uses {ActiveX,} DateUtils, StrUtils, IniFiles, {StdPas,} Globals;
 
 procedure WBLoadHTML(WebBrowser: TWebBrowser; HTMLCode: string);
 var

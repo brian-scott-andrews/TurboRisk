@@ -1,9 +1,11 @@
 unit Move;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Buttons, StdCtrls, ExtCtrls;
 
 type
@@ -45,7 +47,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Main, Territ, Log;
 
@@ -100,7 +102,7 @@ begin
   arTerritory[iTt].Army := iDest;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
+  if arTerritory[iTt].Army=iMinDest then  // Se la situazione Ã¨ quella iniziale
     ModalResult := mrCancel;              // non considero lo spostamento avvenuto
 end;
 
@@ -110,7 +112,7 @@ begin
   arTerritory[iTt].Army := iDest + iProv - 1;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
+  if arTerritory[iTt].Army=iMinDest then  // Se la situazione Ã¨ quella iniziale
     ModalResult := mrCancel;              // non considero lo spostamento avvenuto
 end;
 
@@ -130,7 +132,7 @@ begin
   arTerritory[iTt].Army := iDest;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
+  if arTerritory[iTt].Army=iMinDest then  // Se la situazione Ã¨ quella iniziale
     ModalResult := mrCancel;              // non considero lo spostamento avvenuto
 end;
 

@@ -13,11 +13,9 @@ object fCheckUpd: TfCheckUpd
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
   object Splitter1: TSplitter
     Left = 0
     Top = 209
@@ -34,15 +32,9 @@ object fCheckUpd: TfCheckUpd
     Align = alTop
     BevelOuter = bvLowered
     TabOrder = 0
-    ExplicitLeft = 8
-    ExplicitTop = 8
-    ExplicitWidth = 516
-    DesignSize = (
-      617
-      209)
     object Label2: TLabel
-      Left = 8
-      Top = 17
+      Left = 6
+      Top = 15
       Width = 32
       Height = 13
       Caption = 'News'
@@ -54,27 +46,24 @@ object fCheckUpd: TfCheckUpd
       ParentFont = False
     end
     object Label3: TLabel
-      Left = 412
-      Top = 17
+      Left = 410
+      Top = 15
       Width = 83
       Height = 13
       Anchors = [akTop, akRight]
       Caption = 'Show news since'
-      ExplicitLeft = 395
     end
     object Panel1: TPanel
-      Left = 8
-      Top = 36
+      Left = 6
+      Top = 34
       Width = 601
       Height = 165
       Anchors = [akLeft, akTop, akRight, akBottom]
       BevelOuter = bvLowered
-      Ctl3D = True
-      ParentCtl3D = False
       TabOrder = 0
       object wbrNews: TWebBrowser
-        Left = 1
-        Top = 1
+        Left = 0
+        Top = 0
         Width = 599
         Height = 163
         Align = alClient
@@ -90,8 +79,8 @@ object fCheckUpd: TfCheckUpd
       end
     end
     object txtLastDate: TDateTimePicker
-      Left = 507
-      Top = 9
+      Left = 505
+      Top = 7
       Width = 101
       Height = 21
       Anchors = [akTop, akRight]
@@ -118,8 +107,8 @@ object fCheckUpd: TfCheckUpd
       617
       424)
     object Label1: TLabel
-      Left = 8
-      Top = 6
+      Left = 6
+      Top = 4
       Width = 27
       Height = 13
       Caption = 'Files'
@@ -131,8 +120,8 @@ object fCheckUpd: TfCheckUpd
       ParentFont = False
     end
     object lstUpdates: TListView
-      Left = 9
-      Top = 25
+      Left = 7
+      Top = 23
       Width = 599
       Height = 337
       Anchors = [akLeft, akTop, akRight, akBottom]
@@ -158,8 +147,8 @@ object fCheckUpd: TfCheckUpd
       ExplicitHeight = 293
     end
     object panStatus: TPanel
-      Left = 9
-      Top = 393
+      Left = 7
+      Top = 391
       Width = 436
       Height = 27
       Alignment = taLeftJustify
@@ -171,8 +160,8 @@ object fCheckUpd: TfCheckUpd
       ExplicitTop = 390
     end
     object prbProgress: TProgressBar
-      Left = 8
-      Top = 368
+      Left = 6
+      Top = 366
       Width = 600
       Height = 26
       Anchors = [akLeft, akRight, akBottom]
@@ -181,8 +170,8 @@ object fCheckUpd: TfCheckUpd
       ExplicitTop = 365
     end
     object prbDownload: TProgressBar
-      Left = 451
-      Top = 393
+      Left = 449
+      Top = 391
       Width = 157
       Height = 26
       Anchors = [akRight, akBottom]
@@ -191,8 +180,8 @@ object fCheckUpd: TfCheckUpd
       ExplicitTop = 390
     end
     object cmdCancel: TBitBtn
-      Left = 513
-      Top = 375
+      Left = 511
+      Top = 373
       Width = 96
       Height = 36
       Anchors = [akRight, akBottom]
@@ -205,8 +194,8 @@ object fCheckUpd: TfCheckUpd
       ExplicitTop = 355
     end
     object cmdUpdate: TBitBtn
-      Left = 8
-      Top = 375
+      Left = 6
+      Top = 373
       Width = 156
       Height = 36
       Anchors = [akLeft, akBottom]

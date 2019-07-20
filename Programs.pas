@@ -1,9 +1,11 @@
 unit Programs;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CheckLst, Buttons;
 
 type
@@ -29,9 +31,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses StdPas, Players, Globals;
+uses {StdPas,} Players, Globals;
 
 procedure TfPrograms.FormShow(Sender: TObject);
 var

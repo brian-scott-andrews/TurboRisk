@@ -1,9 +1,11 @@
 unit Cards;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, Buttons, checklst;
 
 type
@@ -32,7 +34,7 @@ var
 // Assegna una nuova carta al giocatore di turno
 procedure PescaCarta;
 
-// Verifica la validit‡ e il valore di una combinazione di carte
+// Verifica la validit√† e il valore di una combinazione di carte
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 
 // Valuta la migliore combinazione per il giocatore di turno
@@ -40,7 +42,7 @@ function CercaCombinazioneMigliore(var iInf, iCav, iArt, iJok: integer): boolean
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Stats;
 
@@ -155,7 +157,7 @@ begin
   end;
 end;
 
-// Verifica la validit‡ e il valore di una combinazione di carte
+// Verifica la validit√† e il valore di una combinazione di carte
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 begin
   Result := -1;  // combinazione non possibile

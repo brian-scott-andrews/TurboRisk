@@ -1,9 +1,11 @@
 unit Pref;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, Buttons, ExtCtrls, CheckLst;
 
 type
@@ -51,7 +53,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 uses Globals, Main, Territ;
 

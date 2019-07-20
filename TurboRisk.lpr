@@ -1,7 +1,9 @@
 program TurboRisk;
 
+{$MODE Delphi}
+
 uses
-  Forms,
+  Forms, Interfaces,
   {HTMLHElpViewerMario,}
   SimMap in 'SimMap.pas' {fSimMap},
   Globals in 'Globals.pas',
@@ -28,7 +30,7 @@ uses
   UDialog in 'UDialog.pas' {fUDialog},
   Main in 'Main.pas' {fMain};
 
-{$R *.RES}
+{.$R *.RES}
 
 begin
   fSplashScreen := TfSplashScreen.Create(Application) ;

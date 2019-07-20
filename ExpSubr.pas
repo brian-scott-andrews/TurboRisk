@@ -1,5 +1,7 @@
 unit ExpSubr;
 
+{$MODE Delphi}
+
 // Routines rese disponibili all'interprete
 
 interface
@@ -70,7 +72,7 @@ implementation
 uses Clipbrd, SysUtils, Classes, Dialogs, Globals, Territ, Log, Stats, UDialog;
 
 type
-  TPrioCont = array [0 .. 5] of record // Lista priorit‡ conquista continenti
+  TPrioCont = array [0 .. 5] of record // Lista priorit√† conquista continenti
   Cont: TContId;
 Valore :
 double;

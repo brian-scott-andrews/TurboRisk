@@ -13,12 +13,10 @@ object fHistory: TfHistory
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
   Font.Style = []
-  OldCreateOrder = False
   Position = poDesigned
   OnCreate = FormCreate
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
   object pagHistory: TPageControl
     Left = 0
     Top = 0
@@ -147,8 +145,8 @@ object fHistory: TfHistory
         BevelOuter = bvNone
         TabOrder = 3
         object lblAnalyze: TLabel
-          Left = 45
-          Top = 25
+          Left = 43
+          Top = 23
           Width = 321
           Height = 13
           Alignment = taCenter
@@ -156,16 +154,16 @@ object fHistory: TfHistory
           Caption = 'Results of direct fights between P1 and P2'
         end
         object lblPlayer1: TLabel
-          Left = 45
-          Top = 75
+          Left = 43
+          Top = 73
           Width = 321
           Height = 13
           AutoSize = False
           Caption = 'P1 won X times (x%)'
         end
         object lblPlayer2: TLabel
-          Left = 45
-          Top = 95
+          Left = 43
+          Top = 93
           Width = 321
           Height = 13
           Alignment = taRightJustify
@@ -173,8 +171,8 @@ object fHistory: TfHistory
           Caption = 'P2 won X times (x%)'
         end
         object prbPlayer2: TProgressBar
-          Left = 370
-          Top = 10
+          Left = 368
+          Top = 8
           Width = 36
           Height = 176
           Orientation = pbVertical
@@ -183,8 +181,8 @@ object fHistory: TfHistory
           TabOrder = 0
         end
         object prbPlayer1: TProgressBar
-          Left = 5
-          Top = 10
+          Left = 3
+          Top = 8
           Width = 36
           Height = 176
           Orientation = pbVertical

@@ -1,8 +1,10 @@
 unit Globals;
 
+{$MODE Delphi}
+
 interface
 
-uses Windows, Graphics, Classes, uPSRuntime;
+uses LCLIntf, LCLType, LMessages, Graphics, Classes, uPSRuntime;
 
 const
   VERSION = '2.0.5'; // TurboRisk
@@ -81,7 +83,7 @@ type
     NewArmy: integer; // Armies to be placed
     Territ: integer; // Number of owned territories
     Cards: array [TCard] of integer; // Count of the owned cards (number of cards per kind)
-    NScambi: integer; // N° scambi carte effettuati
+    NScambi: integer; // NÂ° scambi carte effettuati
     FlConq: boolean; // Flag, true if the player conquered at least one territory during the turn
     FlMove: boolean; // Flag, true if the player performed at leaste one troops move during the turn
     LastTurn, // last turn played by the player
@@ -1175,9 +1177,9 @@ begin
   with arPlayer[iTurn] do begin
     // Log
     if KeepLog then
-      ScriviLog('Cards in hand: ' + IntToStr(Cards[caInf]) + '×Inf ' + IntToStr
-        (Cards[caCav]) + '×Cav ' + IntToStr(Cards[caArt]) + '×Art ' + IntToStr
-        (Cards[caJok]) + '×Jok');
+      ScriviLog('Cards in hand: ' + IntToStr(Cards[caInf]) + 'Ã—Inf ' + IntToStr
+        (Cards[caCav]) + 'Ã—Cav ' + IntToStr(Cards[caArt]) + 'Ã—Art ' + IntToStr
+        (Cards[caJok]) + 'Ã—Jok');
     if not bCardsOnly then begin
       // armies from count of territories
       iArmyTer := Territ div 3;

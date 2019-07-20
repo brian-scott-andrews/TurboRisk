@@ -10,13 +10,11 @@ object fSimGameLog: TfSimGameLog
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   OnClose = FormClose
   OnCreate = FormCreate
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
   object pgcLog: TPageControl
     Left = 0
     Top = 0
@@ -27,7 +25,6 @@ object fSimGameLog: TfSimGameLog
     TabOrder = 0
     object tbsGames: TTabSheet
       Caption = 'Games'
-      ExplicitWidth = 455
       object lstGames: TListView
         Left = 0
         Top = 0
@@ -66,8 +63,6 @@ object fSimGameLog: TfSimGameLog
         TabOrder = 0
         ViewStyle = vsReport
         OnSelectItem = lstGamesSelectItem
-        ExplicitWidth = 455
-        ExplicitHeight = 255
       end
       object Panel1: TPanel
         Left = 0
@@ -111,15 +106,12 @@ object fSimGameLog: TfSimGameLog
           ReadOnly = True
           TabOrder = 0
           ViewStyle = vsReport
-          ExplicitWidth = 455
-          ExplicitHeight = 192
         end
       end
     end
     object tbsRanking: TTabSheet
       Caption = 'Summary'
       ImageIndex = 1
-      ExplicitWidth = 455
       object grdRanking: TJvStringGrid
         Left = 0
         Top = 0
@@ -147,7 +139,7 @@ object fSimGameLog: TfSimGameLog
       end
     end
     object tbsAnalysis: TTabSheet
-      Caption = 'Player'#39's analysis'
+      Caption = 'Player''s analysis'
       ImageIndex = 2
       ExplicitWidth = 455
       DesignSize = (

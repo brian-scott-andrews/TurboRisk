@@ -1,12 +1,14 @@
 unit Main;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Menus, ExtCtrls, StdCtrls, ComCtrls, JvComponentBase, JvPropertyStore,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Menus, ExtCtrls, StdCtrls, ComCtrls, {JvComponentBase, JvPropertyStore,
   JvProgramVersionCheck, IdAntiFreezeBase, IdAntiFreeze, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdFTP, ImgList, ToolWin;
+  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin;
 
 type
   TfMain = class(TForm)
@@ -101,9 +103,9 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
-uses ShellAPI, Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
+uses Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
   Readme,
   About, ExpSubr, Map, History, CheckUpd, Pref, SplashScreen;
 
@@ -292,16 +294,14 @@ end;
 
 procedure TfMain.mnuHelGroupClick(Sender: TObject);
 begin
-  ShellExecute(0, nil, pChar(
-      'http://groups.google.com/group/turborisk'), nil,
-    nil, sw_ShowNormal);
+  OpenURL(pChar(
+      'http://groups.google.com/group/turborisk')); { *Converted from ShellExecute* }
 end;
 
 procedure TfMain.mnuHelHomepageClick(Sender: TObject);
 begin
-  ShellExecute(0, nil, pChar(
-      'http://www.marioferrari.org/freeware/turborisk/turborisk.html'), nil,
-    nil, sw_ShowNormal);
+  OpenURL(pChar(
+      'http://www.marioferrari.org/freeware/turborisk/turborisk.html')); { *Converted from ShellExecute* }
 end;
 
 procedure TfMain.imgMapMouseMove(Sender: TObject; Shift: TShiftState;

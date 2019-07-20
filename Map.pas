@@ -1,11 +1,13 @@
 unit Map;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Buttons, JvExExtCtrls, JvImage,
-  JvBaseThumbnail, JvThumbImage;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Buttons{, JvExExtCtrls, JvImage,
+  JvBaseThumbnail, JvThumbImage};
 
 type
   TfMap = class(TForm)
@@ -39,7 +41,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 uses Globals, IniFiles, Territ;
 

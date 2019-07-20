@@ -1,5 +1,7 @@
 unit Territ;
 
+{$MODE Delphi}
+
 interface
 
 // Load a map from file
@@ -26,7 +28,7 @@ procedure CollocaArmata(iT, iG, iArmies: integer);
 // Verifica se due territori sono confinanti
 function Confinante(iFrom, iTo: integer): boolean;
 
-// Verifica se un territorio Ë proprio e confina con territori nemici
+// Verifica se un territorio √® proprio e confina con territori nemici
 function Confine(iT: integer): boolean;
 
 implementation
@@ -545,7 +547,7 @@ begin
     // Se apparteneva ad un altro giocatore, riduco il suo numero di territori posseduti
     if Owner > 0 then
       dec(arPlayer[Owner].Territ);
-    // Assegno la propriet‡
+    // Assegno la propriet√†
     Owner := iG;
     // Incremento il contatore di territori posseduti
     inc(arPlayer[iG].Territ);
@@ -597,7 +599,7 @@ begin
   Result := false;
 end;
 
-// Verifica se un territorio Ë proprio e confina con territori nemici
+// Verifica se un territorio √® proprio e confina con territori nemici
 function Confine(iT: integer): boolean;
 var
   iC: integer;
