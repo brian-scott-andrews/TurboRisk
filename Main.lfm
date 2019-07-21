@@ -168,14 +168,6 @@ object fMain: TfMain
       ImageIndex = 10
       OnClick = mnuOptPrefClick
     end
-    object cmdHelp: TToolButton
-      Left = 352
-      Top = 0
-      Hint = 'Help'
-      Caption = 'Help'
-      ImageIndex = 11
-      OnClick = mnuHelReadmeClick
-    end
     object cmdHomePage: TToolButton
       Left = 384
       Top = 0
@@ -183,14 +175,6 @@ object fMain: TfMain
       Caption = 'Home page'
       ImageIndex = 12
       OnClick = mnuHelHomepageClick
-    end
-    object cmdUpdate: TToolButton
-      Left = 416
-      Top = 0
-      Hint = 'Check for updates'
-      Caption = 'Update'
-      ImageIndex = 13
-      OnClick = mnuHelCheckUpdatesClick
     end
     object cmdAbout: TToolButton
       Left = 448
@@ -229,7 +213,6 @@ object fMain: TfMain
       Hint = 'End turn (space bar)'
       Caption = 'End turn'
       ImageIndex = 15
-      Style = tbsTextButton
       OnClick = cmdEndTurnClick
     end
   end
@@ -300,11 +283,6 @@ object fMain: TfMain
     end
     object mnuHel: TMenuItem
       Caption = '&Help'
-      object mnuHelReadme: TMenuItem
-        Caption = '&Users guide'
-        ShortCut = 112
-        OnClick = mnuHelReadmeClick
-      end
       object N2: TMenuItem
         Caption = '-'
       end
@@ -319,22 +297,10 @@ object fMain: TfMain
       object N5: TMenuItem
         Caption = '-'
       end
-      object mnuHelCheckUpdates: TMenuItem
-        Caption = 'Check for news && updates...'
-        OnClick = mnuHelCheckUpdatesClick
-      end
       object N3: TMenuItem
         Caption = '-'
       end
-      object mnuHelAbout: TMenuItem
-        Caption = '&About...'
-        OnClick = mnuHelAboutClick
-      end
     end
-  end
-  object idAntiFreeze: TIdAntiFreeze
-    Left = 510
-    Top = 50
   end
   object dlgOpen: TOpenDialog
     HelpContext = 240
@@ -355,7 +321,6 @@ object fMain: TfMain
     Top = 145
   end
   object imlButtons: TImageList
-    ColorDepth = cd32Bit
     BlendColor = clBlack
     Height = 24
     Width = 24
@@ -1856,7 +1821,6 @@ object fMain: TfMain
     }
   end
   object imlDisButtons: TImageList
-    ColorDepth = cd32Bit
     Height = 24
     Width = 24
     Left = 570

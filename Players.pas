@@ -5,7 +5,7 @@ unit Players;
 interface
 
 uses
-  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ColorBox,
   StdCtrls, Buttons, ExtCtrls{, EdisCustom};
 
 type
@@ -17,7 +17,7 @@ type
     cmdOK: TBitBtn;
     optCarte: TRadioGroup;
     chkLog: TCheckBox;
-    cboPrgFile: TEdisComboDialog;
+    cboPrgFile: TComboBox;
     cboColor: TColorBox;
     BitBtn1: TBitBtn;
     procedure FormShow(Sender: TObject);

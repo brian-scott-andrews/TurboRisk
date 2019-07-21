@@ -12,9 +12,7 @@ object fSimRun: TfSimRun
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   PixelsPerInch = 96
-  TextHeight = 13
   object Label1: TLabel
     Left = 8
     Top = 13
@@ -72,8 +70,6 @@ object fSimRun: TfSimRun
     Width = 130
     Height = 54
     Caption = 'Stop simulation'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 2
     OnClick = cmdStopClick
   end
@@ -128,8 +124,6 @@ object fSimRun: TfSimRun
     Width = 130
     Height = 54
     Caption = 'Abort current game'
-    DoubleBuffered = True
-    ParentDoubleBuffered = False
     TabOrder = 7
     OnClick = cmdAbortGameClick
   end

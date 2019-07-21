@@ -15,7 +15,7 @@ type
     cmdDump: TBitBtn;
     cmdHelp: TBitBtn;
     cmdQuit: TBitBtn;
-    procedure cmdHelpClick(Sender: TObject);
+{    procedure cmdHelpClick(Sender: TObject);}
   private
     { Private declarations }
   public
@@ -28,10 +28,10 @@ var
 implementation
 
 {$R *.lfm}
-
+{
 procedure TfTRPError.cmdHelpClick(Sender: TObject);
 begin
   Application.HelpSystem.ShowContextHelp(fTRPError.HelpContext,Application.HelpFile);
 end;
-
+           }
 end.

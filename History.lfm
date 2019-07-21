@@ -45,7 +45,7 @@ object fHistory: TfHistory
     object tbsRanking: TTabSheet
       Caption = 'Ranking'
       ImageIndex = 1
-      object grdRanking: TJvStringGrid
+      object grdRanking: TStringGrid
         Left = 0
         Top = 0
         Width = 574
@@ -61,13 +61,7 @@ object fHistory: TfHistory
         ScrollBars = ssVertical
         TabOrder = 0
         OnDrawCell = grdRankingDrawCell
-        Alignment = taCenter
-        FixedFont.Charset = DEFAULT_CHARSET
-        FixedFont.Color = clWindowText
-        FixedFont.Height = -11
-        FixedFont.Name = 'MS Sans Serif'
-        FixedFont.Style = []
-        OnCaptionClick = grdRankingCaptionClick
+        OnClick = grdRankingCaptionClick
       end
     end
     object tbsCompare: TTabSheet

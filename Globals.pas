@@ -490,7 +490,8 @@ begin
   Randomize;
 
   // get the frequency of the high-resolution performance counter
-  QueryPerformanceFrequency(iPerformanceFrequency);
+  iPerformanceFrequency:=1;//SysUtils.GetTickCount64();
+//  QueryPerformanceFrequency(iPerformanceFrequency);
   if iPerformanceFrequency = 0 then
     iPerformanceFrequency := 1;
 
@@ -871,7 +872,7 @@ begin
   ScriptExec.RegisterDelphiFunction(@URandom, 'URANDOM', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UTakeSnapshot, 'UTAKESNAPSHOT',
     cdRegister);
-  ScriptExec.RegisterDelphiFunction(@UDialog, 'UDIALOG', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@UDialogO, 'UDIALOGO', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UAbortGame, 'UABORTGAME', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOff, 'ULOGOFF', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOn, 'ULOGON', cdRegister);

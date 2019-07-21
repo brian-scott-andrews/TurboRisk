@@ -29,13 +29,13 @@ object fPlayers: TfPlayers
     Height = 13
     Caption = 'Color'
   end
-  object cboPrgFile: TEdisComboDialog
+  object cboPrgFile: TComboBox
     Left = 5
     Top = 95
     Width = 181
     Height = 21
     TabOrder = 5
-    OnCustomDlg = cboPrgFileCustomDlg
+    OnClick = cboPrgFileCustomDlg
   end
   object txtName: TEdit
     Left = 5

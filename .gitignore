@@ -1,3 +1,9 @@
+*.o
+*.or
+TurboRisk
+backup
+*.ppu
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

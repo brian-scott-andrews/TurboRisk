@@ -24,7 +24,7 @@ type
     tbsHistory: TTabSheet;
     lstHistory: TListView;
     tbsRanking: TTabSheet;
-    grdRanking: TJvStringGrid;
+    grdRanking: TStringGrid;
     tbsCompare: TTabSheet;
     cboPlayer1: TComboBox;
     Label1: TLabel;
@@ -40,9 +40,10 @@ type
     lblAnalyze: TLabel;
     lblPlayer1: TLabel;
     lblPlayer2: TLabel;
+    function SplitStr(var theString: string; delimiter: string): string;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure grdRankingCaptionClick(Sender: TJvStringGrid;
+    procedure grdRankingCaptionClick(Sender: TStringGrid;
       AColumn, ARow: integer);
     procedure grdRankingDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
@@ -116,6 +117,27 @@ begin
     ColWidths[5] := 70;
   end;
   iSortCol := 0;
+end;
+
+function TfHistory.SplitStr(var theString: string; delimiter: string): string;
+var
+  i: integer;
+begin
+  Result:= '';
+  if theString <> '' then
+  begin
+    i:= Pos(delimiter, theString);
+    if i > 0 then
+    begin
+       Result:= Copy(theString, 1, i-1);
+       theString:= Copy(theString, i+Length(delimiter), maxLongInt);
+    end
+    else
+    begin
+       Result:= theString;
+       theString:= '';
+    end;
+  end;
 end;
 
 procedure TfHistory.FormShow(Sender: TObject);
@@ -219,7 +241,7 @@ begin
       end;
       if RowCount > 1 then
         FixedRows := 1;
-      SortGrid(0, true);
+//      SortGrid(0, true);
       iSortCol := 0;
     end;
     // load compare combos
@@ -280,16 +302,16 @@ begin
   result := -1;
 end;
 
-procedure TfHistory.grdRankingCaptionClick(Sender: TJvStringGrid;
+procedure TfHistory.grdRankingCaptionClick(Sender: TStringGrid;
   AColumn, ARow: integer);
 begin
   Screen.Cursor := crHourGlass;
-  with (Sender as TJvStringGrid) do begin
+  with (Sender as TStringGrid) do begin
     iSortCol := AColumn;
-    if AColumn = 0 then
+{    if AColumn = 0 then
       SortGrid(0, true)
     else
-      SortGrid(AColumn, false, false, stNumeric, false);
+      SortGrid(AColumn, false, false, stNumeric, false);    }
     if RowCount > 0 then
       Row := 1
     else

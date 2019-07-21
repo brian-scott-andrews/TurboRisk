@@ -5,7 +5,7 @@ unit Map;
 interface
 
 uses
-  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,   ImgList,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, Buttons{, JvExExtCtrls, JvImage,
   JvBaseThumbnail, JvThumbImage};
 
@@ -126,7 +126,7 @@ begin
       // load bitmap and compute ratio
       bmp.LoadFromFile(sBmpFile);
       // stretch it into preview
-      SetStretchBltMode(imgMapPreview.Canvas.Handle, Stretch_Halftone);  // improve strech quality
+      SetStretchBltMode(imgMapPreview.Canvas.Handle, HALFTONE);  // improve strech quality
       StretchBlt(imgMapPreview.Canvas.Handle, 0, 0, imgMapPreview.Width, imgMapPreview.Height, bmp.Canvas.Handle, 0, 0, bmp.Width, bmp.Height, SrcCopy);
       imgMapPreview.Refresh;
       // update controls

@@ -112,7 +112,7 @@ object fSimGameLog: TfSimGameLog
     object tbsRanking: TTabSheet
       Caption = 'Summary'
       ImageIndex = 1
-      object grdRanking: TJvStringGrid
+      object grdRanking: TStringGrid
         Left = 0
         Top = 0
         Width = 682

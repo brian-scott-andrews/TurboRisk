@@ -240,21 +240,21 @@ object fSim: TfSim
           Height = 13
           Caption = 'CPU usage log'
         end
-        object txtGameLogFile: TEdisComboDialog
+        object txtGameLogFile: TComboBox
           Left = 8
           Top = 24
           Width = 274
           Height = 21
           TabOrder = 0
-          OnCustomDlg = txtGameLogFileCustomDlg
+          OnClick = txtGameLogFileCustomDlg
         end
-        object txtCPULogFile: TEdisComboDialog
+        object txtCPULogFile: TComboBox
           Left = 8
           Top = 74
           Width = 274
           Height = 21
           TabOrder = 1
-          OnCustomDlg = txtCPULogFileCustomDlg
+          OnClick = txtCPULogFileCustomDlg
         end
       end
       object GroupBox3: TGroupBox

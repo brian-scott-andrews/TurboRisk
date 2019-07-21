@@ -16,6 +16,7 @@ type
     cmdB3: TButton;
     cmdB4: TButton;
     cmdB5: TButton;
+    function SplitStr(var theString: string; delimiter: string): string;
     procedure cmdBClick(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
@@ -35,6 +36,29 @@ implementation
 {$R *.lfm}
 
 {uses StdPas;}
+
+function TfuDialog.SplitStr(var theString: string; delimiter: string): string;
+var
+  i: integer;
+begin
+  Result:= '';
+  if theString <> '' then
+  begin
+    i:= Pos(delimiter, theString);
+    if i > 0 then
+    begin
+       Result:= Copy(theString, 1, i-1);
+       theString:= Copy(theString, i+Length(delimiter), maxLongInt);
+    end
+    else
+    begin
+       Result:= theString;
+       theString:= '';
+    end;
+  end;
+end;
+
+
 
 procedure TfUDialog.FormShow(Sender: TObject);
 var

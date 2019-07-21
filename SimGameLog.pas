@@ -50,22 +50,23 @@ type
     Panel1: TPanel;
     lstPlayers: TListView;
     tbsRanking: TTabSheet;
-    grdRanking: TJvStringGrid;
+    grdRanking: TStringGrid;
     tbsAnalysis: TTabSheet;
     cboPlayer: TComboBox;
     Label1: TLabel;
-    grdAnalysis: TJvStringGrid;
+    grdAnalysis: TStringGrid;
+    function  SplitStr(var theString: string; delimiter: string): string;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
     procedure lstGamesSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
     procedure FormCreate(Sender: TObject);
-    procedure grdRankingCaptionClick(Sender: TJvStringGrid;
+    procedure grdRankingCaptionClick(Sender: TStringGrid;
       AColumn, ARow: integer);
     procedure grdRankingDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
-    procedure grdAnalysisCaptionClick(Sender: TJvStringGrid;
+    procedure grdAnalysisCaptionClick(Sender: TStringGrid;
       AColumn, ARow: integer);
     procedure grdAnalysisDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
@@ -95,6 +96,27 @@ implementation
 {$R *.lfm}
 
 {uses StdPas;}
+
+function TfSimGameLog.SplitStr(var theString: string; delimiter: string): string;
+var
+  i: integer;
+begin
+  Result:= '';
+  if theString <> '' then
+  begin
+    i:= Pos(delimiter, theString);
+    if i > 0 then
+    begin
+       Result:= Copy(theString, 1, i-1);
+       theString:= Copy(theString, i+Length(delimiter), maxLongInt);
+    end
+    else
+    begin
+       Result:= theString;
+       theString:= '';
+    end;
+  end;
+end;
 
 procedure TfSimGameLog.FormCreate(Sender: TObject);
 begin
@@ -164,11 +186,11 @@ begin
   fSimGameLog := nil;
 end;
 
-procedure TfSimGameLog.grdAnalysisCaptionClick(Sender: TJvStringGrid;
+procedure TfSimGameLog.grdAnalysisCaptionClick(Sender: TStringGrid;
   AColumn, ARow: integer);
 begin
   Screen.Cursor := crHourGlass;
-  with (Sender as TJvStringGrid) do begin
+{  with (Sender as TStringGrid) do begin
     iSortCol2 := AColumn;
     case AColumn of
       0:
@@ -182,7 +204,7 @@ begin
       Row := 1
     else
       Row := 0;
-  end;
+  end;           }
   Screen.Cursor := crDefault;
 end;
 
@@ -215,11 +237,11 @@ begin
   end;
 end;
 
-procedure TfSimGameLog.grdRankingCaptionClick(Sender: TJvStringGrid;
+procedure TfSimGameLog.grdRankingCaptionClick(Sender: TStringGrid;
   AColumn, ARow: integer);
 begin
   Screen.Cursor := crHourGlass;
-  with (Sender as TJvStringGrid) do begin
+{  with (Sender as TStringGrid) do begin
     iSortCol := AColumn;
     case AColumn of
       0:
@@ -233,7 +255,7 @@ begin
       Row := 1
     else
       Row := 0;
-  end;
+  end;             }
   Screen.Cursor := crDefault;
 end;
 
@@ -308,7 +330,7 @@ begin
   iTotGames := 0;
   // open history file
   if not FileExists(sG_AppPath + sLogFileName) then begin
-    MsgErr('Log file "' + sLogFileName + '" not found.');
+    ShowMessage('Log file "' + sLogFileName + '" not found.');
     exit;
   end;
   AssignFile(fHistory, sG_AppPath + sLogFileName);
@@ -435,7 +457,7 @@ begin
     end;
     if RowCount > 1 then
       FixedRows := 1;
-    SortGrid(0, true);
+    {SortGrid(0, true);  }
     iSortCol := 0;
   end;
   // populate player's combo
@@ -480,7 +502,7 @@ begin
     end;
     if RowCount > 1 then
       FixedRows := 1;
-    SortGrid(0, true);
+    {SortGrid(0, true); }
     iSortCol2 := 0;
   end;
 end;

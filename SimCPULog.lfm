@@ -10,13 +10,11 @@ object fSimCPULog: TfSimCPULog
   Font.Height = -11
   Font.Name = 'Tahoma'
   Font.Style = []
-  OldCreateOrder = False
   Position = poScreenCenter
   OnClose = FormClose
   OnDestroy = FormDestroy
   OnShow = FormShow
   PixelsPerInch = 96
-  TextHeight = 13
   object Panel1: TPanel
     Left = 0
     Top = 365
@@ -25,7 +23,6 @@ object fSimCPULog: TfSimCPULog
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 0
-    ExplicitWidth = 548
     object lstDetail: TListView
       Left = 0
       Top = 0
@@ -66,7 +63,6 @@ object fSimCPULog: TfSimCPULog
       ReadOnly = True
       TabOrder = 0
       ViewStyle = vsReport
-      ExplicitWidth = 548
     end
   end
   object lstSummary: TListView
@@ -111,6 +107,5 @@ object fSimCPULog: TfSimCPULog
     TabOrder = 1
     ViewStyle = vsReport
     OnSelectItem = lstSummarySelectItem
-    ExplicitWidth = 497
   end
 end

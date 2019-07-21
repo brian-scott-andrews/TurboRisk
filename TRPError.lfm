@@ -60,15 +60,6 @@ object fTRPError: TfTRPError
     NumGlyphs = 2
     TabOrder = 2
   end
-  object cmdHelp: TBitBtn
-    Left = 290
-    Top = 190
-    Width = 56
-    Height = 31
-    Kind = bkHelp
-    TabOrder = 3
-    OnClick = cmdHelpClick
-  end
   object cmdQuit: TBitBtn
     Left = 195
     Top = 190

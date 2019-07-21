@@ -521,7 +521,7 @@ begin
     end;
     ColoPrec := Canvas.Pixels[Orig[1].X, Orig[1].Y];
     for iOrig := 1 to NOrig do
-      Canvas.FloodFill(Orig[iOrig].X, Orig[iOrig].Y, ColoPrec, fsSurface);
+      Canvas.FloodFill(Orig[iOrig].X, Orig[iOrig].Y, ColoPrec, TFillStyle.fsSurface);  //fsSurface
 
     // Armies
     Canvas.Font.Name := sMapFontName;

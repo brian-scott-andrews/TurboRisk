@@ -6,6 +6,8 @@ interface
 
 // Esecuzione mossa computer
 procedure EseguiTurnoComputer;
+function strTran(ctext, cfor, cwith: string): string;
+
 
 implementation
 
@@ -19,7 +21,25 @@ var
   tParamToTerritory, tParamFromTerritory, tParamArmies: PPSVariant;
   tParamList: TPSList; // The parameter list
 
-  iStartTime, iEndTime: Int64; // CPU timing for TRSim
+  iStartTime, iEndTime: QWord; // CPU timing for TRSim
+
+{ Character by Character String Replacement }
+function StrTran(ctext, cfor, cwith: string): string;
+  var
+     ntemp  : word  ;
+     nreplen: word  ;
+  begin
+     cfor    := upperCase(cfor)   ;
+     nreplen := length(cfor)      ;
+     for ntemp := 1 to length(ctext) do begin
+        if (upperCase(copy(ctext, ntemp, nreplen)) = cfor) then
+        begin
+           delete(ctext, ntemp, nreplen);
+           insert(cwith, ctext, ntemp);
+        end;
+     end;
+     result := ctext;
+end;
 
 procedure ShowError(sMsg: string);
 begin
@@ -65,7 +85,7 @@ begin
   inc(arPlayer[iTurn].aCPU[uRoutine].iPhases);
 end;
 
-procedure CPU_Call(uRoutine: TRoutine; iTicks: Int64);
+procedure CPU_Call(uRoutine: TRoutine; iTicks: QWord);
 begin
   arPlayer[iTurn].aCPU[uRoutine].iTime := arPlayer[iTurn].aCPU[uRoutine]
   .iTime + iTicks;
@@ -92,9 +112,11 @@ begin
   // run the script
   try
     CPU_Phase(rtAssignment);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ASSIGNMENT'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := gettickcount64;
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtAssignment, iEndTime - iStartTime);
     // get back value of var parameters
     iTo := VGetInt(tParamToTerritory);
@@ -154,9 +176,11 @@ begin
       tParamList.Clear;
       tParamList.Add(tParamToTerritory);
       // run the script
-      QueryPerformanceCounter(iStartTime); // get initial time
+      iStartTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('PLACEMENT'));
-      QueryPerformanceCounter(iEndTime); // get final time
+      iEndTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtPlacement, iEndTime - iStartTime);
       // get back value of var parameters
       iTo := VGetInt(tParamToTerritory);
@@ -218,9 +242,11 @@ begin
   try
     // run script
     CPU_Phase(rtOccupation);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('OCCUPATION'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtOccupation, iEndTime - iStartTime);
     // get back value of var parameters
     iArmies := VGetInt(tParamArmies);
@@ -288,9 +314,11 @@ begin
       tParamList.Add(tParamToTerritory);
       tParamList.Add(tParamFromTerritory);
       // run the script
-      QueryPerformanceCounter(iStartTime); // get initial time
+      iStartTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ATTACK'));
-      QueryPerformanceCounter(iEndTime); // get final time
+      iEndTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtAttack, iEndTime - iStartTime);
       // get back value of var parameters
       iFrom := VGetInt(tParamFromTerritory);
@@ -388,9 +416,11 @@ begin
   try
     // run the script
     CPU_Phase(rtFortification);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('FORTIFICATION'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtFortification, iEndTime - iStartTime);
     // get back value of var parameters
     iFrom := VGetInt(tParamFromTerritory);

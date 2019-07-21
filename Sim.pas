@@ -35,10 +35,10 @@ type
     cboMap: TComboBox;
     Label1: TLabel;
     GroupBox2: TGroupBox;
-    txtGameLogFile: TEdisComboDialog;
+    txtGameLogFile: TComboBox;
     Label4: TLabel;
     Label5: TLabel;
-    txtCPULogFile: TEdisComboDialog;
+    txtCPULogFile: TComboBox;
     GroupBox3: TGroupBox;
     txtTurnLimit: TEdit;
     Label10: TLabel;
@@ -48,8 +48,8 @@ type
     dlgOpenLogFile: TOpenDialog;
     Label13: TLabel;
     Label14: TLabel;
-    txtGameLogFile2: TEdisComboDialog;
-    txtCPULogFile2: TEdisComboDialog;
+    txtGameLogFile2: TComboBox;
+    txtCPULogFile2: TComboBox;
     cmdAnalyseGameLog: TBitBtn;
     cmdAnalyseCPULog: TBitBtn;
     procedure FormShow(Sender: TObject);
@@ -125,7 +125,7 @@ begin
   dlgOpenLogFile.DefaultExt := 'sgl';
   dlgOpenLogFile.FileName := '*.sgl';
   dlgOpenLogFile.Filter := 'TRSim Game Log|sgl';
-  if dlgOpenLogFile.Execute then begin (Sender as TEdisComboDialog)
+  if dlgOpenLogFile.Execute then begin (Sender as TComboBox) //TEdisComboDialog)
     .Text := ExtractFileName(dlgOpenLogFile.FileName);
   end;
 end;
@@ -136,7 +136,7 @@ begin
   dlgOpenLogFile.DefaultExt := 'scl';
   dlgOpenLogFile.FileName := '*.scl';
   dlgOpenLogFile.Filter := 'TRSim CPU Log|scl';
-  if dlgOpenLogFile.Execute then begin (Sender as TEdisComboDialog)
+  if dlgOpenLogFile.Execute then begin (Sender as TComboBox)
     .Text := ExtractFileName(dlgOpenLogFile.FileName);
   end;
 end;
@@ -231,8 +231,8 @@ begin
       WriteBool('Params', 'ShowStats', chkShowStats.Checked);
       WriteBool('Params', 'ErrorDump', chkErrorDump.Checked);
       WriteBool('Params', 'ErrorAbort', chkErrorAbort.Checked);
-      WriteString('Params', 'GameLog', txtGameLogFile.Text);
-      WriteString('Params', 'CPULog', txtCPULogFile.Text);
+{      WriteString('Params', 'GameLog', txtGameLogFile.Text);
+      WriteString('Params', 'CPULog', txtCPULogFile.Text);     }
       WriteInteger('Params', 'TurnLimit', StrToIntDef(txtTurnLimit.Text,0));
       WriteInteger('Params', 'TimeLimit', StrToIntDef(txtTimeLimit.Text,0));
       // Players
@@ -329,27 +329,27 @@ begin
   iSimMaxPl := StrToIntDef(txtMaxPlayers.Text, 0);
   iSimTimeLimit := StrToIntDef(txtTimeLimit.Text, 0);
   iSimTurnLimit := StrToIntDef(txtTurnLimit.Text, 0);
-  sSimGameLogFile := txtGameLogFile.Text;
-  sSimCPULogFile := txtCPULogFile.Text;
+{  sSimGameLogFile := txtGameLogFile.Text;
+  sSimCPULogFile := txtCPULogFile.Text;  }
   // validity check
   if iSimGames <= 0 then begin
-    MsgErr('Invalid number of games.');
+    ShowMessage('Invalid number of games.');
     txtGames.SetFocus;
     exit;
   end;
   if (iSimMinPl < 2) or (iSimMaxPl > 10) or (iSimMaxPl < iSimMinPl) then begin
-    MsgErr('Invalid number of players. Min=2, max=10');
+    ShowMessage('Invalid number of players. Min=2, max=10');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count > iSimMinPl then begin
-    MsgErr(
+    ShowMessage(
       'The number of TRPs in the "always" list is greater then the minimum number of players per game.');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count + lstRandom.Count < iSimMaxPl then begin
-    MsgErr(
+    ShowMessage(
       'The total number of TRPs in the "always" and "random" lists is not large enough to reach the maximum number of players per game.');
     txtMaxPlayers.SetFocus;
     exit;

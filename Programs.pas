@@ -16,6 +16,7 @@ type
     lstPrgFile: TCheckListBox;
     cmdOK: TBitBtn;
     cmdAnnulla: TBitBtn;
+    function strTran(ctext, cfor, cwith: string): string;
     procedure FormShow(Sender: TObject);
     procedure lstPrgFileClickCheck(Sender: TObject);
     procedure lstPrgFileClick(Sender: TObject);
@@ -35,6 +36,26 @@ implementation
 
 uses {StdPas,} Players, Globals;
 
+{ Character by Character String Replacement }
+function TfPrograms.strTran(ctext, cfor, cwith: string): string;
+var
+   ntemp  : word  ;
+   nreplen: word  ;
+begin
+   cfor    := upperCase(cfor)   ;
+   nreplen := length(cfor)      ;
+   for ntemp := 1 to length(ctext) do begin
+      if (upperCase(copy(ctext, ntemp, nreplen)) = cfor) then
+      begin
+         delete(ctext, ntemp, nreplen);
+         insert(cwith, ctext, ntemp);
+      end;
+   end;
+   result := ctext;
+end;
+
+
+
 procedure TfPrograms.FormShow(Sender: TObject);
 var
   rFileDesc: TSearchRec;
@@ -49,7 +70,7 @@ begin
     FindClose(rFileDesc);
   end;
   // select current program, if any
-  i := lstPrgFile.Items.IndexOf(fPlayers.cboPrgFile.Text);
+  {i := lstPrgFile.Items.IndexOf(fPlayers.cboPrgFile.Text);        }
   if i>=0 then begin
     lstPrgFile.ItemIndex:=i;
     lstPrgFile.Checked[i] := true;

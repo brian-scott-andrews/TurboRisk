@@ -35,7 +35,7 @@ type
     N2: TMenuItem;
     N3: TMenuItem;
     mnuHelCheckUpdates: TMenuItem;
-    IdAntiFreeze: TIdAntiFreeze;
+    {IdAntiFreeze: TIdAntiFreeze;      }
     mnuHelHomepage: TMenuItem;
     mnuFilSave: TMenuItem;
     mnuFilRestore: TMenuItem;
@@ -61,7 +61,7 @@ type
     cmdRules: TToolButton;
     cmdMap: TToolButton;
     cmdPreferences: TToolButton;
-    cmdHelp: TToolButton;
+//    cmdHelp: TToolButton;
     cmdHomePage: TToolButton;
     cmdUpdate: TToolButton;
     cmdAbout: TToolButton;
@@ -80,11 +80,11 @@ type
     procedure mnuOptRulesClick(Sender: TObject);
     procedure mnuOptPlayersClick(Sender: TObject);
     procedure mnuVieLogClick(Sender: TObject);
-    procedure mnuHelReadmeClick(Sender: TObject);
+{    procedure mnuHelReadmeClick(Sender: TObject);   }
     procedure mnuHelAboutClick(Sender: TObject);
     procedure mnuOptMapClick(Sender: TObject);
     procedure mnuVieHistClick(Sender: TObject);
-    procedure mnuHelCheckUpdatesClick(Sender: TObject);
+{    procedure mnuHelCheckUpdatesClick(Sender: TObject);  }
     procedure mnuHelHomepageClick(Sender: TObject);
     procedure mnuFilSaveClick(Sender: TObject);
     procedure mnuFilRestoreClick(Sender: TObject);
@@ -107,28 +107,17 @@ implementation
 
 uses Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
   Readme,
-  About, ExpSubr, Map, History, CheckUpd, Pref, SplashScreen;
+  About, ExpSubr, Map, History, Pref, SplashScreen;
 
 procedure TfMain.FormShow(Sender: TObject);
-var
-  bUpdatesAvailable: Boolean;
 begin
   bG_TRSim := false;
-  bUpdatesAvailable := false;
   Setup;
   Caption := 'TurboRisk ' + sG_AppVers;
   Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
-  // check for updates
-  if bPrefCheckUpdate then
-    bUpdatesAvailable := fCheckUpd.CheckUpdates(true);
   // remove splash screen
   fSplashScreen.Hide;
   fSplashScreen.Free;
-  if bUpdatesAvailable then begin
-    if MessageDlg(
-      'There are news and/or updates about TurboRisk. Would you like to start the Update Manager?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-      fCheckUpd.ShowModal;
-  end;
 end;
 
 procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -276,21 +265,19 @@ begin
   fMap.ShowModal;
 end;
 
+{
 procedure TfMain.mnuHelReadmeClick(Sender: TObject);
 begin
   // Application.HelpSystem.ShowTableOfContents; // doesn'twork!
   Application.HelpSystem.ShowContextHelp(100, sG_AppPath + 'TurboRisk.chm');
 end;
+}
 
 procedure TfMain.mnuHelAboutClick(Sender: TObject);
 begin
   fAbout.ShowModal;
 end;
 
-procedure TfMain.mnuHelCheckUpdatesClick(Sender: TObject);
-begin
-  fCheckUpd.ShowModal;
-end;
 
 procedure TfMain.mnuHelGroupClick(Sender: TObject);
 begin

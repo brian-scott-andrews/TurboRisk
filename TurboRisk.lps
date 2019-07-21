@@ -3,11 +3,13 @@
   <ProjectSession>
     <Version Value="9"/>
     <BuildModes Active="Default"/>
-    <Units Count="28">
+    <Units Count="32">
       <Unit0>
         <Filename Value="TurboRisk.lpr"/>
         <IsPartOfProject Value="True"/>
         <IsVisibleTab Value="True"/>
+        <TopLine Value="2"/>
+        <CursorPos Y="58"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
@@ -23,15 +25,21 @@
       <Unit2>
         <Filename Value="Globals.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="842"/>
+        <CursorPos X="34" Y="844"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
         <Filename Value="Territ.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="502"/>
+        <CursorPos X="66" Y="517"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
@@ -45,8 +53,10 @@
       <Unit5>
         <Filename Value="Computer.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="4"/>
+        <CursorPos X="3" Y="423"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
       <Unit6>
@@ -100,8 +110,10 @@
         <Filename Value="Players.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="10"/>
+        <CursorPos X="2" Y="20"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
       <Unit13>
@@ -123,32 +135,43 @@
       <Unit15>
         <Filename Value="ExpSubr.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="1156"/>
+        <CursorPos X="13" Y="1116"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
       <Unit16>
         <Filename Value="Map.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="93"/>
+        <CursorPos X="62" Y="129"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
       <Unit17>
         <Filename Value="History.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="284"/>
+        <CursorPos X="62" Y="314"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit17>
       <Unit18>
         <Filename Value="Programs.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="13"/>
+        <CursorPos Y="39"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit18>
       <Unit19>
@@ -156,6 +179,7 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
+        <CursorPos X="13" Y="25"/>
         <UsageCount Value="20"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit19>
@@ -163,8 +187,10 @@
         <Filename Value="TRPError.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="3"/>
+        <CursorPos X="29" Y="32"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit20>
       <Unit21>
@@ -187,16 +213,21 @@
         <Filename Value="UDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="7"/>
+        <CursorPos X="54" Y="17"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit23>
       <Unit24>
         <Filename Value="Main.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="31"/>
+        <CursorPos X="55" Y="41"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
       <Unit25>
@@ -211,20 +242,179 @@
         <Filename Value="Sim.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="475"/>
+        <CursorPos X="53" Y="527"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit26>
       <Unit27>
         <Filename Value="SimGameLog.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
+        <EditorIndex Value="16"/>
+        <TopLine Value="525"/>
+        <CursorPos X="26" Y="505"/>
         <UsageCount Value="20"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
+      <Unit28>
+        <Filename Value="SimRun.pas"/>
+        <EditorIndex Value="14"/>
+        <CursorPos X="30" Y="8"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit28>
+      <Unit29>
+        <Filename Value="SimCPULog.pas"/>
+        <EditorIndex Value="15"/>
+        <CursorPos X="63" Y="81"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit29>
+      <Unit30>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/graphtype.pp"/>
+        <UnitName Value="GraphType"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="6"/>
+        <CursorPos X="5" Y="38"/>
+        <UsageCount Value="10"/>
+      </Unit30>
+      <Unit31>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="2136"/>
+        <CursorPos Y="2173"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit31>
     </Units>
-    <JumpHistory HistoryIndex="-1"/>
+    <JumpHistory Count="30" HistoryIndex="29">
+      <Position1>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="39" TopLine="2"/>
+      </Position1>
+      <Position2>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="40" TopLine="2"/>
+      </Position2>
+      <Position3>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="35" TopLine="2"/>
+      </Position3>
+      <Position4>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="36" TopLine="2"/>
+      </Position4>
+      <Position5>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="37" TopLine="2"/>
+      </Position5>
+      <Position6>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="38" TopLine="2"/>
+      </Position6>
+      <Position7>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="39" TopLine="2"/>
+      </Position7>
+      <Position8>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="40" TopLine="2"/>
+      </Position8>
+      <Position9>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2164" TopLine="2136"/>
+      </Position9>
+      <Position10>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2167" TopLine="2136"/>
+      </Position10>
+      <Position11>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2169" TopLine="2136"/>
+      </Position11>
+      <Position12>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2170" TopLine="2136"/>
+      </Position12>
+      <Position13>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2171" TopLine="2136"/>
+      </Position13>
+      <Position14>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="35" TopLine="2"/>
+      </Position14>
+      <Position15>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="36" TopLine="2"/>
+      </Position15>
+      <Position16>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="37" TopLine="2"/>
+      </Position16>
+      <Position17>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="38" TopLine="2"/>
+      </Position17>
+      <Position18>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="39" TopLine="2"/>
+      </Position18>
+      <Position19>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="650" TopLine="622"/>
+      </Position19>
+      <Position20>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="40" TopLine="2"/>
+      </Position20>
+      <Position21>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2164" TopLine="2136"/>
+      </Position21>
+      <Position22>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2167" TopLine="2136"/>
+      </Position22>
+      <Position23>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2169" TopLine="2136"/>
+      </Position23>
+      <Position24>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2170" TopLine="2136"/>
+      </Position24>
+      <Position25>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2171" TopLine="2136"/>
+      </Position25>
+      <Position26>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
+        <Caret Line="2172" TopLine="2136"/>
+      </Position26>
+      <Position27>
+        <Filename Value="Main.pas"/>
+        <Caret Line="28" Column="40" TopLine="7"/>
+      </Position27>
+      <Position28>
+        <Filename Value="Main.pas"/>
+        <Caret Line="64" Column="14" TopLine="16"/>
+      </Position28>
+      <Position29>
+        <Filename Value="TRPError.pas"/>
+        <Caret Line="18" Column="47"/>
+      </Position29>
+      <Position30>
+        <Filename Value="TurboRisk.lpr"/>
+        <Caret Line="40" TopLine="2"/>
+      </Position30>
+    </JumpHistory>
   </ProjectSession>
   <SkipCheckLCLInterfaces Value="True"/>
 </CONFIG>

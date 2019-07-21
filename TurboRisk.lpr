@@ -23,7 +23,6 @@ uses
   Map in 'Map.pas' {fMap},
   History in 'History.pas' {fHistory},
   Programs in 'Programs.pas' {fPrograms},
-  CheckUpd in 'CheckUpd.pas' {fCheckUpd},
   TRPError in 'TRPError.pas' {fTRPError},
   Pref in 'Pref.pas' {fPref},
   SplashScreen in 'SplashScreen.pas' {fSplashScreen},
@@ -52,7 +51,6 @@ begin
   Application.CreateForm(TfMap, fMap);
   Application.CreateForm(TfHistory, fHistory);
   Application.CreateForm(TfPrograms, fPrograms);
-  Application.CreateForm(TfCheckUpd, fCheckUpd);
   Application.CreateForm(TfTRPError, fTRPError);
   Application.CreateForm(TfPref, fPref);
   Application.CreateForm(TfUDialog, fUDialog);

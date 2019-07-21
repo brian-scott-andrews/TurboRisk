@@ -1,0 +1,12 @@
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SimCPULog.pas *
+Hint: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SimCPULog.lfm *
+Hint: Removed property "ExplicitWidth".
+Hint: Removed property "ExplicitWidth".
+Hint: Removed property "ExplicitWidth".
+Hint: Removed property "TextHeight".
+Hint: Removed property "OldCreateOrder".
+Hint: Changed Top coord of TListView from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TListView from "0" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SimCPULog.pas *
+Hint: Conversion Ready.
