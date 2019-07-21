@@ -63,7 +63,7 @@ var
 begin
   // load program list
   lstPrgFile.Items.Clear;
-  if FindFirst(sG_AppPath+'players\*.trp', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath+'players/*.trp', faAnyFile, rFileDesc) = 0 then begin
     repeat
       lstPrgFile.Items.Add(rFileDesc.Name);
     until FindNext(rFileDesc) <> 0;

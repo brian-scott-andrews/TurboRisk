@@ -1,0 +1,3401 @@
+{
+Program: Endeavour09
+Author: Anthony Covey-Crump (coveycrump@yahoo.com)
+Description: This is a composite player - it plays like Endeavour (a previously unreleased player) until it holds a continent, then it plays like australian09.
+It has a more open starting strategy than australian09 / descartes09, although it will try to avoid going for the start-continent of either of the other 2 players.
+}
+
+
+var
+  B,MaxArmy,MaximumValue,Value: integer;
+  LAValue,LAValue2,TF:Integer;
+  EnemyT,EnemyA,X3: integer;
+  
+  T,X,Y,T2,D,D2,Z,TA,FT,FA,KP1,KP2,KP1A,KP2A,KillPlayer,C,TTo,TFrom,X2,C2,Y2,V,Z2,PMax : integer;
+  Ratio,MaxRatio,Score: double;
+  MaxTerritoryValue,TerritoryValue,TerritoryTo,TerritoryFrom: integer;
+  Fronts,TerritoryArmies: integer;
+  PT,PA,ET,EA,ET2,EA2:integer;
+  TotalArmies,PlayerArmies,P,A:Integer;
+  Test:Boolean;
+  ProX,ProT,ProY,ProTA,ProV,ProZ,ProT2:Integer;
+  CAX,CAC,CAZ:Integer;
+  CNT,CNT2,CNM,CNX,CNY:Integer;
+  CVAZ,CVAY,CVAT,CVAValue,CVAY2,CVAT2,CVAN,CVC,CVAN2,CVATA,CVATF:Integer;
+  CVALP,CValX,CValY,CVAI,CVAI2,CVAA,CVAB,CVAY3,CVAT3,CVAB2,CVANewArmies:Integer;
+  CVAFreeArmies,CVAMaxFreeArmy,CVAValue2:Integer;
+  SOBTX,SOBTT,Routine:Integer;
+  DEValue,DEVal2,DEX,DEY,DEZ,DET3:Integer;
+  CVAPoints,CVAPointValue:double;
+  ValInd:Integer;
+  NValue,NT,NT2,NF,NF1,NX,NY,NZ,NF2:Integer;
+
+  FromIsFront, ToIsFront: boolean;
+  Calc:integer;
+  ABT,ABTI,ABTC,ABTN:Integer;
+  T40,T41,T42:Integer;
+  MyArmiesMap: Array of Integer;
+  AttackArmies: Array of Integer;
+  MineArmies: Array of Boolean;
+  KP2009,killreason: Integer;
+  ValIndex, ValProtection: array of Integer;
+  MyAttackC,PlayersCount,ThreatPlayer:integer;
+  MyStartC: Array of Integer;
+  MyConnected: Array of Integer;
+  DistanceToAttackFront: Array of Integer;
+  SpreadLevel: Integer;
+  StartTurnPlayerScore: Array of Integer;
+  StartTurnPlayerCScore: Array of Integer;
+  StartTurnPlayerScoreOrdered: Array of Integer;
+  StartTurnCOwner: Array of Integer;
+  mrbigarmies,mrsecondarmies,mrbig,Turn:integer;
+  aalive,dalive,ealive,lastturnfrom,lastturnto:integer;
+  AverageEnemyArmies,EnemiesAlive:integer;
+  DomAccumulate, DomAttack:boolean;
+
+{_________________________ m/l/UBuffer ______________________________}
+
+procedure m(s: string);  // shortens m to m
+begin
+  //Umessage(s); // comment off this line to disable all ms
+  //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
+end;
+
+procedure l(s: string);  // shortens l to l
+begin
+  //Ulog(s);  // comment off this line to disable all ls
+  //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
+end;
+
+function i(x: integer): string;  // shortens i to i
+begin result:= inttostr(x); end;
+
+procedure sn(s: string);  // shortens l to l
+begin
+  //Utakesnapshot(s + ' Player ' + PProgram(PMe) + ' Turn ' + i(turn));  // comment off this line to disable all ls
+  //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
+end;
+
+function f(x: double): string;  // shortens floattostr to f
+begin result:= floattostr(x); end;
+
+// example m('ToTerritory: ' + i(ToTerritory) + ' FromTerritory: ' + i(FromTerritory));
+
+function bg(x: integer): integer;
+begin result:= trunc(UBufferGet(x)); end;
+                                              // use these for integer storage
+procedure bs(x, y: integer);
+begin UBufferSet(x, y); end;
+{______________________________________________________________________________}
+  FUNCTION ContinentValuation (CVC : integer):integer;
+    BEGIN
+        CAnalysis(CVC,PT,PA,ET,EA);
+        if (CVC=1) then begin
+          CValX:=30;
+          if dalive=1 then CValx:=CValx+1000;
+        end;
+        if (CVC=2) then begin
+          CValX:=20;
+          if dalive=1 then CValx:=CValx+1000;
+        end;
+        if (CVC=3) then begin
+          CValX:=40;
+        end;
+        if (CVC=4) then begin
+          CValX:=30;
+          if dalive=1 then CValx:=CValx+1000;
+        end;
+        if (CVC=5) then begin
+          CValX:=50;
+          if aalive=1 then CValx:=CValx+1000;
+        end;
+        if (CVC=6) then begin
+          if (PA=0) then begin
+            CValX:=40;
+          end else
+          begin
+            CValX:=10;
+          end;
+          if aalive=1 then CValx:=CValx+1000;
+        end;
+        for CNT:=1 to 42 do begin
+          CNM :=0;
+          if (not TIsMine(CNT)) then begin
+            CNX:=TBordersCount(CNT);
+            for CNY :=1 to CNX do begin
+              CNT2:= TBorder(CNT,CNY);
+              if (TContinent(CNT2)=CVC) then CNM :=1;
+            end;
+            if (CNM =1 ) then CValX :=CValX + TArmies(CNT);
+          end;
+        end;
+                
+        CValY:=CValX+3;
+        if (CValY < 1) then begin
+          CValY := 1;
+        end;
+        result:=CValY;
+    end;//ContinentValuation
+
+function LoneTerritoryValue(Territory:integer): double;
+var
+  WE,T,X,MinD,res:integer;
+begin
+  res:=1000;
+  MinD:=10000;
+  If (TContinent(Territory)=2) or (TContinent(Territory)=6) then begin
+    res:=res-500;
+  end;
+  WE:=0;
+  for X:=1 to TBordersCount(Territory) do begin
+    T:=TBorder(Territory,X);
+    if (not TIsMine(T)) then begin
+      if TArmies(T)> WE then WE:=TArmies(T);
+    end;
+    if (not (TIsMine(T))) and (TArmies(T)=1) then begin
+      if (TContinent(T)<>2) and (TContinent(T)<>6) then begin
+        res:=res+100;
+      end;
+    end;
+    if (not (TIsMine(T))) and (TArmies(T)=2) then begin
+      if (TContinent(T)<>2) and (TContinent(T)<>6) then begin
+        res:=res+30;
+      end;
+    end;
+    if (not (TIsMine(T))) and (TArmies(T)=3) then begin
+      if (TContinent(T)<>2) and (TContinent(T)<>6) then begin
+        res:=res+10;
+      end;
+    end;
+    if (TContinent(T)=2) or (TContinent(T)=6) then begin
+      res:=res-500;
+    end;
+    if ( pos('frank', lowercase(PProgram(TOwner(T)))) > 0 ) then begin
+      if ( pos('australian', lowercase(PProgram(PMe))) > 0 ) then begin
+        if (PArmiesCount(TOwner(T))<mrsecondarmies) or (PArmiesCount(PMe)<mrsecondarmies) then begin
+          res:=res-(TArmies(T)*100);
+        end;
+      end;
+    end;
+  end;
+  if (WE > 0) and (WE<100) then res:=res+100-WE;
+  result:=double(res);
+  if not SCardsBasedOnCombo then begin
+    MinD:=10000;
+    result:=-100;
+    for X:=1 to TFrontsCount(Territory) do begin
+      T2:=TFront(Territory,X);
+      if TArmies(T2) < Mind then begin
+        result:=100-TArmies(T2);
+        Mind:=TArmies(T2);
+      end;
+    end;
+  end;
+
+end;
+
+
+function minnowWhere(var FromTerritory, ToTerritory: integer): boolean;
+var
+  T,X,C,Y,T2,D,D2,Z: integer;
+  E14,E9,MaxTerritoryValue: integer;
+  PT,PA,ET,EA:integer;
+  P:Integer;
+  loopcontrol:boolean;
+  nicestart: array of integer;
+begin
+  SetArrayLength(nicestart,43);
+  for T:=1 to 42 do begin
+    ValIndex[T]:=1000000;
+  end;
+  if ( pos('endeavour', lowercase(PProgram(PMe))) > 0 ) then begin
+    for C:=1 to 6 do begin
+      Y:=CTerritoriesCount(C);
+      X:=trunc(ContinentValuation(C)*1.1);
+//      l('CFCFC ' + i(C) + ' ' + i(X));
+      for Z:=1 to Y do begin
+        T:=CTerritory(C,Z);
+        ValIndex[T]:=X;
+      end;
+    end;
+  end;
+  if ( pos('australian', lowercase(PProgram(PMe))) > 0 ) then begin
+    CAnalysis(6,PT,PA,ET,EA);
+    if (PA<5) then begin
+      if COwner(6) > 0 then begin
+//        if COwner(6) = COwner(5) then begin
+//          ValIndex[39]:=EA-200;
+//        end else begin
+          MaxTerritoryValue:=10;
+          P:=COwner(6);
+          if ( pos('frank', lowercase(PProgram(P))) > 0 ) or ( pos('zotob', lowercase(PProgram(P))) > 0 ) or PHuman(P) then begin
+            for T:=27 to 38 do begin
+              if (T <> 31) then begin
+                Y:=TOwner(T);
+                if ( pos('frank', lowercase(PProgram(Y))) > 0 ) or ( pos('zotob', lowercase(PProgram(Y))) > 0 ) or PHuman(Y) then begin
+                  if TArmies(T) > MaxTerritoryValue then begin
+                    MaxTerritoryValue:=TArmies(T);
+                  end;
+                end;
+              end;
+            end;
+          end;
+          ValIndex[39]:=EA+MaxTerritoryValue;
+      //  end;
+      end else begin
+        ValIndex[39]:=EA+100;
+      end;
+    end else begin
+      for T:=39 to 42 do begin
+        ValIndex[T]:=TArmies(T);
+        if (not TIsMine(T)) then begin
+          for X:=1 to TBordersCount(T) do begin
+            T2:=TBorder(T,X);
+            if (TISMine(T2)) and (TArmies(T2)>3) then begin
+              FromTerritory:=T2;
+              ToTerritory:=T;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  if ( pos('descartes', lowercase(PProgram(PMe))) > 0 ) then begin
+    CAnalysis(2,PT,PA,ET,EA);
+    if not (TISMine(9)) then begin
+      E9:=TArmies(9);
+    end else begin
+      E9:=0;
+    end;
+    if not (TIsMine(14)) then begin
+      E14:=TArmies(14);
+    end else begin
+      E14:=0;
+    end;
+    if (PA<5) then begin
+      if StartTurnCOwner[2] > 0 then begin
+        P:=StartTurnCOwner[2];
+        if ((StartTurnCOwner[2]=StartTurnCOwner[1]) or (StartTurnCOwner[2]=StartTurnCOwner[4]) or ( pos('zotob', lowercase(PProgram(P))) > 0 ) or PHuman(P)) then begin
+          ValIndex[10]:=40+EA+E9+E14;
+          ValIndex[12]:=40+EA+E9+E14;
+          ValIndex[9]:=40+EA+E9+E14;
+          ValIndex[14]:=40+EA+E9+E14;
+        end else begin
+          ValIndex[10]:=60+EA+E9+E14;
+          ValIndex[12]:=60+EA+E9+E14;
+          ValIndex[9]:=60+EA+E9+E14;
+          ValIndex[14]:=60+EA+E9+E14;
+        end;
+      end else begin
+        ValIndex[10]:=100+EA+E9+E14;
+        ValIndex[12]:=100+EA+E9+E14;
+        ValIndex[9]:=100+EA+E9+E14;
+        ValIndex[14]:=100+EA+E9+E14;
+      end;
+//      l('DESC V14 ' + i(ValIndex[14]) + ' V9 ' + i(ValIndex[9]));
+    end else begin
+      if not (TIsMine(10)) then begin
+        ValIndex[10]:=EA;
+      end;
+      if not (TIsMine(11)) then begin
+        ValIndex[11]:=EA-1;
+      end;
+      if not (TIsMine(12)) then begin
+        ValIndex[12]:=EA;
+      end;
+      if not (TIsMine(13)) then begin
+        ValIndex[13]:=EA-2;
+      end;
+    end;          
+  end;
+  if (trunc(UBufferGet(99)) = 99) then begin
+    for T:=1 to 42 do begin
+      if TContinent(T) = 1 then nicestart[T]:=3;
+      if TContinent(T) = 2 then nicestart[T]:=1;
+      if TContinent(T) = 3 then nicestart[T]:=5;
+      if TContinent(T) = 4 then nicestart[T]:=2;
+      if TContinent(T) = 5 then nicestart[T]:=4;
+      if TContinent(T) = 6 then nicestart[T]:=0;
+    end;
+    for C:=1 to 6 do begin
+      for X:=1 to CEntriesCount(C) do begin
+        nicestart[Centry(C,X)]:=nicestart[CEntry(C,X)]-2;
+      end;
+    end;
+    X:=-10000;
+    for T:=1 to 42 do begin
+      if (TIsMine(T)) and (nicestart[T]> X) then begin
+        X:=nicestart[T];
+        FromTerritory:=T;
+      end;
+    end;
+//    l('nice start rec ' + i(FromTerritory) + ' score ' + i(X));
+  end;      
+  if (FromTerritory=0) then begin
+    MaxTerritoryValue:=-100000;
+    loopcontrol:=true;
+    while loopcontrol do begin
+      loopcontrol:=false;
+      for T:=1 to 42 do begin
+        for X:=1 to TBordersCount(T) do begin
+          T2:=TBorder(T,X);
+          if TIsMine(T) then begin
+            Z:=ValIndex[T2]+1;
+          end else begin
+            Z:=ValIndex[T2]+TArmies(T)+1;
+          end;
+          if ValIndex[T] > Z then begin
+            ValIndex[T]:=Z;
+            loopcontrol:=true;
+          end;
+        end;
+      end;
+    end;
+    if routine=1 then begin
+      D:=-1000000;
+    end else begin
+      D:=0;
+    end;
+    for T:=1 to 42 do begin
+      if TIsMine(T) then begin
+        Y:=TBordersCount(T);
+        for Z:=1 to Y do begin  
+          T2:=TBorder(T,Z);
+//          if (not TIsMine(T2)) then begin
+            D2:=TArmies(T)-ValIndex[T2];
+            if TArmies(T)=1 then begin
+              D2:=D2-1000;
+            end;
+            if (D2>D) then begin
+              D:=D2;
+              FromTerritory:=T;
+              if (D>0) then begin
+                ToTerritory:=T2;
+              end;
+            end;
+//          end;
+        end;
+      end;
+    end;
+    if (not ((lastturnfrom=FromTerritory) and (lastturnto=99))) then begin 
+//      l('XXXTF ' + i(FromTerritory) + ' TA ' + i(ToTerritory) + ' A ' + i(TArmies(FromTerritory))+ ' VI ' + i(ValIndex[ToTerritory])+' D ' + i(D));
+    end;
+  end;
+end;
+
+procedure conquestAttack(var FromTerritory, ToTerritory: integer);
+var
+  T,T2,X,Y:integer;
+  Value:double;
+begin
+  if (not SConquest) and (ToTerritory=0) then begin
+    Value:=-100000;
+    for T:=1 to 42 do begin
+      if (TIsMine(T)) and (TArmies(T) > 1) then begin
+        for X:=1 to TFrontsCount(T) do begin
+          T2:=TFront(T,X);
+          if (TArmies(T2)=1) and (LoneTerritoryValue(T2)>Value) then begin
+            FromTerritory:=T;
+            ToTerritory:=T2;
+            Value:=LoneTerritoryValue(T2);
+          end;
+        end;
+      end;
+    end;
+    if (ToTerritory=0) and ((PArmiesCount(PMe)>AverageEnemyArmies) or (PArmiesCount(PMe) > 50)) then begin
+      for T:=1 to 42 do begin
+        if (TIsMine(T)) and (TArmies(T) > 1) then begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TArmies(T2)=2) and (LoneTerritoryValue(T2)>Value) then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Value:=LoneTerritoryValue(T2);
+            end;
+          end;
+        end;
+      end;
+    end;
+    if (ToTerritory=0) and ((PArmiesCount(PMe)>AverageEnemyArmies) or (PArmiesCount(PMe) > 75)) then begin
+      for T:=1 to 42 do begin
+        if (TIsMine(T)) and (TArmies(T) > 1) then begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TArmies(T2)=3) and (LoneTerritoryValue(T2)>Value) then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Value:=LoneTerritoryValue(T2);
+            end;
+          end;
+        end;
+      end;
+    end;
+    if (ToTerritory=0) and ((PArmiesCount(PMe)>AverageEnemyArmies) and (PArmiesCount(PMe) > 75)) then begin
+      for T:=1 to 42 do begin
+        if (TIsMine(T)) and (TArmies(T) > 1) then begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TArmies(T2)=4) and (LoneTerritoryValue(T2)>Value) then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Value:=LoneTerritoryValue(T2);
+            end;
+          end;
+        end;
+      end;
+    end;
+    if (ToTerritory=0) and ((PArmiesCount(PMe)>AverageEnemyArmies) and (PArmiesCount(PMe) > 125)) then begin
+      for T:=1 to 42 do begin
+        if (TIsMine(T)) and (TArmies(T) > 1) then begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TArmies(T2)=5) and (LoneTerritoryValue(T2)>Value) then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Value:=LoneTerritoryValue(T2);
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+    l('Cards attack from ' + i(FromTerritory) + ' to ' + i(ToTerritory) + ' armies to kill ' + i(TArmies(ToTerritory)) + ' val ' + f(Value)); 
+  end;
+end;
+
+
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+//old endeavour
+
+
+  FUNCTION Protection (ProT, ProY, ProTA : integer):integer;
+    BEGIN
+      IF (ProY=0) THEN BEGIN
+        ProX:=TBordersCount(ProT);
+        ProV:=0;
+        for ProZ:=1 to ProX do begin
+          ProT2:=TBorder(ProT,ProZ);
+          if (not (TIsMine(ProT2)) AND (ProT2 <> ProTA)) then begin
+            if (TArmies(ProT2)>ProV) then begin
+              ProV:=TArmies(ProT2);
+            end;
+          end;
+        end;
+      END;
+      if ((ProV>0) and (ProV<100)) then begin
+        ProV:=ProV+10;
+      end;
+      result:=ProV;
+    end;//protection
+
+  FUNCTION SumOfBorders(SOBT1,SOBT2:Integer):Integer;
+    begin
+      SOBTX:=0;
+      for SOBTT:=1 To 42 do begin
+        if ((not (TOwner(SOBTT) = PMe))
+            and (not (SOBTT=SOBT1))
+            and (not (SOBTT=SOBT2))) then begin
+          if (TIsBordering(SOBT1,SOBTT) OR TIsBordering(SOBT2,SOBTT)) then begin
+            SOBTX := SOBTX + TArmies(SOBTT);
+          end;
+        end;
+      end;
+      result:=SOBTX;
+    end;
+
+  FUNCTION ContinentValueAttack(CVAX2:Integer):Integer;
+    begin//
+      TerritoryTo:=0;
+      TerritoryFrom:=0;
+//      l('AAA');
+      CVAZ:=CTerritoriesCount(CAX);
+      // defence first
+      if (routine = 1) then begin
+        for CVAY:=1 to CVAZ do begin
+          CVAT:=CTerritory(CAX,CVAY);
+          if (TOwner(CVAT) = PMe) then begin
+            CVAN:=Protection(CVAT,0,0);
+            if (TArmies(CVAT)<CVAN) then begin
+              TerritoryFrom:=CVAT;
+              TerritoryTo:=0;
+              ValInd:=10;
+            end;
+          end;
+        end;
+      end;
+
+      //else attack
+      if (TerritoryFrom = 0) then begin
+        CVAValue:= -10000;
+        CVAPointValue:=-10000.2;
+        CVATA:=0;
+        // choose territory to attack
+        for CVAY2:=1 to CVAZ do begin
+          CVAT2:=CTerritory(CAX,CVAY2);
+          if (not (TOwner(CVAT2)=PMe)) then begin
+            // is it bordering us
+            CVAN:=0;
+            for CVAY:=1 to CVAZ do begin
+              CVAT:=CTerritory(CAX,CVAY);
+              if ((TOwner(CVAT)=PMe) AND (TIsBordering(CVAT,CVAT2))) then begin
+                CVAN:=1;
+              end;
+            end;
+            if (CVAN=1) then begin
+              // calculate new armies, not currently bordering us
+              CVANewArmies:=0;
+              CVAB:=TBordersCount(CVAT2);
+              for CVAY3:=1 to CVAB do begin
+                CVAI:=0;
+                CVAI2:=0;
+                CVAT3:=TBorder(CVAT2,CVAY3);
+                if (not (TISMine(CVAT3))) then begin
+                  CVAB2:=TBordersCount(CVAT3);
+                  for CVAY:=1 to CVAB2 do begin
+                    CVAT:=TBorder(CVAT3,CVAY);
+                    if ((TContinent(CVAT) = CAX) AND
+                        (TISMine(CVAT))) then begin
+                      CVAI:=1;
+                    end;
+                  end;
+                  if (CVAI=0) then begin
+                    CVANewArmies:=CVANewArmies+TArmies(CVAT3);
+                  end;
+                end;
+              end;
+              CVAMaxFreeArmy:=0;
+              CVAFreeArmies:=0;
+              for CVAY:=1 to CVAZ do begin
+                CVAT:= CTerritory(CAX,CVAY);
+                if (TIsBordering(CVAT,CVAT2) AND TISMine(CVAT)) then begin
+                  CVAI:=Protection(CVAT,0,CVAT2);
+                  CVAFreeArmies:=CVAFreeArmies+(TArmies(CVAT)-CVAI);
+                  if (TArmies(CVAT)-CVAI > CVAMaxFreeArmy) then begin
+                    CVAMaxFreeArmy:=TArmies(CVAT)-CVAI;
+                  end;
+                end;
+              end;
+              CVAPoints:= CVAFreeArmies-CVANewArmies-(TArmies(CVAT2)*1.01);
+//              //umessage('Points ',CVAPoints,' ',CVAPointValue);
+              CVAN2:=CVAMaxFreeArmy-TArmies(CVAT2);
+              if (CVAN2 < (CVAFreeArmies-TArmies(CVAT2))) then begin
+                CVAN2:=CVAFreeArmies-TArmies(CVAT2);
+              end;
+              TStrongestFront(CVAT2,ET,EA);
+              if (CVAPoints> CVAPointValue) then begin 
+//   //umessage('Pick Terr ',CVAT2,' ',CVAN2,' ',EA,' ',CVAFreeArmies,' ',TArmies(CVAT2)*0.99,' ',CVAPoints);
+                CVAValue:=CVAN2-EA;
+                CVATA:=CVAT2;
+                CVAPointValue:=CVAPoints;
+//                CVANewArmies2:=CVANewArmies;
+              end;
+            end;
+          end;
+        end;
+        TStrongestFront(CVATA,ET,EA);
+        //choose whether to attack and Territory From    
+        if (CVAValue < 0) then begin
+          CVAValue2:= -10000;
+          for CVAY:=1 TO CVAZ do begin
+            CVAT:=CTerritory(CAX,CVAY);
+            if (TIsBordering(CVAT,CVATA) AND TISMine(CVAT) AND (TArmies(CVAT)>TArmies(CVATA))) then begin
+              CVAI:=Protection(CVAT,0,CVATA);
+              if (TArmies(CVAT)-CVAI>CVAValue2) then begin
+                TerritoryFrom:=CVAT;
+                CVAValue2:=TArmies(CVAT)-CVAI;
+//              //umessage('Attack 0 ',TerritoryFrom,' ',TerritoryTo);
+                ValInd:=11;
+              end;
+            end;
+          end;
+        end else begin
+//          l('Cont A point a ' + i(CVATA) + ' ' + i(CVAValue) + ' ' + i(EA));     
+//          //umessage('Territories of place we are attacking ',TArmies(CVATA));
+          if ((TArmies(CVATA) < 3) or (routine=1)) then begin
+//            l('zzz ' + i(CVATA) + ' ' + i(CVAValue) + ' ' + i(EA) + ' ' + i(TArmies(CVATA)));     
+            CVAValue2:= -10000;
+            for CVAY:= 1 TO CVAZ do begin
+              CVAT:=CTerritory(CAX,CVAY);
+              if (TIsBordering(CVAT,CVATA) AND TIsMine(CVAT)) then begin
+//                l('yzz ' + i(CVAT));     
+                CVAI:=Protection(CVAT,0,CVATA);
+//                //umessage('Final Kill attack',CVAT,' ',CVAI,' ',CVAValue2);
+//                l('CVAT ' + i(CVAT) + ' CVAI ' + i(CVAI) + ' CVAValue2 ' + i(CVAVALUe2) + ' Arms ' + i(TArmies(CVAT)) + ' TA ' + i(TArmies(CVATA)+10));     
+                if ((TArmies(CVAT)-CVAI>CVAValue2) AND ((TArmies(CVAT)-CVAI>(TArmies(CVATA)+10)) OR (Routine = 1))) then begin
+                  TerritoryFrom:=CVAT;
+                  TerritoryTo:=CVATA;
+                  ValInd:=12;
+//              //umessage('Attack 1 ',TerritoryFrom,' ',TerritoryTo);
+                  CVAValue2:=TArmies(CVAT)-CVAI;
+                end;
+                if ((CVAI=0) AND (TArmies(CVAT)>(TArmies(CVATA)+10))
+                    AND (TArmies(CVAT)+10000>CVAValue2)) then begin
+                  CVAValue2:=TArmies(CVAT)+10000;
+                  TerritoryFrom:=CVAT;
+                  TerritoryTo:=CVATA;
+                  ValInd:=13;
+//              //umessage('Attack 2 ',TerritoryFrom,' ',TerritoryTo);
+                end;
+              end;
+            end;
+          end else begin
+//            //umessage('Preparatory attack');
+            CVAValue2:=-10000;
+            for CVAY:=1 TO CVAZ do begin
+              CVAT:=CTerritory(CAX,CVAY);
+              if (TIsBordering(CVAT,CVATA) AND TIsMine(CVAT)) then begin
+                CVAI:=Protection(CVAT,0,CVATA);
+                if ((TArmies(CVAT)-CVAI>CVAValue2) AND (((TArmies(CVAT)-CVAI)>TArmies(CVATA)))) then begin
+                  TerritoryFrom:=CVAT;
+                  TerritoryTo:=CVATA;
+                  ValInd:=14;
+                  CVAValue2:=TArmies(CVAT)-CVAI;
+//              //umessage('Attack 3 ',TerritoryFrom,' ',TerritoryTo);
+                end;
+                if ((CVAI=0) AND (TArmies(CVAT)>(TArmies(CVATA)))
+                    AND (TArmies(CVAT)+10000>CVAValue2)) then begin
+                  CVAValue2:=TArmies(CVAT)+10000;
+                  TerritoryFrom:=CVAT;
+                  CVAT3:=CVAT;
+                  TerritoryTo:=CVATA;
+                  ValInd:=15;
+//              //umessage('Attack 4 ',TerritoryFrom,' ',TerritoryTo);
+                end;
+              end;
+            end;
+            CVAValue2:=-10000;
+            for CVAY:=1 TO CVAZ do begin
+              CVAT:=CTerritory(CAX,CVAY);
+              if (TIsBordering(CVAT,CVATA) AND TISMine(CVAT) AND (TArmies(CVAT)>1)
+                 AND (CVAT<>CVAT3)) then begin
+                CVAI:=Protection(CVAT,0,CVATA);
+                if (CVAI=0) then CVAI2:=100000-CVAI+TArmies(CVAT);
+                if (CVAI>0) then CVAI2:=10000-CVAI+TArmies(CVAT);
+                if ((CVAI2>CVAValue2) AND (TArmies(CVAT)>CVAI)) then begin
+                  TerritoryFrom:=CVAT;
+                  TerritoryTo:=CVATA;
+                  CVAValue2:=CVAI2;
+//              //umessage('Attack 5 ',TerritoryFrom,' ',TerritoryTo);
+                  ValInd:=16;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;//ContinentValueAttack
+
+  FUNCTION LesseningAttack(DEParam:Integer):Integer;
+    BEGIN
+      TerritoryTo:=0;
+      TerritoryFrom:=0;
+      for T:=1 to 42 do begin
+	X:=0;
+        X2:=0;
+        LAValue:=0;
+        if (not (TISMine(T))) then begin
+          Y:=TBordersCount(T);
+          for Z:=1 to Y do begin
+            T2:=TBorder(T,Z);
+            if (TIsMine(T2)) then begin
+              if ((TArmies(T2)>100) and (TArmies(T2) <(TArmies(T)+10))) then begin
+                Y2:=TBordersCount(T2);
+                X3:=0;
+                LAValue2:=0;
+                for Z2:=1 to Y2 do begin
+                  TA:=TBorder(T2,Z2);
+                  if ((not (TA=T)) and (not TIsMine(TA))) then begin
+                    if (TArmies(TA)>LAValue2) then begin
+                      LaValue2:=TArmies(TA);
+                    end;
+                  end;
+                end;
+                if (TArmies(T2)>LAValue2) then begin
+                  X:=X+1;
+                  X2:=X2+TArmies(T2)-LAValue2;
+                end;
+              end;
+            end;
+          end;
+          if ((X>1) and ((X2-TArmies(T))>LAValue)) then begin
+            LAValue:=X2-TArmies(T);
+            TerritoryTo:=T;
+          end;
+        end;
+      end;
+      if (TerritoryTo>0) then begin
+        l('Lessening Attack ' + i(TerritoryTo)); 
+        T:=TerritoryTo;
+        Y:=TBordersCount(T);
+        LAValue:=0;
+        for Z:=1 to Y do begin
+          T2:=TBorder(T,Z);
+          if (TIsMine(T2)) then begin
+            if ((TArmies(T2)>100) and (TArmies(T2) <TArmies(T)+10)) then begin
+              if (TFrontsCount(T)>1) then begin
+                Y2:=TBordersCount(T2);
+                for Z2:=1 to Y2 do begin
+                  TA:=TBorder(T2,Z2);
+                  if ((not (TA=T)) and (not TIsMine(T))) then begin
+                    if (TArmies(T2)>(TArmies(TA)+10)+LAValue) then begin
+                      LAValue:=TArmies(T2)-TArmies(TA)-10;
+                      TerritoryFrom:=T2;
+                    end;
+                  end;
+                end;
+              end else
+              begin
+                if (TArmies(T2)>LAValue) then begin
+                  LAValue := TArmies(T2) - 10;
+                  TerritoryFrom:=T2;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    END;//Lessening Attacking
+
+
+  FUNCTION ContinentAttacking(CAValue:Integer):Integer;
+    begin
+      CAX:=0;
+      for CAC:=1 to 6 do begin
+        CAnalysis(CAC,PT,PA,ET,EA);
+        if (PA>0) then begin
+          if (EA>0) then begin
+            X:=ContinentValuation(CAC);
+//            l('C ' + i(CAC) + ' X ' + i(X) + ' PA ' + i(PA) + ' CAValue ' + i(CAValue));
+            if ((double(PA)/X)>CAValue) then begin
+//              l('D ' + i(CAC) + ' X ' + i(X) + ' PA ' + i(PA) + ' CAValue ' + i(CAValue));
+              CAX:=CAC;
+              CAValue:=trunc((double(PA-EA))/X);
+            end;
+          end;
+        end;
+      end;
+      if (CAX>0) then begin
+        CAZ:=ContinentValueAttack(1);//
+      end;
+    end;//ContinentAttacking  
+
+  FUNCTION DesirabilityAttacking(DEParam:Integer):Integer;
+    BEGIN
+      TerritoryTo:=0;
+      TerritoryFrom:=0;
+      if (routine=1) then begin
+        DEValue:= -10000;
+      end;
+      if (routine=2) then begin
+        DEValue:= 0;
+      end;
+      for T:=1 to 42 do begin
+        if (TISMine(T) AND (TArmies(T)>1)) then begin
+          X:=TBordersCount(T);
+          for Y:=1 to X do begin
+            T2:=TBorder(T,Y);
+            if (not TISMine(T2)) then begin
+              X2:=0;
+              if (T<40) then begin
+                X2:=valindex[T];
+              end;
+              if (X2>0) then begin
+                X2:=Protection(T,0,T2);
+                if (X2=0) then X2:=10;
+              end;
+              if (TArmies(T)-X2-valindex[T2]>DEValue) then begin
+// don't desire attack when should be continent attacking.
+                DEVal2:=1;
+                if ((TContinent(T) = TContinent(T2)) and (routine=2)) then begin
+                  DEVal2:=0;
+                  DEX:=valindex[T2];
+                  DEY:=TBordersCount(T2);
+                  for DEZ:=1 to DEY do begin
+                    DET3:=TBorder(T2,DEZ);
+                    if (valindex[DET3]<DEX) AND (not (TOwner(DET3)=PMe)) then begin
+                      DEVal2:=1;
+                    end;
+                  end;
+                end;
+                if (DEVal2=1) then begin
+                  TerritoryFrom:=T;
+                  TerritoryTo:=T2;
+                  DEValue:=TArmies(T)-X2-valindex[T2];
+//                  l('Desire Attack ' + i(TArmies(T)) + ' ' + i(X2)  + ' ' + i(T2)  + ' ' + i(valindex[T2]) + ' ');
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;//desirability attacking
+
+  FUNCTION TerritoryValues (nothing: boolean):boolean;
+  var
+    fff,ggg:integer;
+    BEGIN
+      fff:=0;
+      ggg:=0;
+      MinnowWhere(fff,ggg);
+
+      // calculate defence territory values
+      for T:=1 to 39 do begin
+        if (TIsMine(T)) then begin
+          ValProtection[T]:=0;
+        end;
+      end;
+
+      // australia
+      CAnalysis(6,PT,PA,ET,EA);          
+
+      for Z:=1 to 5 do begin
+        Z2:=CTerritoriesCount(Z);
+        CAnalysis(Z,PT,PA,ET,EA);
+        if (PA>EA) then begin
+          X:=ContinentValuation(Z);
+          if (double(PA)/X > 1.0) then begin
+            for Y:=1 to Z2 do begin
+              T2:=CTerritory(Z,Y);
+              if (TIsMine(T2)) then begin
+                X2:=Protection(T2,0,T2);
+                if (X2=0) then begin
+                  Y2:=TBordersCount(T2);
+                  for D:=1 to Y2 do begin
+                    TA:=TBorder(T2,D);
+                    if (not (TContinent(T2)=TContinent(TA))) then begin
+                      X2:=10;
+                    end;
+                  end;
+
+                end;
+                ValProtection[T2]:=X2;
+              end;
+            end;
+          end;
+        end;
+      end;
+
+    END;//FUNCTION TerritoryValues
+
+  FUNCTION ActiveBorder (ABT:Integer):Boolean;
+    BEGIN
+      ABTN:=TBordersCount(ABT);
+      result:=false;
+      for ABTI:=1 to ABTN  do begin
+        ABTC:=TBorder(ABT,ABTI);
+        if ((not (COwner(TContinent(ABTC))=PMe))
+            AND (TContinent(ABT)<>TContinent(ABTC))) then result:=true;
+      end;
+    end;
+
+procedure EndeavourPlacement(var ToTerritory: integer);
+begin //routine PLACEMENT
+  
+  Routine:=1;
+  
+  TerritoryValues(True);
+  TerritoryTo:=0;
+  TerritoryFrom:=0;
+  ToTerritory:=0;
+  
+  //initial placement code
+  if ((PArmiesCount(PMe) < 10) and (not (trunc(UBufferGet(50))=2))) then begin
+    UBufferSet(50,1);
+  end;
+  if ((PArmiesCount(PMe) > 25) and (trunc(UBufferGet(50))=1)) then begin
+    UBufferSet(50,2);
+  end;
+  
+  if (trunc(UBufferGet(50))=1) then begin
+    MaxTerritoryValue:=0;
+    for T:=1 to 42 do begin
+      if (TIsMine(T) and TIsFront(T)) then begin
+        TWeakestFront(T,ET,EA);
+        Score:=1000-EA;
+        Score:=Score-((double(TPressure(T)*2)/TFrontsCount(T)));
+        Score:=Score+(TArmies(T) div 3);
+        if (T>38) then Score:=Score-100;
+        if ((T>9) and (T<14)) then Score:=Score-50;
+        if (Score> MaxTerritoryValue) then begin
+          MaxTerritoryValue:=trunc(Score);
+          TerritoryTo:=T;
+        end;
+      end;
+    end;
+  end
+  else begin
+
+    if (PArmiesCount(PMe)<trunc(UBufferGet(39+PMe))) then begin
+      X:=trunc(UBufferGet(39+PMe))-PArmiesCount(PMe);
+      for T:=1 to 10 do begin
+        Y:=trunc(UBufferGet(39+T));
+        UBufferSet(39+T,Y-X);
+      end;
+    end;
+    UBufferSet(39+PMe,PArmiesCount(PMe));
+
+    if (PNewArmies(PMe)=1) then begin
+      for T:=1 to 10 do begin
+        if (not (T=PMe)) then begin
+          X:=trunc(UBufferGet(39+T));
+          Y:=PArmiesCount(PMe)-PArmiesCount(T);
+//          l('Player ' + i(T) +  ' ' + i(X-Y));
+          if (not (X=1000)) then begin
+            if (Y<(X-1)) then begin
+              UBufferSet(39+T,X-1);
+            end;
+          end;
+        end; 
+      end;
+    end;
+   
+  // assign defensive armies
+    if (TerritoryTo=0) then begin  
+      MaxTerritoryValue:=0;
+      for T:=1 to 39 do begin
+        if TIsMine(T) then begin
+          D:=ValProtection[T]-TArmies(T);
+          if (D>MaxTerritoryValue) then begin
+            MaxTerritoryValue:=D;
+            TerritoryTo:=T;
+//            //umessage('Defensive A ',TerritoryTo);
+          end;
+        end;
+      end;
+    end;
+   
+   // continent attacking
+    if (TerritoryTo=0) then begin
+      ContinentAttacking(1);
+
+      if (TerritoryFrom>0) then begin
+        TerritoryTo:=TerritoryFrom;
+//        //umessage('Conta Placement ',TerritoryTo);
+      end;
+    end;
+
+   
+
+  //desirability attacking
+    if (TerritoryTo=0) then begin
+      DesirabilityAttacking(1);
+
+      if (TerritoryFrom>0) then begin
+        TerritoryTo:=TerritoryFrom;
+      end;
+    end;
+
+
+   
+    if (TerritoryTo=0) then begin
+      MaxTerritoryValue:=0;
+      for T:=1 to 42 do begin
+        if (TIsFront(T) AND (TOwner(T) = PMe)) then begin 
+          if (TArmies(T)>MaxTerritoryValue) then begin
+            MaxTerritoryValue:=TArmies(T);
+            TerritoryTo:=T;
+          end;
+        end;
+      end;
+    end;
+
+  end;
+
+//  //umessage(trunc(UBufferGet(39)));
+  ToTerritory:=TerritoryTo;
+
+
+
+end;
+
+procedure endeavourAttack(var FromTerritory, ToTerritory: integer);
+
+
+begin
+  Routine:=2;
+  FromTerritory:=0;
+  ToTerritory:=0;
+  MaxTerritoryValue:=0;
+  TerritoryTo:=0;
+  TerritoryFrom:=0;
+  TerritoryValues(True);  
+  ValInd:=0;
+  KillPlayer:=0;
+  UBufferSet(50,3);
+
+
+
+  //Continent Attacking
+  if (FromTerritory=0) then begin
+    ContinentAttacking(1);
+    if (TerritoryTo>0) then begin
+      ToTerritory:=TerritoryTo;
+      FromTerritory:=TerritoryFrom;
+//      l('Continent Attacking ' + i(ValInd));
+      if (TArmies(FromTerritory)=1) then begin
+        //umessage('Attack Problem : ValInd = ',ValInd);
+      end;
+    end;
+  end;
+
+
+
+  //Desirability Attacking
+  if (FromTerritory=0) then begin
+    DesirabilityAttacking(1);
+    if (TerritoryTo>0) then begin
+      ToTerritory:=TerritoryTo;
+      FromTerritory:=TerritoryFrom;
+//      l('Desirability Attacking');
+      UBufferSet(50,4);
+//      //umessage('Desire Attack ',FromTerritory,' ',ToTerritory);
+    end;
+  end;
+
+
+
+  // Lessening Attack
+  if (FromTerritory=0) then begin
+    LesseningAttack(1);
+    if (TerritoryTo>0) then begin
+      ToTerritory:=TerritoryTo;
+      FromTerritory:=TerritoryFrom;
+      l('Lessening Attacking');
+    end;
+  end;
+
+  // Attack Dangerous Neighbour
+  if (FromTerritory=0) then begin
+    LesseningAttack(1);
+    if (TerritoryTo>0) then begin
+      ToTerritory:=TerritoryTo;
+      FromTerritory:=TerritoryFrom;
+      l('Lessening Attacking');
+    end;
+  end;
+
+          
+  if (FromTerritory=0) then begin
+    MaxTerritoryValue:=0;
+    if not SConquest then begin  
+      conquestAttack(FromTerritory,ToTerritory);
+    end;
+  end;
+
+  if (PArmiesCount(PMe)<trunc(UBufferGet(39+PMe))) then begin
+    X:=trunc(UBufferGet(39+PMe))-PArmiesCount(PMe);
+    for T:=1 to 10 do begin
+      Y:=trunc(UBufferGet(39+T));
+      if (not (Y=1000)) then begin
+        UBufferSet(39+T,Y-X);
+      end;
+    end;
+  end;
+  for T:=1 to 10 do begin
+    if (not (T=PMe)) then begin
+      X:=trunc(UBufferGet(39+T));
+      Y:=PArmiesCount(PMe)-PArmiesCount(T);
+//      l('Player ',X,' ',Y);
+      if (Y>X) then begin
+        UBufferSet(39+T,Y);
+      end;
+      if (Y<X-10) Then begin
+//        //umessage('Player ',T,' strong.');
+      end;
+    end;
+  end;
+    
+
+end;
+
+procedure endeavourOccupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  T40:=trunc(UBufferGet(40));
+  T41:=trunc(UBufferGet(41));
+  T42:=trunc(UBufferGet(42));
+  UBufferSet(40,0);
+  UBufferSet(41,0);
+  UBufferSet(42,0);
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+  Calc:=0;
+
+  //desirability attacking
+  if (Calc=0) then begin
+//     l('Desire1 ' + i(trunc(UBufferGet(50))));
+    if (trunc(UBufferGet(50))=4) then begin
+//      l('Desire2 ' + i(ValProtection[FromTerritory]));
+      if (ValProtection[FromTerritory]=0) or (FromTerritory>39) then begin
+        Armies:=TArmies(FromTerritory)-1;
+      end else
+      begin
+        Armies:=TArmies(FromTerritory)-ValProtection[FromTerritory];
+      end;
+      Calc:=1;
+    end;
+  end;
+
+  // don't move out of more favourable continent
+  if (Calc=0) then begin
+    C:=TContinent(FromTerritory);
+    C2:=TContinent(ToTerritory);
+    X:=ValIndex[ToTerritory];
+    Y:=trunc(ContinentValuation(C)*1.1);
+    if ((C<>C2) AND (not (COwner(C)=PMe)) AND (Y<X)) then begin
+      Armies:=0;
+      Calc:=1;
+      l('Stay in favourable continent' + i(Y) + ' ' + i(X));
+    end;
+  //don't let a small army wander
+    CAnalysis(C,PT,PA,ET,EA);
+    if ((PA>EA) and (TArmies(FromTerritory)<X) AND (PT>1) 
+        AND (C<>C2)) then begin
+      Z:=CTerritoriesCount(C);
+      for Z2:=1 to Z do begin
+        T:=CTerritory(C,Z2);
+        if ((TArmies(T)>1) AND (T <> FromTerritory)) then begin  
+          Armies:=0;
+          Calc:=1;
+          l('Small Armies stay at home');
+        end;
+      end;
+    end;
+  end;
+
+  // Streamline Attacking Scan ahead
+  if (Calc=0) then begin
+    X:=ValIndex[ToTerritory];
+    Y:=TBordersCount(ToTerritory);
+    for Z:=1 to Y do begin
+      T2:=TBorder(ToTerritory,Z);
+      if (ValIndex[T2]<X) AND (not (TOwner(T2)=PMe)) then begin
+        if (TContinent(T2) <> TContinent(FromTerritory)) then begin
+          Armies:=TArmies(FromTerritory)-(1+ValProtection[FromTerritory]);
+          if (Armies<0) then Armies:=0;  
+          Calc:=1;
+//          l('Streamline Attacking Scan Ahead ' + i(ToTerritory) + ' ' + i(T2));
+        end;
+      end;
+    end;
+  end;
+
+
+
+  // desirability continent moving
+  
+  if (Calc=0) then begin
+    if (TContinent(FromTerritory) <> TContinent(ToTerritory)) then begin
+      X2:=0;
+      if (COwner(TContinent(FromTerritory))=PMe) then begin
+        X2:=Protection(FromTerritory,0,ToTerritory);
+    //              //umessage('Desire Attack ',TArmies(T),' ',X2,' ',DEValue);
+        if (ValProtection[FromTerritory]>0) AND (X2=0) then begin
+          X2:=10;
+        end;
+      end;
+      if (TArmies(FromTerritory)-X2-valIndex[ToTerritory]>0) then begin
+        Armies:=TArmies(FromTerritory)-X2-1;
+        if (Armies<0) then Armies:=0;
+        Calc:=1;
+//        l('Desirability continent moving');
+      end;
+    end;
+  end;
+  ValIndex[ToTerritory]:=0;
+
+
+  //ContinentAttacking
+
+  if (Calc=0) then begin
+    C:=TContinent(FromTerritory);
+//    l('Attacking 1 ',FromTerritory,' ',ToTerritory);
+    CAnalysis(C,PT,PA,ET,EA);
+    Y:=ContinentValuation(C);
+    if (Y>0) then begin
+      if ((double(PA)/Y)>1.2) then begin
+        if (C=TContinent(ToTerritory)) then begin
+          ProT:=FromTerritory;
+          ProTA:=ToTerritory;
+          X:=Protection(ProT,0,ProTA);
+          TF:=FromTerritory;
+          if (TArmies(TF)>X) then begin
+            Armies:=TArmies(TF)-X-1;
+            X:=Protection(ProTA,0,0);
+            if (Armies >X) then begin
+              Fronts:=TFrontsCount(TF);
+              for T:=1 to Fronts do begin
+                if (TContinent(TFront(TF,T))=C) then begin
+                  Armies:=X;
+                end;
+              end;
+            end;
+            if (not (FromIsFront)) then begin
+              if (ActiveBorder(FromTerritory)) then begin
+                Armies:=TArmies(FromTerritory)-10;
+              end else begin
+                Armies:=TArmies(FromTerritory)-1;
+              end;
+            end;
+            Calc:=1;
+//          l('Cont Att Moving 2 ' + i(FromTerritory)  + ' ' + i(ToTerritory));
+          end
+          else begin
+            Calc:=1;
+            Armies:=0;
+//          l('Cont Att Moving 3 ' + i(FromTerritory)  + ' ' + i(ToTerritory));
+          end;
+        end
+        else begin
+          Armies:=0;
+          Calc:=1;
+//          l('Cont Att Moving 4 ' + i(FromTerritory)  + ' ' + i(ToTerritory));
+        end;
+      end;
+    end;
+  end;
+
+  if (Calc=0) then begin
+    if ToIsFront then begin
+      Armies:=TArmies(FromTerritory)-(1+valProtection[FromTerritory]);
+      Calc:=1;
+      if (Armies<0) then Armies:=0;  
+//      l('Occupation Default ' + i(Armies));
+    end;
+  end;
+
+
+
+
+  UBufferSet(40,T40);
+  UBufferSet(41,T41);
+  UBufferSet(42,T42);
+
+
+
+     
+
+end;
+
+function oldFortification(var FromTerritory, ToTerritory, Armies: integer):boolean;
+
+
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  MaxArmy:=1;
+  if (COwner(6)=PMe)
+    then begin
+    if (TArmies(40)>1) then begin
+      Armies:=TArmies(40)-1;
+      FromTerritory:=40;
+      ToTerritory:=39;
+    end;
+    if (TArmies(42)>1) then begin
+      Armies:=TArmies(42)-1;
+      FromTerritory:=42;
+      ToTerritory:=39;
+
+    end;
+    if (TArmies(41)>1) then begin
+      Armies:=TArmies(41)-1;
+      FromTerritory:=41;
+      ToTerritory:=40;
+
+    end;
+  end;
+  
+  if (FromTerritory=0) then begin
+    for T:=1 to 39 do begin
+      if ((TIsMine(T)) 
+      and (not TIsFront(T))) then begin  
+        if (TArmies(T)-valProtection[T]>MaxArmy) then begin
+          MaxArmy := TArmies(T)-valProtection[T];
+          FromTerritory := T;
+        end;
+      end; 
+    end;
+    if (FromTerritory=0) then begin
+      for T:=40 to 42 do begin
+        if ((TIsMine(T)) 
+        and (not TIsFront(T))) then begin  
+          if (TArmies(T)>MaxArmy) then begin
+            MaxArmy := TArmies(T)-1;
+            FromTerritory := T;
+          end;
+        end; 
+      end;
+    end;
+    
+    if (FromTerritory>0) then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) and TIsFront(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+      if ToTerritory=0 then begin
+        for B:=1 to TBordersCount(FromTerritory) do begin
+          if ToTerritory=0 then begin
+            T:=TBorder(FromTerritory,B);
+            if TIsMine(T) then begin
+              ToTerritory:=T;
+            end;
+          end;
+        end;
+      end;
+      if ToTerritory>0 then begin
+        Armies:=TArmies(FromTerritory)-valProtection[FromTerritory]-1;
+      end;
+      if (Armies > TArmies(FromTerritory) - 1) then begin
+        Armies := TArmies(FromTerritory) - 1;
+      end;
+    end;
+  end;
+
+  if (FromTerritory=0) then begin
+  //Unite lost territories
+
+    for C:=1 to 6 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      Y:=ContinentValuation(C);
+      if ((Y>0) and (EA>0)) then begin
+        if ((double(PA)/Y)<1) then begin
+          Z:=CTerritoriesCount(C);
+          for X:=1 to Z do begin
+            T:=CTerritory(C,X);
+            if ((TOwner(T)=PMe) AND (TArmies(T)>1)) then begin
+              Z2:=TBordersCount(X);
+              for X2:=1 to Z2 do begin
+                T2:=TBorder(T,X2);
+                if ((TOwner(T2)=PMe) AND (TArmies(T2)>1) and TIsFront(T2)) then begin
+                  FromTerritory:=T;
+                  ToTerritory:=T2;
+                  Armies:=TArmies(FromTerritory)-1;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;  
+
+end;
+
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+// Use australian 2009 code after I have 1 continent
+
+
+procedure oldAttack(var FromTerritory, ToTerritory: integer);
+var
+  T,T2,X,Y:integer;
+  Value:double;
+begin
+  MinnowWhere(X,Y);
+  if (not TisMine(Y)) then begin
+//    l('BBBTF ' + i(X) + ' TA ' + i(Y) + ' A ' + i(TArmies(X))+ ' VI ' + i(ValIndex[Y]));
+    if TArmies(X) > ValIndex[Y] then begin
+      FromTerritory:=X;
+      ToTerritory:=Y;
+    end;
+  end else begin
+    FromTerritory:=0;
+    ToTerritory:=0;
+  end;
+  if (not SConquest) and (ToTerritory=0) then begin
+    conquestAttack(FromTerritory,ToTerritory);
+  end;
+end;
+
+
+procedure OldOccupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  FromIsFront, ToIsFront: boolean;
+begin
+      FromIsFront := TIsFront(FromTerritory);
+      ToIsFront := TIsFront(ToTerritory);
+      Armies:=0;
+
+
+
+      if ToIsFront then begin
+        Armies:=TArmies(FromTerritory)-1;
+        if (Armies<0) then Armies:=0;
+      end;
+      if (ToTerritory=41) then begin
+        Armies:=0;
+      end;
+      if ((ToTerritory=40) and (FromTerritory=39)) then begin
+        Armies:=(TArmies(FromTerritory)-1);
+        if (Armies > (TArmies(42)+5)) then Armies := (TArmies(42)+5);
+        if (Armies < (TArmies(39) div 2)) then Armies:=(TArmies(39) div 2);
+      end;
+      if ((ToTerritory=42) and (FromTerritory=39)) then begin
+        Armies:=0;
+      end;
+      if (ToTerritory=39) then begin
+        Armies:=(TArmies(FromTerritory)-1);
+      end;
+
+end;
+
+
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+//end of old australian code
+
+
+
+//Tony Buffers
+// Buffer 99 - First run placement routine
+// Buffer 98 - From Territory
+// Buffer 97 - To Territory
+
+function TDistancetoFront(QTerr: integer): integer;
+var
+  BBMaxDistToFront: integer;
+  BBDisttoFront,Notused,T: integer;
+  Control: boolean;
+begin
+  BBMaxDisttoFront:=1000;
+  for T:=1 to 42 do begin
+    if TIsMine(T) then begin
+      if TIsFront(T) then begin
+        Control:=TShortestPath(QTerr,T,Notused,BBDisttoFront);
+        if BBDisttoFront < BBMaxDisttoFront then begin
+          BBMaxDisttoFront:=BBDisttoFront;
+        end;
+      end;
+    end;
+  end;
+  result:= BBMaxDisttoFront;
+end;
+
+function EArmiesThatCouldReach(QFromTerr,QToTerr: integer):integer;
+var
+  ENumberCanReach: array of integer;
+  vulnT,vulnT2,BorderCountry:integer;
+  LoopControl: boolean;
+begin
+  SetArrayLength(ENumberCanReach,43);
+  LoopControl:=true;
+  for vulnT:=1 to 42 do begin
+    ENumberCanReach[vulnT]:=-10000;
+  end;
+  ENumberCanReach[QFromTerr]:=MyArmiesMap[QFromTerr];
+  while loopcontrol do begin
+    loopcontrol:=false;
+    for vulnT:=1 to 42 do begin
+      For vulnT2:=1 to TBordersCount(vulnT) do begin
+        BorderCountry:=TBorder(vulnT,vulnT2);
+        if (vulnT = QToTerr) then begin
+          If ENumberCanReach[BorderCountry] > ENumberCanReach[vulnT] then begin
+            ENumberCanReach[vulnT]:=ENumberCanReach[BorderCountry];
+            loopcontrol:=True;
+          end;
+        end else begin
+          If ENumberCanReach[BorderCountry] > (ENumberCanReach[vulnT] + MyArmiesMap[vulnT]) then begin
+            ENumberCanReach[vulnT]:=ENumberCanReach[BorderCountry]-MyArmiesMap[vulnT];
+            loopcontrol:=True;
+          end;
+        end;
+      end;
+    end;
+  end;
+  result:=ENumberCanReach[QToTerr];
+end;
+
+
+
+function OldVulnLevel(QTerr: integer): integer;
+var
+  T: integer;
+  MaxArmiesThatCouldReach, ArmiesThatCouldReach: integer;
+begin
+  MaxArmiesThatCouldReach:=-10000;
+  for T:=1 to 42 do begin
+    if not(TIsMine(T)) then begin
+//    if (MyArmiesMap[T] > MyArmiesMap[QTerr]) then begin
+      ArmiesThatCouldReach:=EArmiesThatCouldReach(T,QTerr);
+      if ArmiesThatCouldReach > MaxArmiesThatCouldReach then begin
+        MaxArmiesThatCouldReach:=ArmiesThatCouldReach;
+      end;
+//      end;
+    end;
+  end;
+  result:=MaxArmiesThatCouldReach;
+end;
+
+
+function PlayerCScore(QPlayer: integer): integer;
+var
+  T: integer;
+begin
+  result:=0;
+  for T:=1 to 6 do begin
+    if (COwner(T)=QPlayer) then result:=result+CBonus(T);
+  end;
+end;
+
+
+function PlayerScore(QPlayer: integer): integer;
+begin
+  result:=PlayerCScore(Qplayer);
+  if (PTerritoriesCount(QPlayer)>11) then begin
+    result:=result+((PTerritoriesCount(QPlayer) div 3)-3);
+  end;
+  if PAlive(Qplayer) then begin
+    result:=result+3;
+  end;
+end;
+
+function TotalEnemyArmies(): integer;
+var
+  T,P:integer;
+begin
+  T:=0;
+  for P:=1 to 10 do begin
+    if (P<>PMe) then begin
+      T:=T+PArmiesCount(P);
+    end;
+  end;
+  result:=T;
+end;
+
+function TotalEnemyScore(): integer;
+var
+  S,P:integer;
+begin
+  S:=0;
+  for P:=1 to 10 do begin
+    if (P<>PMe) then begin
+      S:=S+PlayerScore(P);
+    end;
+  end;
+  result:=S;
+end;
+
+function ArePlayersConnected(P1,P2:integer):boolean;
+var
+  T,T2:integer;
+  output:boolean;
+begin
+  output:=false;
+  if (P<>PMe) then begin
+    for T:=1 to 42 do begin
+      if TOwner(T)=P1 then begin
+        for T2:=1 to TBordersCount(T) do begin
+          if TOwner(TBorder(T,T2)) = P2 then begin
+            output:=true;
+          end;
+        end;
+      end;
+    end;
+  end;
+  result:=output;
+end;    
+
+
+function EnemywithMostArmies(): integer;
+var
+  P,E,X:integer;
+begin
+  E:=0;
+  X:=0;
+  for P:=1 to 10 do begin
+    if (P<>PMe) then begin
+      If PArmiesCount(P) > X then begin
+        X:=PArmiesCount(P);
+        E:=P;
+      end;
+    end;
+  end;
+  result:=E;
+end;
+      
+function ConnectedEnemywithMostArmies(): integer;
+var
+  P,E,X:integer;
+begin
+  E:=0;
+  X:=0;
+  for P:=1 to 10 do begin
+    if (P<>PMe) and (ArePlayersConnected(P,PMe)) then begin
+      If PArmiesCount(P) > X then begin
+        X:=PArmiesCount(P);
+        E:=P;
+      end;
+    end;
+  end;
+  result:=E;
+end;
+
+procedure calculatebigarmies();
+var 
+  T:integer;
+  ifcontrol:boolean;
+begin
+  mrbig:=0;
+  mrbigarmies:=0;
+  mrsecondarmies:=0;
+  for T:=1 to 10 do begin
+    ifcontrol:=false;
+    if (pos('australian',lowercase(PProgram(Towner(T))))>0) then begin
+      if (PlayerScore(T)=0) then begin
+        ifcontrol:=true;
+      end;
+    end;
+    if (pos('descartes',lowercase(PProgram(Towner(T))))>0) then begin
+      if (PlayerScore(T)=0) then begin
+        ifcontrol:=true;
+      end;
+    end;
+    if (not ifcontrol) then begin
+      if PArmiesCount(T)>mrbigarmies then begin
+        mrsecondarmies:=mrbigarmies;
+        mrbigarmies:=PArmiesCount(T);
+        mrbig:=T;
+      end else begin
+        if PArmiesCount(T)>=mrsecondarmies then begin
+          mrsecondarmies:=PArmiesCount(T);
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TerrPlayerBordering(T,P:integer):boolean;
+var
+  T2:integer;
+  output:boolean;
+begin
+  output:=false
+  for T2:=1 to TBordersCount(T) do begin
+    if TOwner(TBorder(T,T2)) = P then begin
+      output:=true;
+    end;
+  end;
+  result:=output;
+end;    
+
+function TerrContinentBordering(T,C:integer):boolean;
+var
+  T2:integer;
+  output:boolean;
+begin
+  output:=false
+  for T2:=1 to TBordersCount(T) do begin
+    if TContinent(TBorder(T,T2)) = C then begin
+      output:=true;
+    end;
+  end;
+  result:=output;
+end;    
+
+function TerrContinentFrontBordering(T,C:integer):boolean;
+var
+  T2:integer;
+  output:boolean;
+begin
+  output:=false
+  for T2:=1 to TFrontsCount(T) do begin
+    if TContinent(TFront(T,T2)) = C then begin
+      output:=true;
+    end;
+  end;
+  result:=output;
+end;    
+
+
+
+function calculatevuln(): boolean;
+var
+  T, T2, BorderT,ET,EA,X,Y,Score,P,WatchPlayer: integer;
+  control,loopcontrol: boolean;
+  Prog:String;
+begin
+  loopcontrol:=True;
+  WatchPlayer:=0;
+  SetArrayLength(AttackArmies,43);
+  for T:=1 to 42 do begin
+    If (MineArmies[T]) then begin
+      AttackArmies[T]:=-10000;
+    end else begin
+      AttackArmies[T]:=MyArmiesMap[T]+14;
+    end;
+    if not (TIsMine(T)) then begin
+      P:=TOwner(T);
+      Score:=PlayerScore(P);
+      Prog:=lowercase(PProgram(P));
+      if (pos('australian',Prog)>0) and (Score=3) then begin
+        WatchPlayer:=1;
+        if not (COwner(6)=PMe) then begin
+          AttackArmies[T]:=-10000;
+        end;
+      end;
+      if (Prog='descartes09.trp') and (Score>3) then begin
+        WatchPlayer:=1;
+//        if (not ArePlayersConnected(TOwner(T),PMe)) then begin
+          AttackArmies[T]:=-10000;
+//        end;
+      end;
+      if (Prog='endeavour09.trp') and (Score>3) then begin
+        WatchPlayer:=1;
+//        if (not ArePlayersConnected(TOwner(T),PMe)) then begin
+          AttackArmies[T]:=-10000;
+//        end;
+      end;
+      if (Prog='australian09.trp') and (Score>3) then begin
+        WatchPlayer:=1;
+//        if (not ArePlayersConnected(TOwner(T),PMe)) then begin
+          AttackArmies[T]:=-10000;
+//        end;
+      end;
+      if (Prog='descartes09.trp') and (Score=3) then begin
+        WatchPlayer:=1;
+        if not (COwner(2)=PMe) then begin
+          AttackArmies[T]:=-10000;
+        end;
+      end;
+      if (Prog='endeavour09.trp') and (Score=3) then begin
+        WatchPlayer:=1;
+        if (not (COwner(4)=PMe)) then begin
+          AttackArmies[T]:=-10000;
+        end;
+      end;
+      if (Prog='vexer.trp') and (PArmiesCount(TOwner(T))<PArmiesCount(PMe)) then begin
+        WatchPlayer:=1;
+        AttackArmies[T]:=-10000;
+      end;
+      if (Prog='frank.trp') then begin
+        WatchPlayer:=1;
+      end;
+      if (Prog='descartes.trp') then begin
+        WatchPlayer:=1;
+      end;
+      if (pos('australian',Prog)>0) then begin
+        WatchPlayer:=1;
+      end;
+      if (Prog='endeavour.trp') then begin
+        WatchPlayer:=1;
+      end;
+      if (Prog='zotob.trp') then begin
+        WatchPlayer:=1;
+      end;
+      if PHuman(P) then begin
+        WatchPlayer:=1;
+      end;
+      if (Prog='frank.trp') and (COwner(6)=PMe) and (Score=3) then begin
+        AttackArmies[T]:=AttackArmies[T]+13;
+      end;
+      if (COwner(6)=P) and (COwner(2)=PMe) then begin
+        AttackArmies[T]:=AttackArmies[T] div 2;
+      end;
+      if (COwner(2)=P) and (COwner(6)=PMe) then begin
+        AttackArmies[T]:=AttackArmies[T] div 2;
+      end;
+      if PHuman(P) and (COwner(6)=PMe) and (Score=3) then begin
+        AttackArmies[T]:=AttackArmies[T]+13;
+      end;
+      if (KP2009=mrbig) and (PArmiesCount(PMe)=mrsecondarmies) and (TOwner(T)=KP2009) then begin
+        AttackArmies[T]:=-10000;
+      end;
+      if (PlayersCount = 2) or (WatchPlayer=0) then begin
+        AttackArmies[T]:=-10000;
+      end;
+    end;
+  end;
+  while loopcontrol do begin
+    loopcontrol:=false;
+    for T:=1 to 42 do begin
+      for T2:=1 to TBordersCount(T) do begin
+        BorderT:=TBorder(T,T2);
+        if AttackArmies[BorderT] > (1+AttackArmies[T] + MyArmiesMap[T]) then begin
+          AttackArmies[T]:=AttackArmies[BorderT]-MyArmiesMap[T]-1;
+          loopcontrol:=True;
+        end;
+      end;
+    end;
+  end;
+  for C:=1 to 6 do begin
+    if COwner(C) = PMe then begin
+      for X:=1 to CEntriesCount(C) do begin
+        T:=CEntry(C,X);
+        for Y:=1 to CTerritoriesCount(C) do begin
+          T2:=CTerritory(C,Y);
+          if (T <> T2) then begin
+            AttackArmies[T]:=AttackArmies[T]-(MyArmiesMap[T2]-1);
+          end;
+        end;
+      end;
+    end;
+  end;
+  for T:=1 to 42 do begin
+    if (AttackArmies[T]<0) then AttackArmies[T]:=0;
+//    l('attarmies T ' + i(T) + ' ' + i(AttackArmies[T]));
+    if (TOwner(T) = PMe) and TIsFront(T) then begin
+      if (COwner(TContinent(T)) = PMe) then begin
+         Y:=TFrontsCount(T);
+         EA:=0;
+         for X:=1 to Y do begin
+           T2:=TFront(T,X);
+           if EA < MyArmiesMap[T2] then EA:=MyArmiesMap[T2];
+         end;
+         if (EA>MyArmiesMap[T]) then begin
+           AttackArmies[T]:=AttackArmies[T]+(EA-MyArmiesMap[T])+1000;
+         end;
+         if (11>MyArmiesMap[T]) then begin
+           AttackArmies[T]:=AttackArmies[T]+11-(MyArmiesMap[T]*2)+1500;
+         end;
+         if (6>MyArmiesMap[T]) then begin
+           AttackArmies[T]:=AttackArmies[T]+13-(MyArmiesMap[T]*3)+3000;
+         end;
+      end;
+      if (TContinent(T) = myattackC) then begin
+         AttackArmies[T]:=0;
+         if (11>MyArmiesMap[T]) then begin
+           AttackArmies[T]:=11-MyArmiesMap[T];
+         end;
+         if (6>MyArmiesMap[T]) then begin
+           AttackArmies[T]:=13-(MyArmiesMap[T]*2);
+         end;
+      end;
+    end;
+    if (TOwner(T) = PMe) and not (TIsFront(T)) then begin
+      if TContinent(T) = myattackC then begin
+        AttackArmies[T]:=0;
+      end;
+    end;
+  end;
+  result:=true;
+end;
+
+function calcmyfronts():integer;
+var
+  myfT1,myfT2,sumfronts,myfborder: integer;
+  isfront:boolean;
+begin
+  sumfronts:=0;
+  for myfT1:=1 to 42 do begin
+    if MineArmies[myFT1] then begin
+      isfront:=false;
+      for myfT2:= 1 to TBordersCount(myft1) do begin
+        myfborder:=TBorder(myfT1,myfT2);
+        if MineArmies[myfborder]=false then begin
+          isfront:=true;
+        end;
+      end;
+      if isfront = true then begin
+        sumfronts:=sumfronts+MyArmiesMap[myft1];
+      end;
+    end;
+  end;
+  result:=sumfronts;
+end;
+
+function calcmyborders():integer;
+var
+  mybT1,mybT2,sumborders,mybborder: integer;
+  ismyborder:boolean;
+begin
+  sumborders:=0;
+  for mybT1:=1 to 42 do begin
+    if not MineArmies[mybT1] then begin
+      ismyborder:=false;
+      for mybT2:= 1 to TBordersCount(mybt1) do begin
+        mybborder:=TBorder(mybT1,mybT2);
+        if MineArmies[mybborder]=true then begin
+          ismyborder:=true;
+        end;
+      end;
+      if ismyborder = true then begin
+        sumborders:=sumborders+MyArmiesMap[mybt1];
+      end;
+    end;
+  end;
+  result:=sumborders;
+end;
+
+function calcmynewborders(T:integer):integer;
+var
+  X,T2,X2,T3,sumborders: integer;
+  ismyborder:boolean;
+begin
+  sumborders:=0;
+  for X:=1 to TBordersCount(T) do begin
+    T2:=TBorder(T,X);
+    if not(TIsMine(T2)) then begin
+      ismyborder:=false;
+      for X2:= 1 to TBordersCount(T2) do begin
+        T3:=TBorder(T2,X2);
+        if TIsMine(T3) then begin
+          ismyborder:=true;
+        end;
+      end;
+      if ismyborder = false then begin
+        sumborders:=sumborders+Tarmies(T2);
+      end;
+    end;
+  end;
+  result:=sumborders;
+end;
+
+procedure calculateoverallvuln(var overallvuln,maxvuln:integer);
+var
+  C,T,X,V:integer;
+  control:boolean;
+begin
+  overallvuln:=0;
+  maxvuln:=0;
+  control:=calculatevuln();
+//  for T:=1 to 42 do begin
+//    l('jjj ' + i(T) + ' ' + i(AttackArmies[T]));
+//  end;
+  for C:=1 to 6 do begin
+    if COwner(C) = PMe then begin
+      for X:=1 to CEntriesCount(C) do begin
+        T:=CEntry(C,X);
+        V:=AttackArmies[T];
+        if V>0 then begin
+          overallvuln:=overallvuln+V;
+          if V> maxvuln then begin
+            maxvuln:=V;
+          end;
+        end;
+      end;
+    end;
+    if (C=myAttackC) then begin
+      for X:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,X);
+        if TIsMine(T) then begin
+          V:=AttackArmies[T];
+          if V>0 then begin
+            overallvuln:=overallvuln+V;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure setupmymaps();
+var 
+  T:integer;
+begin
+  for T:=1 to 42 do begin
+    MyArmiesMap[T]:=TArmies(T);
+    MineArmies[T]:=TIsMine(T);
+  end;
+end;
+
+
+function goodvulnattack(fromc,toc: integer):boolean;
+var
+  overallvuln,maxvuln,newoverallvuln,newmaxvuln:integer;
+begin
+  setupmymaps();
+  calculateoverallvuln(overallvuln,maxvuln);
+  MyArmiesMap[fromc]:=MyArmiesMap[fromc]-1;
+  MyArmiesMap[toc]:=MyArmiesMap[toc]-1;
+  calculateoverallvuln(newoverallvuln,newmaxvuln);
+  l('MMMov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln));
+  if (overallvuln>=newoverallvuln) and (maxvuln>=newmaxvuln) then begin
+    result:= true;
+  end else begin
+    result:= false;
+  end;
+end;
+
+function AreContinentsConnected(C1,C2:integer):boolean;
+var
+  T,T2,T3:integer;
+  output:boolean;
+begin
+  output:=false
+  if (C1 <> C2) then begin
+    for T:=1 to CEntriesCount(C1) do begin
+      T2:=CEntry(C1,T);
+      for T3:= 1 to TBordersCount(T2) do begin
+        if TContinent(TBorder(T2,T3)) = C2 then begin
+          output:=true;
+        end;
+      end;
+    end;
+  end;
+  result:=output;
+end;    
+
+function ArePlayerContinentsConnected(P1,P2:integer):boolean;
+var
+  T,T2:integer;
+  output:boolean;
+begin
+  output:=false;
+  for T:=1 to 6 do begin
+    for T2:=1 to 6 do begin
+      if T <> T2 then begin
+        if COwner(T) = P1 then begin
+          if COwner(T2) = P2 then begin
+            if AreContinentsConnected(T,T2) then begin
+              output:=true;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  result:=output;
+end;    
+
+
+function endgameplay():integer;
+var
+  PP,X:integer;
+begin
+  PP:=0;
+//  l('Hello ' + i(PlayerScore(PMe)) + ' ' + i(TotalEnemyScore()));
+  PP:=ConnectedEnemywithMostArmies();
+  l('endgameplay kill ' + i(PP));
+  result:=PP;
+end;
+
+
+
+function shallikillaplayer():integer;
+var
+  P,MaxValue,PP:integer;
+begin
+  //first of all, need to pick off any cheeky neighbours
+  PP:=0;
+  MaxValue:=0;
+  
+  if PlayerScore(PMe) > 4 then begin
+
+    if (PArmiesCount(PMe)>=mrsecondarmies) then begin
+      for P:=1 to 10 do begin
+        if (P <> PMe) then begin
+          if (ArePlayerContinentsConnected(P,PMe)) or (PlayerScore(P)>10) then begin
+            if (PlayerCScore(P)>PlayerCScore(PMe)+1) then begin
+              if PlayerCScore(P)>MaxValue then begin
+                MaxValue:=PlayerCScore(P) + (PArmiesCount(P) div 10);
+//                l('Cheeky score ' + i(P) + ' ' + i(MaxValue));
+                PP:=P;
+              end;
+            end;
+          end;
+        end;
+      end;
+      if PP>0 then begin
+//        l('Cheeky22 neighbour ' + i(PP));
+      end;
+    end;
+    if (PP=0) then begin  
+      if (PArmiesCount(PMe)>=mrsecondarmies) then begin
+        if (mrbig <> PMe) and (ArePlayersConnected(PMe,MrBig)) then begin
+          PP:=Mrbig;
+          if (PP<>KP2009) then l('KillMrBig ' + i(PP));
+        end;
+      end;
+    end;
+            
+    if (PP=0) then begin  
+      if (PArmiesCount(PMe)=mrsecondarmies) and (mrsecondarmies<mrbigarmies) then begin
+        if ((PlayerScore(MrBig) > (PlayerScore(PMe)+1)) and (PlayerScore(MrBig) > 6)) then begin
+          KP2009:=MrBig;
+          PP:=MrBig;
+        end;
+      end;
+    end;
+//    if (PP=0) then begin  
+//      if (PArmiesCount(PMe)=mrbigarmies) then begin
+//        l('KKK - Mr Big has ' + i(mrbigarmies) + ' Mr 2 has ' + i(mrsecondarmies) + ' Big Score ' + i(PlayerScore(MrBig)) + ' Me Score ' + i(PlayerScore(PMe)));
+//        for P:=1 to 10 do begin
+//          if (P <> PMe) then begin
+//            if (ArePlayersConnected(P,PMe)) then begin
+//              if (PlayerScore(P)>PlayerScore(Pme)) or (PlayerCScore(P)>PlayerCScore(PME)) then begin
+//                KP2009:=P;
+//                PP:=P;
+//              end;
+//            end;
+//          end;
+//        end;
+//     end;
+//    end;
+//    MaxValue:=1000000;
+//    if (PP=0) then begin  
+//      if (PArmiesCount(PMe)>(mrsecondarmies+30)) then begin
+//        l('KWP - Mr Big has ' + i(mrbigarmies) + ' Mr 2 has ' + i(mrsecondarmies) + ' Big Score ' + i(PlayerScore(MrBig)) + ' Me Score ' + i(PlayerScore(PMe)));
+//        for P:=1 to 10 do begin
+//          if (P <> PMe) then begin
+//            if (ArePlayersConnected(P,PMe)) then begin
+//              if PArmiesCount(P)<MaxValue then begin
+//                KP2009:=P;
+//                PP:=P;
+//                MaxValue:=PArmiesCount(P);
+//              end;
+//            end;
+//          end;
+//        end;
+//      end;
+//    end;
+  end;
+  
+  result:=PP;
+end;
+
+function DoesBorderMe(C:integer):boolean;
+var
+  X,T,BorderC:integer;
+begin
+  result:=false;
+  for X:=1 to CBordersCount(C) do begin
+    T:=CBorder(C,X);
+    BorderC:=TContinent(T);
+    if COwner(BorderC) = PMe then result:=true;
+  end;
+end;
+
+procedure calcDistanceToAttackFront();
+var
+  T,X,T2:integer;
+  control:boolean;
+begin
+  for T:=1 to 42 do begin
+    DistanceToAttackFront[T]:=0;
+  end;
+  if (KP2009>0) then begin
+    for T:=1 to 42 do begin
+      if TerrPlayerBordering(T,KP2009) and TIsMine(T) then begin
+        DistanceToAttackFront[T]:=1;
+      end;
+    end;
+  end;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and TIsFront(T) and TerrContinentFrontBordering(T,MyAttackC) and (DistanceToAttackFront[T]=0) then begin
+      if (COwner(TContinent(T))>0) then DistanceToAttackFront[T]:=2;
+      if (TContinent(T)=myAttackC) then DistanceToAttackFront[T]:=1;
+    end;
+  end;
+  control:=true;
+  while control do begin
+    control:=false;
+    for T:=1 to 42 do begin
+      if (DistanceToAttackFront[T]>0) then begin
+        for X:=1 to TBordersCount(T) do begin
+          T2:=TBorder(T,X);
+          if (DistanceToAttackFront[T2] = 0) or (DistanceToAttackFront[T2] > (DistanceToAttackFront[T]+1)) then begin
+            DistanceToAttackFront[T2]:=DistanceToAttackFront[T]+1;
+            control:=true;
+          end;
+        end;
+      end;
+    end;
+  end;
+//    for T:=1 to 42 do begin
+//        l('distattfront ' + i(T) + ' ' + i(DistanceToAttackFront[T]));
+//    end;
+end;
+
+procedure CalcMyAttackC();
+var
+  E,T,T2,C,X,PT,PA,ET,EA:integer;
+  CScore: array of integer;
+  MaxTerritoryValue:integer;
+  ifcontrol,control:boolean;
+begin
+  MaxTerritoryValue:=-1000000;
+  SetArrayLength(CScore,7);
+  for C:=1 to 6 do begin
+    ifcontrol:=false;
+    CScore[C]:=-1000000;
+    if (COwner(C)=PMe) then begin
+      ifcontrol:=true;
+    end;
+    CAnalysis(C,PT,PA,ET,EA);
+    if (PA=0) and (not ifcontrol) then begin
+      ifcontrol:=true;
+      for X:=1 to CEntriesCount(C) do begin
+        if TerrPlayerBordering(CEntry(C,X),PMe) then begin
+          ifcontrol:=false;
+        end;
+      end;
+    end;
+    if (not ifcontrol) then begin
+      CScore[C]:=0;
+      if (PT > 0) then begin
+        CScore[C]:=CScore[C] + (PT*5);
+      end;
+      if DoesBorderMe(C) Then begin
+        CScore[C]:=CScore[C]+150;
+      end;
+      E:=0;
+      for X:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,X);
+        if (not(TOwner(T)=PMe)) and (TArmies(T)>1) then begin
+          if (E=0) or (E=TOwner(T)) then begin
+            E:=TOwner(T);
+          end else begin
+            E:=100;
+          end;
+        end;
+      end;
+      if E <> 100 then CScore[C]:=CScore[C]+75;
+      if E = ThreatPlayer then CScore[C]:=CScore[C]+50;
+      if (COwner(C)>0) Then begin
+        CScore[C]:=CScore[C]+50;
+        if COwner(C)=ThreatPlayer then CScore[C]:=CScore[C]+50;
+      end;
+      CScore[C]:=CScore[C]-EA;
+      for X:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,X);
+        if TIsMine(T) and (MyConnected[T] = 0) then begin
+          CScore[C]:=CScore[C]+TArmies(T);
+        end;
+      end;
+      if CScore[C]>MaxTerritoryValue then begin
+        MaxTerritoryValue:=CScore[C];
+        MyAttackC:=C;
+      end;
+    end;
+  end;
+  calcDistanceToAttackFront();
+end;
+
+function MyCTerr(Territory: integer): boolean;
+begin
+  result:=false;
+  if COwner(TContinent(Territory))=PMe then begin
+    result:=true;
+  end;
+  if TContinent(Territory)=MyAttackC then begin
+    result:=true;
+  end;
+end;
+
+function OnlyForeignTerrInC(Territory: integer): boolean;
+var
+  C,E,X,CT: integer;
+begin
+  result:=true;
+  C:=TContinent(Territory);
+  for X:=1 to CTerritoriesCount(C) do begin
+    CT := CTerritory(C,X);
+    if CT <> Territory then begin
+       if E=0 then begin
+         E:=TOwner(CT);
+       end else begin
+         if E<>TOwner(CT) then begin
+           result:=false;
+         end;
+       end;
+    end;
+  end;
+end;
+
+
+
+function CalcEnemyAreas(C:integer): integer;
+var
+  T1,T2,X,Y,EnemCount:integer;
+  loopcontrol:boolean;
+  EnemAreas:array of integer;
+begin
+  loopcontrol:=false;
+  SetArrayLength(EnemAreas,13);
+  for X:=1 to CTerritoriesCount(C) do begin
+    if not (MineArmies[CTerritory(C,X)]) then begin
+      EnemAreas[X]:=X;
+    end else begin
+      EnemAreas[X]:=0;
+    end;
+  end;
+  while loopcontrol=false do begin    
+    loopcontrol:=true;
+    for X:=1 to CTerritoriesCount(C) do begin
+      for Y:=1 to CTerritoriesCount(C) do begin
+        T1:=CTerritory(C,X);
+        T2:=CTerritory(C,Y);
+        if (X<>Y) and (not MineArmies[T1]) and (not (MineArmies[T2])) then begin
+          if (TIsBordering(T1,T2)) then begin
+            if EnemAreas[X] < EnemAreas[Y] then begin
+              EnemAreas[X]:=EnemAreas[Y];
+              loopcontrol:=false;
+            end;
+            if EnemAreas[X] > EnemAreas[Y] then begin
+              EnemAreas[Y]:=EnemAreas[X];
+              loopcontrol:=false;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  EnemCount:=0;
+  for X:=1 to CTerritoriesCount(C) do begin
+    if (EnemAreas[X]=X) then begin
+      EnemCount:=EnemCount+1;
+    end;
+  end;
+  result:=EnemCount;
+end;
+
+function protectweakspots(var ToTerritory:Integer): boolean;
+var
+  Weakest,WeakestMargin,WeakestValue,T,T2,X:integer;
+  FWMargin,WeakestTerr:integer;
+begin
+  result:=false;
+  FWMargin:=-1000000;
+  for T:=1 to 42 do begin
+    WeakestValue:=1000000;
+    Weakest:=0;
+    if (not MineArmies[T]) then begin
+      for X:=1 to (TBordersCount(T)) do begin
+        T2:=TBorder(T,X);
+        if MineArmies[T] <> MineArmies[T2] then begin
+          if MyArmiesMap[T2]< WeakestValue then begin
+            WeakestValue:=MyArmiesMap[T2];
+            WeakestMargin:=MyArmiesMap[T]-MyArmiesMap[T2];
+            if MineArmies[T2] then begin
+              Weakest:=PMe;
+            end else begin
+              Weakest:=Towner(T2);
+            end;
+            WeakestTerr:=T2;
+          end;
+        end;
+      end;
+      if Weakest=PMe then begin
+        result:=true;
+        if WeakestMargin>FWMargin then begin
+          ToTerritory:=WeakestTerr;
+          FWMargin:=WeakestMargin;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function NastyPlayer(var C,C2,P:Integer): boolean;
+var
+  control: boolean;
+begin
+  control:=false;
+  if StartTurnPlayerCScore[P] > (StartTurnPlayerCScore[PMe] + 1) then begin
+    control:=true;
+  end;
+//  if (COwner(C2) <> PMe) and (COwner(C2) > 0) then begin
+//    control:=true;
+//  end;
+//  if (PProgram(P)='raptorbot.trp') then begin
+//    control:=false;
+//  end;
+//  if (PProgram(P)='shy.trp') then begin
+//    control:=false;
+//  end;
+//  if (PProgram(P)='zotob.trp') and (C2 <> 2) then begin
+//    control:=false;
+//  end;
+//  if (PProgram(P)='vexer.trp') and (C2 <> 2) then begin
+//    control:=false;
+//  end;
+//  if (PlayerScore(P) > PlayerScore(PMe)+1 ) then begin
+//    control:=true;
+//  end;
+  if ((StartTurnPlayerScore[P] >= StartTurnPlayerScore[PMe] ) or (StartTurnPlayerCScore[P]>6)) and ((P=MrBig) or (PMe=MrBig)) then begin
+    control:=true;
+  end;
+  result:=control;
+end;
+
+procedure AttackPlayer(P:integer; var FromTerritory,ToTerritory:Integer);
+var
+  T, T2, D: integer;
+begin
+      MaxTerritoryValue:=-100000;
+  //    if (PArmiesCount(PMe)=mrsecondarmies) and (PArmiesCount(PMe)<mrbigarmies) then begin
+        for T:=1 to 42 do begin
+          if TIsMine(T) and (TArmies(T)>3) then begin
+            for T2:=1 to TFrontsCount(T) do begin
+              D:=TFront(T,T2);
+              if TOwner(D)=P then begin
+//                l('KA GVA From ' + i(T) + ' To ' + i(D) + ' FA ' + i(TArmies(T)) + ' TA ' + i(TArmies(D)));
+                if (TArmies(T)-TArmies(D)) > MaxTerritoryValue then begin
+                  MaxTerritoryValue:=TArmies(T)-TArmies(D);
+                  FromTerritory:=T;
+                  ToTerritory:=D;
+                end;
+              end;
+            end;
+          end;
+  //      end;
+      end;
+      if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+        l('Kill Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+      end;
+end;
+
+procedure KillPlace(var ToTerritory:Integer);
+var
+  MaxTerritoryValue:integer;
+begin
+  if KP2009>0 then begin
+    l('KP2009 ' + i(KP2009));
+    if ArePlayersConnected(PMe,KP2009) then begin
+      MaxTerritoryValue:=0;
+      for T:=1 to 42 do begin
+        if TIsMine(T) and TerrPlayerBordering(T,KP2009) then begin
+          if TArmies(T)> MaxTerritoryValue then begin
+            MaxTerritoryValue:=TArmies(T);
+            ToTerritory:=T;
+            UBufferSet(98,T);
+          end;
+        end;
+      end;
+      if (ToTerritory>0) then begin
+        l('APlace ' + i(ToTerritory));
+      end;
+    end;
+  end;
+end;
+
+procedure DefensivePlace(var ToTerritory:Integer);
+var
+  overallvuln,maxvuln,newoverallvuln,newmaxvuln,NScore,Score:integer;
+begin
+  setupmymaps();
+  calculateoverallvuln(overallvuln,maxvuln);
+  if (overallvuln <> 0) or (maxvuln <> 0) then begin
+    l('POV '+ i(overallvuln)+' PMV '+i(maxvuln));
+    Score:=0;
+    for T:=1 to 42 do begin
+      If TisMine(T) and (MyCTerr(T)) then begin
+        setupmymaps();
+        MyArmiesMap[T]:=MyArmiesMap[T]+1;
+        calculateoverallvuln(newoverallvuln,newmaxvuln);
+        NScore:=((maxvuln-newmaxvuln)*10) + (overallvuln-newoverallvuln)
+        if NScore >= Score then begin
+          if NScore=Score then begin
+            if (TDistancetofront(T)<TDistanceToFront(ToTerritory)) then begin
+              ToTerritory:=T;
+            end;
+          end else begin
+            Score:=NScore;
+            ToTerritory:=T;
+          end;
+        end;                    
+      end;
+    end;
+    if (ToTerritory>0) then l('Defensive place ' + i(ToTerritory) + ' ' + floattostr(Score)); 
+  end;
+end;
+
+
+
+procedure FindSensibleAttack(var FromTerritory,ToTerritory:Integer);
+var
+  T,T2: integer;
+  MaxTerritoryValue,TerritoryValue: integer;
+  PossAttackTerritory: integer;
+  MyBorders,EnemyAreas,NewEnemyAreas:integer;
+begin
+  setupmymaps();
+  MaxTerritoryValue:=-10000;
+  l('SMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+  for T:=1 to 42 do begin
+    if TIsMine(T) then begin
+      for T2:=1 to TFrontsCount(T) do begin
+        PossAttackTerritory:=TFront(T,T2);
+        l('FMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+        if (TContinent(PossAttackTerritory)=MyAttACkC) then begin
+          setupmymaps();
+          EnemyAreas:=CalcEnemyAreas(MyAttackC);
+          MyArmiesMap[PossAttackTerritory]:=3;
+          MineArmies[PossAttackTerritory]:=True;
+          MyArmiesMap[T]:=TArmies(T)+2-TArmies(PossAttackTerritory);
+          NewEnemyAreas:=CalcEnemyAreas(MyAttackC);
+          l('MAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+          if (EnemyAreas >= NewEnemyAreas) then begin
+            MyBorders:=calcMyBorders()
+            TerritoryValue:=0 - (MyBorders+TArmies(PossAttackTerritory));
+            if TerritoryValue > MaxTerritoryValue then begin
+              l('Border Value T ' + i(T) + ' PATer ' + i(PossAttackTerritory) + ' TV ' + i(TerritoryValue));
+              MaxTerritoryValue:=TerritoryValue;
+              FromTerritory:=T;
+              ToTerritory:=PossAttackTerritory;
+            end;
+          end;
+        end;                  
+      end;
+    end;
+          
+  end;
+end;
+
+procedure SpreadAttack(var FromTerritory,ToTerritory:integer);
+var
+  PossAttackCountry:integer;
+begin
+  l('Spread Attack Start');
+  For T:=1 to 42 do begin
+    if (TIsMine(T)  and (TArmies(T) > 5) and TIsFront(T)) then begin
+      for T2:=1 to TFrontsCount(T) do begin
+        PossAttackCountry:=Tfront(T,T2);
+        if TArmies(PossAttackCountry)=1 then begin
+          FromTerritory:=T;
+          ToTerritory:=PossAttackCountry;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+procedure BorderAttack(var FromTerritory,ToTerritory:integer);
+var
+  T,Y:integer;
+begin
+  for C:=1 to 6 do begin
+    if COwner(C) = PMe then begin
+//      l('Border Attack ? ' + i(C));
+      for C2:=1 to 6 do begin
+        if AreContinentsConnected(C,C2) and (COwner(C2)>0) and (COwner(C2) <> PMe) then begin
+          Y:=COwner(C2);
+          if NastyPlayer(C,C2,Y) then begin
+//            l('Border Attack 2 ? ' + i(C) + ' ' + i(C2));
+            MaxTerritoryValue:=0;
+            for X:=1 to CEntriesCount(C) do begin
+              T:=CEntry(C,X);
+              Y:=0;
+              for D:=1 to TBordersCount(T) do begin;
+                if (TOwner(TBorder(T,D)) <> COwner(C2)) and (TOwner(TBorder(T,D)) <> PMe) then begin
+                  if TArmies(TBorder(T,D)) > Y then begin
+                    Y:=TArmies(TBorder(T,D));
+                  end;
+                end;
+              end;
+              for D:=1 to TBordersCount(T) do begin;
+                T2:=TBorder(T,D);
+                if TContinent(T2) = C2 then begin
+                  if (TArmies(T) - TArmies(T2) - Y) > MaxTerritoryValue then begin
+                    MaxTerritoryValue:=TArmies(T)-TArmies(T2)-Y;
+                    FromTerritory:=T;
+                    ToTerritory:=T2;
+//                    l('Border Attack 3 ? ' + i(C) + ' ' + i(C2));
+                  end;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+    l('Border Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+  end;
+end;
+
+procedure BigAttack(var FromTerritory,ToTerritory:integer);
+var
+  PossAttackCountry,MyBorders,TerritoryValue,MaxTerritoryValue:integer;
+begin
+//  l('Big Attack Start me '+ i(PArmiesCount(PMe))+ ' mrs ' + i(mrsecondarmies) + ' psm ' + i(PlayerScore(PMe)));
+  If (PArmiesCount(Pme)>mrsecondarmies) and (PlayerScore(PMe)> 4) and ((not SConquest) or ((mrbigarmies-mrsecondarmies)>10)) then begin
+    If (( not (StartTurnPlayerScore[PMe] = StartTurnPlayerScoreOrdered[1])) or ((PArmiesCount(PMe)-mrsecondarmies)>((StartTurnPlayerScoreOrdered[1]-StartTurnPlayerScoreOrdered[2])*10))) then begin
+      MaxTerritoryValue:=-100000;
+      For T:=1 to 42 do begin
+        if (TIsMine(T)  and (TArmies(T) > 3) and TIsFront(T)) then begin
+          if (TFrontsCount(T) = 1) or (TArmies(T)>TPressure(T)) then begin
+            for T2:=1 to TFrontsCount(T) do begin
+              PossAttackCountry:=Tfront(T,T2);
+  //                if ((TContinent(PossAttackCountry)=MyAttackC) or ((TContinent(T)<>MyAttackC) and (COwner(TContinent(T)) <> PMe))) then begin
+              if TContinent(PossAttackCountry)=MyAttackC then begin
+                setupmymaps();
+                MineArmies[PossAttackCountry]:=True;
+                MyBorders:=calcMyNewBorders(PossAttackCountry)
+                TerritoryValue:=0 - (MyBorders);
+                if TContinent(PossAttackCountry)=MyAttackC then begin
+                  TerritoryValue:=TerritoryValue+100;
+                end;
+                if (TerritoryValue > MaxTerritoryValue) then begin              
+//                 l('ABorder Value T ' + i(T) + ' PATer ' + i(PossAttackCountry) + ' TV ' + i(TerritoryValue));
+                  FromTerritory:=T;
+                  ToTerritory:=PossAttackCountry;
+                  MaxTerritoryValue:=TerritoryValue;
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+      if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+        l('Big Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+      end;
+    end;
+  end;
+end;
+
+procedure GeneralMACAttack(var FromTerritory,ToTerritory:integer);
+var
+  X,Y:integer;
+begin
+  //general attack in myattackC
+  X:=trunc(UBufferget(98));
+  Y:=trunc(UBufferget(97));
+  if Y > 0 then begin
+    If not TIsMine(Y) then begin
+      if (TArmies(X)> (TArmies(Y) + 11)) and ((PArmiesCount(PMe)-TArmies(Y)) > AverageEnemyArmies) then begin
+        FromTerritory:=trunc(UBufferGet(98));
+        ToTerritory:=trunc(UBufferGet(97));
+      end;
+    end;
+  end;
+  if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+    l('General MyAttackC Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+  end;
+end;
+
+procedure OneAttack(var FromTerritory,ToTerritory:integer);
+var
+  T2:integer;
+begin
+  for T:=1 to 42 do begin
+    if TIsMine(T) and (TArmies(T)>2)then begin
+      for X:=1 to TFrontsCount(T) do begin
+        T2:=TFront(T,X);
+        if TArmies(T2)=1 then begin
+          FromTerritory:=T;
+          ToTerritory:=T2;
+        end;
+      end;
+    end;
+  end;
+  if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+    l('One Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+  end;
+end;
+
+procedure ReduceVulnAttack(var FromTerritory,ToTerritory:integer);
+var
+  overallvuln, maxvuln, newoverallvuln, newmaxvuln: integer;
+begin
+  if PArmiesCount(PMe)>AverageEnemyArmies then begin
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (TArmies(T)>2)then begin
+        for X:=1 to TFrontsCount(T) do begin
+          T2:=TFront(T,X);
+  //        l('2ReduceVuln Attack F ' + i(T) + ' T ' + i(T2)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+          if TArmies(T) > 11 then begin
+            setupmymaps();
+            calculateoverallvuln(overallvuln,maxvuln);
+            MyArmiesMap[T]:=TArmies(T)-1;
+            MyArmiesMap[T2]:=TArmies(T2)-1;
+            calculateoverallvuln(newoverallvuln,newmaxvuln);
+  //          l('3ReduceVuln Attack F ' + i(T) + ' T ' + i(T2)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+            if (maxvuln > newmaxvuln) or ((maxvuln=newmaxvuln) and (overallvuln>newoverallvuln)) then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+            end;
+          end;
+        end;
+      end;
+    end;
+    if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+      l('ReduceVuln Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+    end;
+  end;
+end;
+
+procedure TroopsMove(FromTerritory, ToTerritory	: integer; var Armies: integer; var Value: double);
+var
+  X, FromStrongestFront, ToStrongestFront, TryTest: integer;
+  FairArmies, overallvuln, maxvuln, newoverallvuln, newmaxvuln: integer;
+  LowerBound, UpperBound, originalmaxvuln, originaloverallvuln: integer;
+  SetLowerBound: boolean;
+  control, loopcontrol: boolean;
+  FromIsFront, ToIsFront: boolean;
+  var newValue: double;
+begin
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  loopcontrol:=true;
+  If FromIsFront and ToIsFront then begin
+    control:=TStrongestFront(FromTerritory,X,FromStrongestFront);
+    control:=TStrongestFront(ToTerritory,X,ToStrongestFront);
+    FairArmies:=trunc((ToStrongestFront * TArmies(FromTerritory)) div (FromStrongestFront+ToStrongestFront));
+  end;
+  if (not ToIsFront) and (not FromIsFront) then begin
+    FairArmies:=trunc(TArmies(FromTerritory) div 2);
+  end;
+  setupmymaps();
+  calculateoverallvuln(originaloverallvuln,originalmaxvuln);
+  Armies:=0;
+  LowerBound:= SpreadLevel;
+  Upperbound:= TArmies(FromTerritory)-SpreadLevel;                       // Upperbound needs to be one more than the total possible so that the LowerBound has the possibility to be that value
+  while (UpperBound - LowerBound > 1) do begin           // loop until UpperBound - LowerBound = 1
+    SetLowerBound:= False;
+    TryTest:= ((UpperBound + LowerBound) div 2) ;        // instead of increasing by 1, check the middle value
+    MyArmiesMap[FromTerritory]:=TArmies(FromTerritory)-(TryTest-1);
+    MyArmiesMap[ToTerritory]:=TArmies(ToTerritory)+(TryTest-1);
+    calculateoverallvuln(overallvuln,maxvuln);
+    MyArmiesMap[FromTerritory]:=MyArmiesMap[FromTerritory]-1;
+    MyArmiesMap[ToTerritory]:=MyArmiesMap[ToTerritory]+1;
+    calculateoverallvuln(newoverallvuln,newmaxvuln);
+    if (newmaxvuln=maxvuln) and (newoverallvuln = overallvuln) then begin
+      if (DistanceToAttackFront[ToTerritory] = DistanceToAttackFront[FromTerritory]) then begin
+        if LowerBound < FairArmies then SetLowerBound:= True;
+      end;
+    end;
+    newValue:= ((originalmaxvuln-newmaxvuln)*1000) + ((originaloverallvuln-newoverallvuln)*10) + (DistanceToAttackFront[FromTerritory]-DistanceToAttackFront[ToTerritory])*TryTest;
+//    l('sss Trytest ' + i(Trytest) + ' F ' + i(FromTerritory) + ' T ' + i(ToTerritory) + ' FA '+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' dttf ' + i(DistancetoAttackfront[FromTerritory]) + ' dttt ' + i(DistanceToAttackFront[ToTerritory]) + ' origo ' + i(originaloverallvuln) + ' origm ' + i(originalmaxvuln) + ' nv ' + floattostr(newValue));
+    if (newValue> Value) or SetLowerBound then begin
+      Value:=newValue;
+      LowerBound:=TryTest;
+      Armies:=LowerBound;
+    end else begin
+      UpperBound:=TryTest;
+    end;
+  end;
+//  l('Oddupation F ' + i(FromTerritory) + ' T ' + i(ToTerritory) + ' FA '+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' a ' + i(Armies) + ' v ' + floattostr(Value) + ' origo ' + i(originaloverallvuln) + ' origm ' + i(originalmaxvuln));
+end;
+
+procedure preparevalues();
+var
+  X,Turn,T2,Score:integer;
+  Prog:String;
+  control:boolean;
+begin
+  Turn:=trunc(UBufferGet(150));
+  if (Turn=0) then begin
+    Turn:=20;
+  end;
+  Turn:=Turn+1;
+  sn('P');
+  UBufferset(150,Turn);
+  for T:=1 to 42 do begin
+    X:=trunc(UBufferGet(100+T));
+    if X <> 0 then begin
+      if TOwner(T) <> X then begin
+        UBufferset(150+T,Turn);
+      end;
+    end;
+  end;
+  for C:=1 to 6 do begin
+    StartTurnCOwner[C]:=COwner(C);
+  end;
+  for C:=1 to 6 do begin
+    if COwner(C) = PMe then begin
+      MyStartC[C]:=1;
+    end;
+  end;
+  aalive:=0;
+  dalive:=0;
+  ealive:=0;
+  AverageEnemyArmies:=0;
+  EnemiesAlive:=0;
+  Score:=0;
+  PlayersCount:=0;
+  for P:=1 to 10 do begin
+    if PAlive(P) then begin
+      PlayersCount:=PlayersCount+1;
+      X:=PlayerScore(P);
+      if ArePlayersConnected(P,PMe) and (X>Score) then begin
+        Score:=X;
+        ThreatPlayer:=P;
+      end;
+      if (P<>PMe) then begin
+        EnemiesAlive:=EnemiesAlive+1;
+        AverageEnemyArmies:=AverageEnemyArmies+PArmiesCount(P);
+      end;
+      Prog:=lowercase(PProgram(P));
+      if (pos('australian',Prog)>0) then aalive:=1;
+      if (Prog='descartes09.trp') then dalive:=1;
+      if (Prog='endeavour09.trp') then ealive:=1;
+      StartTurnPlayerScore[P]:=PlayerScore(P);
+      StartTurnPlayerCScore[P]:=PlayerCScore(P);
+      StartTurnPlayerScoreOrdered[P]:=PlayerScore(P);
+    end;
+  end;
+//  l('ThreatPlayer ' + i(ThreatPlayer));
+  AverageEnemyArmies:= AverageEnemyArmies div EnemiesAlive;
+  for P:=1 to 9 do begin
+    for X:=1 to (10-P) do begin
+      if StartTurnPlayerScoreOrdered[X]<StartTurnPlayerScoreOrdered[X+1] then begin
+        Y:=StartTurnPlayerScoreOrdered[X];
+        StartTurnPlayerScoreOrdered[X]:=StartTurnPlayerScoreOrdered[X+1];
+        StartTurnPlayerScoreOrdered[X+1]:=Y;
+      end;
+    end;
+  end;
+  if PlayerCScore(PMe) > 0 then begin
+    for C:=1 to 6 do begin
+      if COwner(C) = PMe then begin
+        for T:=1 to CTerritoriesCount(C) do begin
+          MyConnected[CTerritory(C,T)]:=1;
+        end;
+      end;
+    end;
+  end else begin
+    MaxTerritoryValue:=0;
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (TArmies(T)>MaxTerritoryValue) then begin
+        T2:=T;
+        MaxTerritoryValue:=TArmies(T);
+      end;
+    end;
+    MyConnected[T2]:=1;
+  end;
+  control:=true
+  while control do begin
+    control:=false;
+    for T:=1 to 42 do begin
+      if MyConnected[T] = 1 then begin
+        for X:=1 to TBordersCount(T) do begin
+          T2:=TBorder(T,X);
+          if TIsMine(T) and (TArmies(T) > 1) and (MyConnected[T]=0) then begin
+            MyConnected[T]:=1;
+            control:=true;
+          end;
+        end;
+      end;
+    end;
+  end;
+  calcMyAttackC();
+  l('Turn ' + i(Turn) + ' Start armies ' + i(PArmiesCount(PMe)) + ' Mr Big has ' + i(mrbigarmies) + ' Mr 2 has ' + i(mrsecondarmies) + ' Big Score ' + i(PlayerScore(MrBig)) + ' Me Score ' + i(PlayerScore(PMe)) + ' MyAttackC ' + i(MyAttackC));
+  if ((PlayerScore(PMe) > TotalEnemyScore()) and (PlayersCount>2))then begin
+    X:= (PlayerScore(PMe) - StartTurnPlayerScoreOrdered[2])*10;
+    if X > 100 then X:=100; 
+    if (PArmiesCount(PMe) > mrsecondarmies + X) then begin
+      DomAttack:=True;
+      l('DomAttack');
+    end else begin
+      DomAccumulate:=True;
+      l('DomAccumulate');
+    end;
+  end;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var
+  T,Y,Z: integer;
+  MaximumValue,Value:integer;
+begin
+  MaximumValue:=-1000;
+  ToTerritory:=0;
+  for T:=1 to 42 do begin
+    if TOwner(T)=0 then begin
+      Value:=0;
+      if (T<39) then
+        Value:=Value+10;
+      Y:=TBordersCount(T);
+      for Z:=1 to Y do begin
+        if (not TIsMine(TBorder(T,Z))) then Value:=Value+1;
+      end;
+      if (Value>=MaximumValue) then begin
+        MaximumValue:=Value;
+        ToTerritory:=T;
+      end;
+    end;
+//  end;
+  end; // end "if PProgram(PMe) = ..."
+end; // end procedure Assignment
+
+procedure Placement(var ToTerritory: integer);
+var
+  T,X,Y,T2,C,P: integer;
+  Score, NScore: double;
+  MaxTerritoryValue,TerritoryValue: integer;
+  ET,EA:integer;
+  PlacementTerritory, AttackTerritory, PossAttackTerritory,possvulnlevel: integer;
+  control:boolean;
+  MyFronts,MyBorders:integer;
+  MinMaxDistance,MinOverallDistance:integer;
+  overallvuln, maxvuln, newoverallvuln,newmaxvuln: integer;
+  lessmax,lessoverall:Boolean;
+begin
+//  if not FinisherPlacement(ToTerritory) then begin
+////
+  routine:=1;
+  calculatebigarmies();
+  lastturnfrom:=trunc(UBufferGet(148));
+  lastturnto:=trunc(UBufferGet(149));
+  SetArrayLength(MyArmiesMap,43);
+  SetArrayLength(MineArmies,43);
+  SetArrayLength(ValIndex,43);
+  SetArrayLength(ValProtection,43);
+  SetArrayLength(MyConnected,43);
+  SetArrayLength(StartTurnCOwner,7);
+  SetArrayLength(MyStartC,7);
+  SetArrayLength(StartTurnPlayerScore,11);
+  SetArrayLength(StartTurnPlayerCScore,11);
+  SetArrayLength(StartTurnPlayerScoreOrdered,11);
+  setArrayLength(DistanceToAttackFront,43);
+  PlacementTerritory:=0;
+  AttackTerritory:=0;
+  ToTerritory:=0;
+  if (COwner(MyAttackC)=PMe) then begin
+    calcMyAttackC();
+    l('MyAttackC ' + i(MyAttackC));
+  end;
+  if (bg(99) = 0) or (bg(100) = 0) then begin
+    preparevalues();
+  end;
+  if PArmiesCount(PMe) < 10 then begin
+    UBufferset(99,99);
+    ubufferset(98,0);
+    ubufferset(97,0);
+  end;
+  if (PlayerScore(PMe)< 5) then begin
+    if ( pos('endeavour', lowercase(PProgram(PMe))) > 0 ) then begin                
+      EndeavourPlacement(ToTerritory);
+    end else begin
+      MinnowWhere(ToTerritory,X);
+    end;
+    ubufferset(99,1);
+    ubufferset(98,0);
+    ubufferset(97,0);
+  end else begin
+    ToTerritory:=0;
+    If (trunc(UBufferGet(99)) = 0) then begin
+      //I think this is the first run
+      ubufferset(99,1);
+      ubufferset(98,0);
+      ubufferset(97,0);
+      killreason:=0;
+      //Endgame Play
+      if DomAttack then begin
+        KP2009:=endgameplay();
+        if KP2009 > 0 then begin
+          killreason:=1;
+          calcDistanceToAttackFront();
+        end;
+      end;
+      //Kill Play
+      if KP2009 = 0 then begin
+        KP2009:=shallikillaplayer();
+        if KP2009 > 0 then begin
+          killreason:=2;
+          calcDistanceToAttackFront();
+        end;
+      end;
+      if DomAttack or DomAccumulate then begin
+        if (killreason=2) then KillPlace(ToTerritory);
+        if ToTerritory=0 then DefensivePlace(ToTerritory);
+        if ToTerritory=0 then KillPlace(ToTerritory);
+      end else begin
+        KillPlace(ToTerritory);
+        if ToTerritory=0 then DefensivePlace(ToTerritory);
+      end;
+      UBufferSet(98,ToTerritory);
+    end;
+    If trunc(UBufferGet(98)) > 0 then begin
+      ToTerritory:=trunc(Ubufferget(98));
+    end else begin
+      setupmymaps();
+      MaxTerritoryValue:=-10000;
+      for T:=1 to 42 do begin
+        if TIsMine(T) then begin
+          for X:=1 to TFrontsCount(T) do begin
+            PossAttackTerritory:=TFront(T,X);
+            if (TContinent(PossAttackTerritory)=MyAttackC) and (TArmies(T)+2-TArmies(PossAttackTerritory) > 0) then begin 
+              setupmymaps();
+              MyArmiesMap[PossAttackTerritory]:=3;
+              MineArmies[PossAttackTerritory]:=True;
+              MyArmiesMap[T]:=TArmies(T)+2-TArmies(PossAttackTerritory);
+              control:=calculatevuln();
+              possvulnlevel:=0;
+              if COwner(6)=PMe then begin
+                possvulnlevel:=AttackArmies[39];
+              end else begin
+                if COwner(2)=PMe then begin
+                  if (AttackArmies[10]) < AttackArmies[12] then begin
+                    possvulnlevel:=AttackArmies[10];
+                  end else begin
+                    possvulnlevel:=AttackArmies[12];
+                  end;
+                end;
+              end;
+              MyFronts:=calcMyFronts();
+              MyBorders:=calcMyNewBorders(PossAttackTerritory)
+              TerritoryValue:=0 - (MyBorders);
+              if TerritoryValue > MaxTerritoryValue then begin
+//                l('XCCT ' + i(T) + ' PAT ' + i(PossAttackTerritory) + ' TV ' + i(TerritoryValue) + ' possvulnlevel ' + i(possvulnlevel));
+                MaxTerritoryValue:=TerritoryValue;
+                PlacementTerritory:=T;
+                if possvulnlevel <= 0 then begin
+                  AttackTerritory:=PossAttackTerritory;
+//                  l('Attack On');
+                end else begin
+                  AttackTerritory:=0;
+//                  l('Attack0');
+                end;
+    	      end;
+            end;                  
+          end;
+        end;
+      end;
+      if (PlacementTerritory > 0) then l('General MAC attack placement From ' + i(PlacementTerritory) + ' To ' + i(AttackTerritory) + ' val ' + i(MaxTerritoryValue));
+      if (PlacementTerritory = 0) then begin
+        l('Second Last Option Placement');
+        Score:=-1000;
+        for T:=1 to 42 do begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TISMine(T) and TIsFront(T) and MyCTerr(T) and (TContinent(T2)=MyAttackC)) then begin
+              PossAttackTerritory:=TFront(T,T2);
+              control:=TStrongestFront(T,ET,EA);
+              if EA / TArmies(T) > Score then begin
+                Score:= EA/TArmies(T);
+                PlacementTerritory:=T;
+              end;
+            end;
+          end;
+        end;
+      end;
+      if (PlacementTerritory = 0) then begin
+        l('Last Option Placement');
+        Score:=-1000;
+        for T:=1 to 42 do begin
+          for X:=1 to TFrontsCount(T) do begin
+            T2:=TFront(T,X);
+            if (TISMine(T) and TIsFront(T) and (TContinent(T2)=MyAttackC)) then begin
+              PossAttackTerritory:=TFront(T,T2);
+              control:=TStrongestFront(T,ET,EA);
+              if EA / TArmies(T) > Score then begin
+                Score:= EA/TArmies(T);
+                PlacementTerritory:=T;
+              end;
+            end;
+          end;
+        end;
+      end;
+      if PlacementTerritory>0 then begin      
+        UBufferSet(98,PlacementTerritory);
+        UBufferSet(97,AttackTerritory);
+        ToTerritory:=PlacementTerritory;
+        l('Placeplan ' + i(PlacementTerritory) + ' ' + i(AttackTerritory));
+      end;
+    end;
+          
+  end;
+  UBufferset(148,ToTerritory);
+  UBufferSet(149,99);
+
+  UBufferset(99,1);
+//  end; // end "if not FinisherPlacement..."
+end; // end procedure Placement
+  
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  T,X,T2,D,C,C2,Y: integer;
+  MaxTerritoryValue,TerritoryValue: integer;
+  PossAttackCountry: integer;
+  myborders:integer;
+  control:boolean;
+begin
+  routine:=2;
+//  if not FinisherAttack(FromTerritory, ToTerritory) then begin
+  UBufferSet(100,1);
+  lastturnfrom:=trunc(UBufferGet(148));
+  lastturnto:=trunc(UBufferGet(149));
+  calculatebigarmies();
+  if (trunc(UBufferGet(99))=99) then UBufferSet(99,1);
+  UBufferSet(50,3);
+  FromTerritory:=0;
+  ToTerritory:=0;
+  PlayersCount:=0;
+  for X:=1 to 10 do begin
+    if PAlive(X) then begin
+      PlayersCount:=PlayersCount+1;
+    end;
+  end;
+  if (PlayerScore(PMe)> 4) then begin
+    if DomAttack then begin
+      X:= (PlayerScore(PMe) - StartTurnPlayerScoreOrdered[2])*10;
+      if X > 100 then X:=100; 
+      if (PArmiesCount(PMe) > mrsecondarmies + X) then AttackPlayer(KP2009,FromTerritory,ToTerritory);
+    end;
+    if DomAccumulate then begin
+      if (FromTerritory=0) and (not Sconquest) then OneAttack(FromTerritory,ToTerritory);            
+    end;
+    if (not DomAttack) and (not DomAccumulate) then begin
+      if (killreason = 1) then begin
+        if not (PArmiesCount(PMe)>mrsecondarmies+10) then begin
+          killreason:=0;
+          KP2009:=0;
+        end;
+      end;
+      X:=shallikillaplayer();
+      if KP2009 <> X then begin
+        KP2009:=X;
+        calcDistanceToAttackFront();
+      end;
+      if KP2009 > 0 then AttackPlayer(KP2009,FromTerritory,ToTerritory);
+      if (FromTerritory=0) then BorderAttack(FromTerritory,ToTerritory);
+      if (FromTerritory=0) then ReduceVulnAttack(FromTerritory,ToTerritory);            
+      if (FromTerritory=0) then BigAttack(FromTerritory,ToTerritory);    
+      if (FromTerritory=0) and (not Sconquest) then GeneralMACAttack(FromTerritory,ToTerritory);
+      if (FromTerritory=0) and (not Sconquest) then OneAttack(FromTerritory,ToTerritory);            
+    end;
+  end else begin
+    If (PArmiesCount(PMe) = mrsecondarmies) and (PlayerScore(MrBig) > 4) then begin
+      AttackPlayer(MrBig,FromTerritory,ToTerritory);
+    end;
+    if (ToTerritory = 0) then begin  
+      if ( pos('endeavour', lowercase(PProgram(PMe))) > 0 ) then begin                
+        endeavourAttack(FromTerritory,ToTerritory);
+      end else begin
+        oldAttack(FromTerritory,ToTerritory);
+      end;
+    end;
+
+    if ToTerritory=0 then FromTerritory:=0;
+  end;
+  if (ToTerritory=0) and (not SCardsBasedonCombo) and (not SConquest) then begin
+    MaxTerritoryValue:=10000;
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (TArmies(T) > 1) then begin
+        for X:=1 to TFrontsCount(T) do begin
+          T2:=TFront(T,X);
+          if TArmies(T2)<MaxTerritoryValue then begin
+            FromTerritory:=T;
+            ToTerritory:=T2;
+            MaxTerritoryValue:=TArmies(T2);
+            l('Last Option');
+          end;
+        end;
+      end;
+    end;
+  end;
+  UBufferset(148,FromTerritory);
+  UBufferSet(149,ToTerritory);
+  if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
+//    l('AAATF ' + i(FromTerritory) + ' TA ' + i(ToTerritory) + ' A ' + i(TArmies(FromTerritory))+ ' VI ' + i(ValIndex[ToTerritory])+' D ' + i(D));
+  end;
+//  end; // end "if not FinisherAttack..."
+end; // end procedure Attack
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  FromIsFront, ToIsFront: boolean;
+  T:integer;
+  Value:double;
+  X,KillPlayer: integer;
+  FairArmies,overallvuln,newoverallvuln,maxvuln,newmaxvuln:Integer;
+  TryTest,FromStrongestFront,ToStrongestFront:Integer;
+  loopcontrol,control,ifcontrol:Boolean;
+begin
+//  if not FinisherOccupation(FromTerritory, ToTerritory, Armies) then begin
+//  l('Occupation Start');
+  calcmyattackc();
+  if (killreason = 2) then begin
+    if PlayerScore(KP2009) < StartTurnPlayerScore[PMe] then begin
+      KP2009:=0;
+      killreason:=0;
+      l('No longer killing ' + i(KP2009));
+    end;
+  end;
+  ifcontrol:=false;
+  if (not ifcontrol) then begin
+  if (PlayerScore(PMe) > 4) then begin
+      TroopsMove(FromTerritory,ToTerritory,Armies,Value);
+  end else begin
+      if ( pos('endeavour', lowercase(PProgram(PMe))) > 0 ) then begin                
+        endeavourOccupation(FromTerritory,ToTerritory,Armies);
+      end else begin
+        oldOccupation(FromTerritory,ToTerritory,Armies);
+      end;
+  end;
+  end;
+  //Spread Override
+  if (SpreadLevel > 0) and (PlayerScore(PMe)> 4) then begin
+    if (TArmies(FromTerritory)-Armies) < SpreadLevel then begin
+      l ('Spread Override');
+      if (TArmies(FromTerritory)>SpreadLevel) then begin
+        Armies:=TArmies(FromTerritory) - SpreadLevel;
+      end else begin
+        Armies:=0;
+      end;
+    end;
+  end;
+
+//  end; // end "if not FinisherOccupation..."
+  if ((TContinent(FromTerritory)=2) and (TContinent(ToTerritory)=2)) then begin
+    l('Armies being moved' + i(Armies));
+  end;
+end; // end procedure Occupation
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  X,T,T2,B,Dest,MaxArmy,D,D2: integer;
+  ArmySize: integer;
+  Value, MaxValue: double;
+  overallvuln, maxvuln, newoverallvuln,newmaxvuln: integer;
+  control,loopcontrol:Boolean;
+  MaxTerritoryValue,currentFrom,currentdest:Integer;
+  FromValue,ToValue:double;
+begin
+  sn('f');
+  calcmyattackc();
+  ubufferset(99,0);
+//  if not FinisherFortification(FromTerritory, ToTerritory, Armies) then begin
+//  l('Fortify routine AttackC is still ' + i(MyAttackC));
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  MaxArmy:=0;
+  MaxValue:=0;
+  setupmymaps();
+  if ((FromTerritory=0) and (PlayerScore(PMe)> 4)) then begin
+    calculateoverallvuln(overallvuln,maxvuln);
+    if (overallvuln <> 0) or (maxvuln <> 0) then begin
+      l('COV '+ i(overallvuln)+' CMV '+i(maxvuln));
+    end;
+    for T:=1 to 42 do begin
+      If TisMine(T) then begin
+        if Tarmies(T) > (Spreadlevel + 1) then begin
+          for T2:= 1 to TBordersCount(T) do begin
+            Dest:=TBorder(T,T2);
+            IF TIsMine(Dest) then begin
+              setupmymaps();
+              calculateoverallvuln(overallvuln,maxvuln);
+              MyArmiesMap[T]:=MyArmiesMap[T]-1;
+              MyArmiesMap[Dest]:=MyArmiesMap[Dest]+1;
+              calculateoverallvuln(newoverallvuln,newmaxvuln);
+//              l('EFort From ' + i(T) + ' To ' + i(Dest) + ' Armies ' + i(ArmySize)+ ' Fa ' + i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' value ' + floattostr(value));
+              if ((maxvuln>0) and (newmaxvuln< maxvuln))
+              or (((overallvuln>0) and (newoverallvuln< overallvuln)) and (maxvuln=newmaxvuln))
+              or ((maxvuln=newmaxvuln) and (overallvuln=newoverallvuln) and (DistanceToAttackFront[dest]<DistanceToAttackFront[T])) then begin
+                ArmySize:=0;
+                Value:=0;
+                TroopsMove(T,Dest,ArmySize,Value);
+//                l('KFort From ' + i(T) + ' To ' + i(Dest) + ' Armies ' + i(ArmySize)+ ' Fa ' + i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' value ' + floattostr(value));
+                if Value > MaxValue then begin
+                  FromTerritory:=T;
+                  ToTerritory:=Dest;
+                  Armies:=ArmySize;
+                  MaxValue:=Value;
+                  l('JFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' value ' + floattostr(value));
+                end;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+  if (FromTerritory=0) and (PlayerScore(PMe)=3) then begin
+    D:=0;
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (TArmies(T)>1) then begin
+        Y:=TBordersCount(T);
+        for Z:=1 to Y do begin  
+          T2:=TBorder(T,Z);
+          if TIsMine(T2) then begin
+            D2:=TArmies(T)-ValIndex[T2];
+            if (D2>D) then begin
+              D:=D2;
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Armies:=TArmies(T)-1;
+              l('Desire Fort ' + i(FromTerritory) + ' TA ' + i(ToTerritory) + ' A ' + i(TArmies(FromTerritory))+ ' VI ' + i(ValIndex[ToTerritory])+' D ' + i(D));
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  if ((FromTerritory=0) or (not SCardsBasedonCombo)) and (PlayerScore(PMe)<5) then begin
+    MaxValue:=0;
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (TArmies(T) > 1) then begin
+        for X:=1 to TBordersCount(T) do begin
+          T2:=TBorder(T,X);
+          if TIsMine(T2) then begin
+            FromValue:=LoneTerritoryValue(T);
+            ToValue:=LoneTerritoryValue(T2);
+            if ((ToValue-FromValue)*TArmies(T))>MaxValue then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              Armies:=TArmies(T)-1;
+              MaxValue:=((ToValue-FromValue)*TArmies(T));
+              l('LTVFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' maxvalue ' + floattostr(maxvalue));
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;            
+ 
+  l('End Turn armies ' + i(PArmiesCount(PMe)));
+  for T:=1 to 10 do begin
+    UBufferSet(80+T,PArmiesCount(T))
+  end;
+  if (COwner(2)=PMe) then begin
+    if (TArmies(13)>1) or (TArmies(11)>1) then begin
+       l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+    end;
+  end;
+  if (COwner(6)=PMe) then begin
+    if (TArmies(40)>1) or (TArmies(41)>1) or (TArmies(42)>1) then begin
+       l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+    end;
+  end;
+
+  if (SpreadLevel > 0) and (PlayerScore(PMe)> 4) then begin
+    if (TArmies(FromTerritory)-Armies) < SpreadLevel then begin
+      l ('fort Spread Override');
+      if (TArmies(FromTerritory)>SpreadLevel) then begin
+        Armies:=TArmies(FromTerritory) - SpreadLevel;
+      end else begin
+        Armies:=0;
+        FromTerritory:=0;
+        ToTerritory:=0;
+      end;
+    end;
+  end;
+
+  for T:=1 to 42 do begin
+    if TArmies(T) > 1 then begin
+      UBufferset(100+T,TOwner(T));
+    end else begin
+      UBufferset(100+T,0);
+    end;
+  end;
+
+end; // end procedure Fortification
+begin
+end.

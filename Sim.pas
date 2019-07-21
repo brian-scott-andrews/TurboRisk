@@ -256,7 +256,7 @@ var
   sTRP: string;
 begin
   // load program list
-  if FindFirst(sG_AppPath + 'players\*.trp', faAnyFile, rFileDesc) = 0 then
+  if FindFirst(sG_AppPath + 'players/*.trp', faAnyFile, rFileDesc) = 0 then
   begin
     repeat
       // get TRP name from file system
@@ -279,7 +279,7 @@ var
 begin
   cboMap.Items.Clear;
   // load map list
-  if FindFirst(sG_AppPath + 'maps\*.trm', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath + 'maps/*.trm', faAnyFile, rFileDesc) = 0 then begin
     repeat
       // get TRP name from file system
       sMap := lowercase(rFileDesc.Name);

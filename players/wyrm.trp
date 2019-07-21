@@ -1,0 +1,718 @@
+{
+Program: Wyrm
+
+Author: Chrys Wurmse - May 24, 2000
+
+Description: Here is my TRP - a little disorganized at times, but still a cunning and
+ruthless opponent.  It does best in 4-5 player games.
+
+History: Ported to TurboRisk 1.3 by Nathan Scarbrough.
+}
+
+function TargetCplacement(Small: integer): integer;
+var
+  T, C, BestC, Diff, BestDiff: integer;
+  PT, PA, ET, EA, X : integer;
+
+begin
+  // LOCAL FUNCTION TARGETCplacement:  determines the target continent to attack
+  // best ratio of armies in the continent and its borders
+  BestDiff:=SMALL;
+  for C:=1 to 6 do
+    begin
+      PT:=0;
+      PA:=0;
+      ET:=0;
+      EA:=0;
+      CAnalysis(C, PT, PA, ET, EA);
+      if (ET>0) then
+        begin
+          // sub CBORDERANALYSIS:  adjust PT, PA, ET, and EA to reflect
+          // territories that border the given continent
+          for X:=1 to CBordersCount(C) do
+            begin
+              T:=Cborder(C,X);
+              if TIsMine(T) then
+                begin
+                  PT:=PT+1;
+                  PA:=PA+TArmies(T);
+                end
+              else
+                begin
+                  ET:=ET+1;
+                  EA:=EA+TArmies(T);
+                end;
+            end;
+        end;
+      Diff:=PA-ET-EA;
+      if (ET>0) and (PT>0) and (Diff>BestDiff) then
+        begin
+          BestDiff:=Diff;
+          BestC:=C;
+        end;
+    end;
+  result:=BestC;
+end;
+
+function MyTPressure(T, MaxFronts: integer): integer;
+var
+  Pressure, MyB, MyT: integer;
+begin
+  // LOCAL FUNCTION MYTPressure:  returns available armies bordering on [enemy?] territory T
+  // my territories must have at most MaxFronts fronts in order to count its armies
+  
+  Pressure:=0;
+
+  for MyB:=1 to TBordersCount(T) do
+    begin
+      MyT:=TBorder(T,MyB);
+      if TIsMine(MyT) and (TFrontsCount(MyT)<=MaxFronts) then
+        Pressure:=Pressure+TArmies(MyT);
+    end;
+  result:=Pressure;
+end;
+
+function TargetTplacement(EnemyC, Small, Allfronts, onefronts: integer; force: double): integer;
+var
+  T, T2, BestT, Diff, BestDiff: integer;
+  ET, EA, X, Y : integer;
+
+begin
+  // LOCAL FUNCTION TARGETTplacement:  determines the target territory to attack
+  // will return a territory on another continent if no attacks are available
+  // on the desired continent {can also return 0 if no feasible attack is available at all}
+  // uses local global ENEMYC
+  
+  BestDiff:=SMALL;
+  BestT:=0;
+  for X:=1 to CTerritoriesCount(EnemyC) do
+    begin
+      T:=CTerritory(EnemyC,X);
+//      UMessage('Checking out territory #',X,' of target continent ',ENEMYC);
+      Y:=MyTPressure(T,ALLFRONTS);
+//      UMessage('Looking at territory ',T,' which you have ',Y,' total pressure on');
+      if (Y>0) and (trunc(FORCE*TArmies(T))<(PNewArmies(PMe)+Y)) and (not TIsMine(T)) then
+        begin
+          // if its an enemy territory that can be conquered, then compute
+          // your 1-front armies (+) less attacked armies (-) less new exposure to enemies (-)
+          Diff:=MyTPressure(T,ONEFRONTS)-TArmies(T);
+//          UMessage('Initial Diff (1-front armies less attacked) is ',Diff);
+          for Y:=1 to TBordersCount(T) do
+            begin
+              T2:=TBorder(T,Y);
+//              UMessage('Secondary loop, looking at territory #',Y,' (namely ',T2,') with my pressure of ',MyTPressure(T2,ALLFRONTS),' and armies ',TArmies(T2));
+              if (MyTPressure(T2,ALLFRONTS)=0) and (not(TIsMine(T2))) then
+                Diff:=Diff-TArmies(T2);
+              // new exposure when territory is conquered
+            end;
+//          UMessage('A conquerable territory on target continent ',EnemyC,' is ',T);
+//          UMessage('my [wasted] 1-front armies less attacked armies less new exposures is ',Diff);
+          if (Diff>BestDiff) then
+            begin
+               BestDiff:=Diff;
+               BestT:=T;
+            end;
+        end;
+    end;
+  if (BestT=0) then
+    begin
+      // look for easiest territory that can be taken [may be on another continent]
+      for T:=1 to 42 do
+        begin
+          if TIsMine(T) then
+            begin
+              TWeakestFront(T,ET,EA);
+              Diff:=TArmies(T)-EA;
+              if (Diff>BestDiff) then
+                begin
+                  BestDiff:=Diff;
+                  BestT:=ET;
+                end;
+            end;
+        end;
+//      TWeakestFront(BestT,ET,EA);  // this code has not been converted to ver 1.3
+//      Diff:=PNewArmies(PMe)*NEWRATIO; // allow only a %-age of new armies to go for this attack
+//      Diff:=Diff+TArmies(BestT)-EA*FORCE;
+//      if Diff<1 then BestT:=0;
+    end;
+  result:=BestT;
+end;
+
+function TargetCattack(small: integer): integer;
+var
+  T, C, BestC, Diff, BestDiff: integer;
+  PT, PA, ET, EA, X, Y: integer;
+  
+
+begin
+  // LOCAL FUNCTION TARGETCattack:  determines the target continent to attack
+  // best ratio of armies in the continent and its borders
+
+  
+  BestDiff:=0; // will hold maximum number of armies controlled by leading player Y
+  for X:=1 to 10 do
+    if (PActive(X)) and (X<>PMe) then
+      if (PArmiesCount(X)>BestDiff) then
+        begin
+          BestDiff:=PArmiesCount(X);
+          Y:=X; // Y holds the leading player's number
+        end;
+
+  BestDiff:=SMALL;
+  for C:=1 to 6 do
+    begin
+      PT:=0;
+      PA:=0;
+      ET:=0;
+      EA:=0;
+      CAnalysis(C, PT, PA, ET, EA);
+      if (ET>0) then
+        begin
+          // sub CBORDERANALYSIS:  adjust PT, PA, ET, and EA to reflect
+          // territories that border the given continent
+          for X:=1 to CBordersCount(C) do
+            begin
+              T:=Cborder(C,X);
+              if TIsMine(T) then
+                begin
+                  PT:=PT+1;
+                  PA:=PA+TArmies(T);
+                end
+              else
+                begin
+                  ET:=ET+1;
+                  EA:=EA+TArmies(T);
+                end;
+            end;
+        end;
+      Diff:=PA-ET-EA;
+
+      if (COwner(C)=Y) and SConquest and (PT>0) then // attack the leading player's continents
+        begin
+          Diff:=Diff+500;
+//          UMessage(PName(PMe),' is favoring an extra attack on ',PName(Y),', in continent # ',C,', because they are the leader');
+        end;
+
+      if (COwner(C)>0) and (COwner(C)<>PMe) and SConquest and (PT>0) then
+//        if (PArmiesCount(COwner(C))>PArmiesCount(PMe)) then
+          Diff:=Diff+500;
+// actually, just attack that other continent anyway, no matter what
+      // also attack an opponent's continent if they are about to run over you themselves
+
+      if (ET>0) and (PT>0) and (Diff>BestDiff) then
+        begin
+          BestDiff:=Diff;
+          BestC:=C;
+        end;
+//        UMessage('best continent = ',BestC,' with my armies less his armies of ',BestDiff);
+    end;
+  result:=BestC;
+end;
+
+function TargetTattack(enemyc, small, allfronts, onefronts: integer; force: double): integer;
+var
+  T, T2, BestT, Diff, BestDiff: integer;
+  ET, EA, X, Y: integer;
+
+begin
+  // LOCAL FUNCTION TARGETTattack:  determines the target territory to attack
+  // will return a territory on another continent if no attacks are available
+  // on the desired continent {can also return 0 if no feasible attack is available at all}
+  // uses local global ENEMYC
+
+
+  BestDiff:=SMALL*5;
+  BestT:=0;
+  for X:=1 to CTerritoriesCount(EnemyC) do
+    begin
+      T:=CTerritory(EnemyC,X);
+//      UMessage('Checking out territory #',X,' of target continent ',ENEMYC);
+      Y:=MyTPressure(T,ALLFRONTS);
+//      if SConquest then
+//        UMessage('Looking at territory ',T,' which you have ',Y,' total pressure on');
+      if (Y>0) and (trunc(FORCE*TArmies(T))<(PNewArmies(PMe)+Y)) and (not TIsMine(T)) then
+        begin
+          // if its an enemy territory that can be conquered, then compute
+          // your 1-front armies (+) less attacked armies (-) less new exposure to enemies (-)
+          Diff:=MyTPressure(T,ONEFRONTS)-TArmies(T);
+//          UMessage('Initial Diff (1-front armies less attacked) is ',Diff);
+          for Y:=1 to TBordersCount(T) do
+            begin
+              T2:=TBorder(T,Y);
+//              UMessage('Secondary loop, looking at territory #',Y,' (namely ',T2,') with my pressure of ',MyTPressure(T2,ALLFRONTS),' and armies ',TArmies(T2));
+              if (MyTPressure(T2,ALLFRONTS)=0) and (not(TIsMine(T2))) then
+                Diff:=Diff-TArmies(T2);
+              // new exposure when territory is conquered
+            end;
+//          if SConquest then
+//            UMessage('A conquerable territory on target continent ',EnemyC,' is ',T);
+//          UMessage('my [wasted] 1-front armies less attacked armies less new exposures is ',Diff);
+          if (Diff>BestDiff) then
+            begin
+               BestDiff:=Diff;
+               BestT:=T;
+            end;
+        end;
+    end;
+  if (BestT=0) and (not SConquest) then
+    begin
+      // look for easiest territory that can be taken [may be on another continent]
+      for T:=1 to 42 do
+        begin
+          if TIsMine(T) then
+            begin
+              TWeakestFront(T,ET,EA);
+              Diff:=TArmies(T)-EA;
+              if (Diff>BestDiff) then
+                begin
+                  BestDiff:=Diff;
+                  BestT:=ET;
+                end;
+            end;
+        end;
+    end;
+  result:=BestT;
+end;
+
+//procA
+procedure Assignment(var ToTerritory: integer);
+var
+  T: integer;
+begin
+
+  // find first free territory (a very stupid way to start the game!)
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+
+//procP
+procedure Placement(var ToTerritory: integer);
+var
+  MinDiff, EnemyC, EnemyT, T, B, C, Diff, BestDiff: integer;
+  PT, PA, ET, EA, AnyAttack: integer;
+  
+  SMALL, ALLFRONTS, ONEFRONTS, CBONUS, MINARMIES: integer;
+  FORCE, NEWRATIO: double;
+
+
+begin
+  // PLACEMENT:  defines ToTerritory (where 1 army will be placed)
+  // 1) make sure ANY attack is possible
+  // 2) reinforce existing continents
+  // 3) make sure desired attack is possible
+  // 4) beef up the target continent
+  // 5) take care of the rest of your territories
+  
+
+  SMALL:=-9999;       // CONSTANTS SECTION
+  FORCE:=1.2;
+  MINARMIES:=5;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  CBONUS:=12;          // bonus for reinforcing territories in current target continent
+  NEWRATIO:=0.5;      // %-age of new armies that can go towards an out-of-continent attack
+
+  ToTerritory:=0;
+  AnyAttack:=0;
+  
+  for T:=1 to 42 do begin
+    if TIsMine(T) then begin
+      TWeakestFront(T,ET,EA);
+      if (TArmies(T)>trunc(MINARMIES+EA*FORCE)) then AnyAttack:=1;
+    end;
+  end;
+
+  for C:=1 to 6 do begin    // reinforce existing continents if necessary - to defend against STRONGEST front first
+    if (COwner(C)=PMe) and (ToTerritory=0) and (AnyAttack=1) then begin
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          TStrongestFront(T,ET,EA);
+          if (double(TArmies(T))<MINARMIES+EA*FORCE) then      // shortfall in my territory T
+            if (ToTerritory=0) then ToTerritory:=T
+          else 
+            if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+        end;
+      end;
+    end;
+  end;
+
+  EnemyC:=TargetCplacement(small);
+  EnemyT:=TargetTplacement(EnemyC, Small, Allfronts, onefronts, force);
+
+{ The following 5 lines have yet to be converted into strings for Turborisk 1.3 and up }
+// UMessage('Total new armies to place ',PNewArmies(PMe));
+// UMessage('target continent = ',EnemyC);
+// UMessage('target territory = ',EnemyT);
+// UMessage('total pressure on that target territory = ',MyTPressure(EnemyT,ALLFRONTS));
+// UMessage('minimum required armies to attack = ',MINARMIES+TArmies(EnemyT)*FORCE);
+
+
+  if (EnemyT<>0) and (double(MyTPressure(EnemyT,ALLFRONTS))<MINARMIES+TArmies(EnemyT)*FORCE) then begin
+//  continue to reinforce until attack is possible - put them all in strongest country
+    BestDiff:=SMALL;
+    for B:=1 to TBordersCount(EnemyT) do begin
+      T:=TBorder(EnemyT,B);
+      Diff:=TArmies(T);
+      if TIsFront(T) and (Diff>BestDiff) then begin
+        BestDiff:=Diff;
+        ToTerritory:=T;
+      end;
+    end;      
+  end;
+
+  if (ToTerritory=0) then begin         // attack is already guaranteed.  beef up the target continent
+    PT:=0;
+    PA:=0;
+    ET:=0;
+    EA:=0;
+    BestDiff:=SMALL;
+
+    CAnalysis(EnemyC, PT, PA, ET, EA);
+
+    if (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
+      for B:=1 to CTerritoriesCount(EnemyC) do begin
+        T:=CTerritory(EnemyC,B);
+        Diff:=TArmies(T); // put in strongest
+        if (PNewArmies(PMe)>5) then Diff:=-TArmies(T);       // but put in weakest front until 5 armies left
+        if TIsFront(T) and (Diff>BestDiff) then begin
+          ToTerritory:=T;
+          BestDiff:=Diff;
+        end;
+      end;
+    end;
+  end;
+      
+  for C:=1 to 6 do begin                                     // reinforce existing continents if necessary - WEAKEST front first
+    if (COwner(C)=PMe) and (ToTerritory=0) then begin      // if you own the continent and already have an attack
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          TStrongestFront(T,ET,EA);
+          if (double(TArmies(T))<(EA*FORCE)) then begin
+            if (ToTerritory=0) then ToTerritory:=T 
+              else if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+  end;
+  TWeakestFront(EnemyT,ET,EA);
+
+  if (EnemyT<>0) and (ToTerritory=0) and (double(MyTPressure(EnemyT,ALLFRONTS))<(EA+MINARMIES+TArmies(EnemyT)*FORCE)) then begin
+//  continue to reinforce until attack is possible - put them all in strongest country
+    BestDiff:=SMALL;
+   
+    for B:=1 to TBordersCount(EnemyT) do begin
+      T:=TBorder(EnemyT,B);
+      if TIsMine(T) and (TArmies(T)>BestDiff) then begin
+        BestDiff:=TArmies(T);
+        ToTerritory:=T;
+      end;
+    end;      
+  end;
+
+  for C:=1 to 6 do begin                                 // reinforce existing continents if necessary
+    if (COwner(C)=PMe) and (ToTerritory=0) then begin    // if you own the continent and already have an attack
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          if (double(TArmies(T))<(TPressure(T)*FORCE)) then
+            if (ToTerritory=0) then ToTerritory:=T
+              else if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+        end;
+      end;
+    end;
+  end;
+
+  if ToTerritory=0 then begin                           // attack is already guaranteed
+    BestDiff:=SMALL;
+    for T:=1 to 42 do begin
+      TWeakestFront(T,ET,EA);
+      Diff:=TArmies(T)+PNewArmies(PMe)-EA;              // worthwhile to fortify this one?
+      if (TContinent(T)=EnemyC) then Diff:=1;            // but always worthwhile fortifying your target continent
+      if TIsFront(T) and (Diff>0) then begin             // territory is mine and front and can be made stronger than the weakest front
+
+        Diff:= (TPressure(T)-TArmies(T));
+        if TIsBordering(T,EnemyT) then Diff:=(TPressure(T)+(TArmies(T) div 8));  // avoid fortifying around a country you're about to take
+
+        if (TContinent(T)=EnemyC) then Diff:=(Diff+CBONUS);
+//      UMessage('Territory ',T,' is worthy of fortification with Pressure - Armies + Bonus of ',Diff);
+        if (Diff>BestDiff) then begin
+          ToTerritory:=T;
+          BestDiff:=Diff;
+        end;
+      end;
+    end;
+  end;
+
+  // This Code was added to fix a rare bug and as bug control to accommodate for any unknown bugs
+  // added by Nathan Scarbrough 11/30/09
+  if ToTerritory = 0 then begin
+    MinDiff:=999999999;
+    For T:= 1 to 42 do begin
+      if TIsFront(T) then begin
+        TWeakestFront(T, ET, EA);
+        Diff:= EA - TArmies(T);
+        if Diff < MinDiff then begin    // Place on the T with the greatest chance to win an attack
+          MinDiff:= Diff;
+          ToTerritory:= T;
+        end;
+      end;
+    end;
+  end;
+end;
+
+//procA
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  
+  EnemyC, T, B, Diff, BestDiff: integer;
+  PT, PA, ET, EA : integer;
+  SMALL, ALLFRONTS, ONEFRONTS, CBONUS, MINARMIES: integer;
+  FORCE, NEWRATIO: double;
+  
+begin // ATTACK
+  // defines FromTerritory and ToTerritory.  No attack if FromTerritory is 0
+  // perform an attack on the next achievable continent, or the cheapest attack if
+  // no attack is available there (decided in function TargetTattack).
+  // Not Implemented yet:  If you can safely eliminate a player, do so
+  // sometimes picks a smaller front when a non-front is available???
+
+  SMALL:=-9999;       // CONSTANTS SECTION
+  FORCE:=0.95;         // smaller FORCE than in PLACEMENT procedure to encourage attacks
+  MINARMIES:=2;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  CBONUS:=5;          // bonus for reinforcing territories in current target continent
+  NEWRATIO:=0.5;      // %-age of new armies that can go towards an out-of-continent attack
+
+  EnemyC:=TargetCattack(small);
+  PT:=0;
+  PA:=0;
+  ET:=0;
+  EA:=0;
+  CAnalysis(EnemyC, PT, PA, ET, EA);
+
+//  if SConquest then
+//    UMessage('Target continent = ',EnemyC,' with excess of ',PA-PT-ET-EA);
+
+//  if SConquest and (PA>EA) then
+//    UMessage('You should attack continent ',EnemyC,' since you have ',PA,' armies and he only has ',EA);
+
+  BestDiff:=0; // will hold maximum number of armies controlled by leading player B
+  for T:=1 to 10 do
+    if (PActive(T)) and (T<>PMe) then
+      if (PArmiesCount(T)>BestDiff) then
+        begin
+          BestDiff:=PArmiesCount(T);
+          B:=T;
+        end;
+
+  if ((PA-PT)>trunc((double(MINARMIES)+ET+EA)/FORCE)) or (not SConquest) or (COwner(EnemyC)>0) then
+    begin
+      ToTerritory:=TargetTattack(enemyc, small, allfronts, onefronts, force);
+//      UMessage('Target Continent = ',EnemyC,' Target Territory = ',ToTerritory);
+//      if (ToTerritory=0) and (not SConquest) then
+//        UMessage('why arent you proposing an attack, perhaps on your target continent ',EnemyC);
+//      if SConquest and (ToTerritory<>0) then
+//        UMessage('Extra attack!  You are attacking continent ',EnemyC,', territory ',ToTerritory,' since you have ',PA,' armies and he only has ',EA);
+      if (ToTerritory<>0) then
+        begin
+          // calculate the correct territory to attack from
+          // 1)  weakest 1-front if ToTerritory armies > 2, otherwise strongest 1-front
+          // 2)  highest TArmies-TPressure.  This may not be the best
+          BestDiff:=SMALL*5;
+          for B:=1 to TBordersCount(ToTerritory) do
+            begin
+              T:=TBorder(ToTerritory,B);
+              if TIsMine(T) and (TArmies(T)>1) and ((TArmies(T)>2) or (TArmies(ToTerritory)=1)) then // no attacks ever with 2 or less armies
+                begin
+                  Diff:=TArmies(T)-(TPressure(T) div 3); // stress armies more than pressure
+                  if (TArmies(T)<4) and (TArmies(ToTerritory)>1) then
+                    Diff:=Diff+SMALL*2; // discourage these attacks with less than 4 armies
+                  if (TFrontsCount(T)=1) then
+                    begin
+                      if (TArmies(ToTerritory)>2) then
+                        Diff:=Diff-SMALL-TArmies(T)*2  // weakest 1-front will be picked
+                      else
+                        Diff:=Diff-SMALL; // strongest 1-front will be picked
+                    end;
+                  if (Diff>BestDiff) then
+                    begin
+                      BestDiff:=Diff;
+                      FromTerritory:=T;
+                    end;
+                end;
+            end;
+          BestDiff:=(MyTPressure(ToTerritory,ALLFRONTS))-(TArmies(ToTerritory));
+          if (BestDiff<0) then
+            begin
+//              UMessage('About to abort an attack on target continent ',EnemyC,' from ',FromTerritory,' to ',ToTerritory,' with enemy armies ',TArmies(ToTerritory),' and MyTPressure ',MyTPressure(ToTerritory,ALLFRONTS),' for a total negative difference of ',BestDiff);
+//              UMessage('double checking - enemy armies ',TArmies(ToTerritory),' and MyTPressure ',MyTPressure(ToTerritory,ALLFRONTS),' for a total negative difference of ',BestDiff);
+              FromTerritory:=0; // abort attacks that won't work
+            end;
+        end;
+    end;
+
+end;
+
+
+//procO
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  FromIsFront, ToIsFront: boolean;
+  EA, ET, Buffer : integer;
+
+begin
+
+
+  // very simple but effective routine
+  // moves ARMIES from FROMTERRITORY to TOTERRITORY (which was just conquered)
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+  if  FromIsFront and ToIsFront then  // if both territories are 'front'
+      begin
+        TStrongestFront(FromTerritory,ET,EA); // idea is to leave behind only what you need
+	Buffer:=TArmies(FromTerritory) div 8;
+        if (Buffer<3) then
+          Buffer:=3;
+        EA:=EA+Buffer; // leave some extra
+        ET:=(1+TArmies(FromTerritory)-TArmies(ToTerritory)) div 2; // balancing move
+        if (EA>TArmies(FromTerritory)-ET) then
+          Armies:=ET // will always move at least armies to balance territories
+        else Armies:=TArmies(FromTerritory)-EA; // but maybe more
+      end 
+    else if FromisFront then // only "From" territory is front
+      begin 
+        // all armies stay in From territory, so there's nothing to do
+      end
+    else
+      begin
+        // all armies in the conquered territory (except one which must stay)
+        Armies:=TArmies(FromTerritory)-1;
+      end;
+end;
+
+
+//procF
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  BestFrom,BestArmies,F,T,Arm,B,MaxArmy,Diff,BestDiff,EA,ET: integer;
+  SMALL, ALLFRONTS, ONEFRONTS: integer;
+
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  SMALL:=-9999;
+
+  // look for front country that needs the most help.  favor continents that you
+  // already own, and countries that can be helped by 0-fronts
+  // "most help" implies difference between MyArmies and the strongest front
+
+  // for each of your fronts, determine the FromTerritory, the deficit, and the benefit able to be provided
+
+
+  BestArmies:=0;
+  BestDiff:=SMALL;
+//  UMessage('Calling procedure Fortification');
+
+  for T:=1 to 42 do
+    if TIsFront(T) then
+      begin
+        TStrongestFront(T,ET,EA);
+        Diff:=EA-TArmies(T); // your current deficit
+        BestArmies:=0;
+        for B:=1 to TBordersCount(T) do
+          begin
+            F:=TBorder(T,B);  // start looking for the best FromTerritory
+            if TIsMine(F) and (TArmies(F)>1) then
+              begin
+                TStrongestFront(F,ET,EA);
+                if (not TIsFront(F)) then
+                  Arm:=TArmies(F)-1
+                else
+                  Arm:=TArmies(F)-EA; // the absolute most you can spare
+//                  UMessage(TName(T),' has a deficit of ',Diff,' but can be helped by ',TName(F),' which can spare ',Arm,' armies');
+                if (Arm>BestArmies) then
+                  begin
+                    BestArmies:=Arm;
+                    BestFrom:=F;
+                  end;
+              end;
+          end;
+        // now you have found your best FromTerritory "BestFrom" for this ToTerritory T
+        // it can spare "BestArmies" and you had desired "Diff"
+        B:=Diff;
+        if (B>BestArmies) then
+          B:=BestArmies; // you needed more than you could can spare
+        if (B>BestDiff) and ((B+BestArmies)>1) and (BestArmies>2) then
+          begin
+            Armies:=(B+BestArmies) div 2;
+            if (not TIsFront(BestFrom)) then
+              Armies:=BestArmies;
+//            UMessage('Found a better fortification:  move ',Armies,' armies from ',TName(BestFrom),' to ',TName(T));
+            BestDiff:=B;
+            FromTerritory:=BestFrom;
+            ToTerritory:=T;
+          end;
+      end;
+//  if (Armies<>0) then 
+//    UMessage('Recommend moving ',Armies,' from ',FromTerritory,' to ',ToTerritory);
+
+  if (ToTerritory=0) then // use original fortification code -- find largest zero-front
+begin
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin  // territory is mine and not "front"
+      if TArmies(T)>MaxArmy then begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+  // if there are armies to move...
+  if FromTerritory>0 then begin
+    // check if can move armies to front...
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then begin
+          ToTerritory:=T;
+        end;
+      end;
+    end;
+    // otherwise move armies in the first bordering territory
+    if ToTerritory=0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+    // Move all armies to destination (except the one which must stay)
+    if ToTerritory>0 then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+end;
+
+end;
+
+begin
+end.

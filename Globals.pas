@@ -1002,11 +1002,11 @@ begin
           Rank := 0;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players\' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players\' + PrgFile)
+            if FileExists(sG_AppPath + 'players/' + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players/' + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players\' +
+              (sG_AppPath + 'players/' +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;
@@ -1890,11 +1890,11 @@ begin
           FlMove := False;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players\' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players\' + PrgFile)
+            if FileExists(sG_AppPath + 'players/' + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players/' + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players\' +
+              (sG_AppPath + 'players/' +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;

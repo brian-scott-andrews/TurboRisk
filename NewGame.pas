@@ -288,8 +288,8 @@ begin
       if Active then begin
         inc(iAttivi);
         if Computer then begin
-          if not FileExists(sG_AppPath + 'players\' + PrgFile) then begin
-            MessageDlg(Name + ':' + sG_AppPath + 'players\' + PrgFile +
+          if not FileExists(sG_AppPath + 'players/' + PrgFile) then begin
+            MessageDlg(Name + ':' + sG_AppPath + 'players/' + PrgFile +
                 ' not found.', mtError, [mbOK], 0);
             ModalResult := mrNone;
           end;

@@ -63,7 +63,7 @@ var
 begin
 
   // load bitmap
-  sBitmapFile := ChangeFileExt(sG_AppPath + 'maps\' + sMapFile, '.bmp');
+  sBitmapFile := ChangeFileExt(sG_AppPath + 'maps/' + sMapFile, '.bmp');
   BaseMap.LoadFromFile(sBitmapFile);
   if bG_TRSim then begin // TRSim
     fSimMap.imgMap.Picture.Assign(BaseMap);
@@ -74,7 +74,7 @@ begin
     ResizeMainWindow;
   end;
   // load map data
-  IniFile := TIniFile.Create(sG_AppPath + 'maps\' + sMapFile);
+  IniFile := TIniFile.Create(sG_AppPath + 'maps/' + sMapFile);
   try
     with IniFile do begin
       // load general info
