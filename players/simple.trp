@@ -39,6 +39,7 @@ begin
       if Ratio>MaxRatio then begin
         ToTerritory:=T;
         MaxRatio:=Ratio;
+        Writeln(MaxRatio);
       end;
     end;
   end;

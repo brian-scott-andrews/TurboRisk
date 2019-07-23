@@ -42,6 +42,7 @@ type
     procedure cmdOKClick(Sender: TObject);
     procedure cmdResetRulesClick(Sender: TObject);
     procedure chkMapSelectedClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -169,6 +170,11 @@ begin
   chkExpertAttack.Checked := false;
   // update
   chkUpdateCheck.Checked := false;
+end;
+
+procedure TfPref.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

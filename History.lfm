@@ -126,8 +126,6 @@ object fHistory: TfHistory
         Width = 75
         Height = 25
         Caption = 'Analyze'
-        DoubleBuffered = True
-        ParentDoubleBuffered = False
         TabOrder = 2
         OnClick = cmdAnalyzeClick
       end
@@ -139,8 +137,8 @@ object fHistory: TfHistory
         BevelOuter = bvNone
         TabOrder = 3
         object lblAnalyze: TLabel
-          Left = 43
-          Top = 23
+          Left = 41
+          Top = 21
           Width = 321
           Height = 13
           Alignment = taCenter
@@ -148,16 +146,16 @@ object fHistory: TfHistory
           Caption = 'Results of direct fights between P1 and P2'
         end
         object lblPlayer1: TLabel
-          Left = 43
-          Top = 73
+          Left = 41
+          Top = 71
           Width = 321
           Height = 13
           AutoSize = False
           Caption = 'P1 won X times (x%)'
         end
         object lblPlayer2: TLabel
-          Left = 43
-          Top = 93
+          Left = 41
+          Top = 91
           Width = 321
           Height = 13
           Alignment = taRightJustify
@@ -165,8 +163,8 @@ object fHistory: TfHistory
           Caption = 'P2 won X times (x%)'
         end
         object prbPlayer2: TProgressBar
-          Left = 368
-          Top = 8
+          Left = 366
+          Top = 6
           Width = 36
           Height = 176
           Orientation = pbVertical
@@ -175,8 +173,8 @@ object fHistory: TfHistory
           TabOrder = 0
         end
         object prbPlayer1: TProgressBar
-          Left = 3
-          Top = 8
+          Left = 1
+          Top = 6
           Width = 36
           Height = 176
           Orientation = pbVertical

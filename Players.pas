@@ -17,7 +17,8 @@ type
     cmdOK: TBitBtn;
     optCarte: TRadioGroup;
     chkLog: TCheckBox;
-    cboPrgFile: TComboBox;
+    cboPrgFile: TEdit;
+    cboPrgFileSelect: TButton;
     cboColor: TColorBox;
     BitBtn1: TBitBtn;
     procedure FormShow(Sender: TObject);
@@ -25,6 +26,7 @@ type
     procedure cboPrgFileCustomDlg(Sender: TObject);
     procedure cboColorChange(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -58,12 +60,14 @@ begin
   case optTipo.ItemIndex of
     0: begin
         cboPrgFile.Visible := false;
+        cboPrgFileSelect.Visible := false;
         txtName.Visible := true;
         lblName.Caption := 'Name';
         optCarte.Enabled := true;
       end;
     1: begin
         cboPrgFile.Visible := true;
+        cboPrgFileSelect.Visible := true;
         txtName.Visible := false;
         lblName.Caption := 'Program';
         optCarte.Enabled := false;
@@ -84,6 +88,12 @@ begin
     cboPrgFile.SetFocus;
     ModalResult := mrNone;
   end;
+  ModalResult := mrOK;
+end;
+
+procedure TfPlayers.cmdCancel(Sender:TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

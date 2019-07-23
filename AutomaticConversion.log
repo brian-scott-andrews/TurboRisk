@@ -1,12 +1,361 @@
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/TRSim.dpr *
+Hint: Added defines -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL in custom options
+Hint: Found all unit files
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/TRSim.dpr *
+Hint: 
+Hint: *** Converting unit files belonging to project/package ***
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Sim.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Globals.pas *
+Hint: Added Package pascalscript as a dependency.
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Attack.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Cards.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Computer.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/ExpSubr.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/History.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Human.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Log.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SimMap.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Move.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/NewGame.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Players.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Programs.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Stats.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Territ.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/TRPError.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/UDialog.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SimRun.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Main.pas *
 Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SimCPULog.pas *
-Hint: Replaced unit "Windows" with "LCLIntf, LCLType, LMessages" in uses section.
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SimGameLog.pas *
+Hint: 
+Hint: *** Converting unit files found during conversion ***
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/About.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/floodfilltest.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Map.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Pref.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Readme.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/Rules.pas *
+Hint: * Converting file /home/agreatnate/RISK/TurboRisk/SplashScreen.pas *
+Hint: 
+Hint: *** Fixing used units and Repairing form files ***
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Sim.lfm *
+Hint: Removed property "ParentDoubleBuffered".
+Hint: Removed property "DoubleBuffered".
+Hint: Removed property "ParentDoubleBuffered".
+Hint: Removed property "DoubleBuffered".
+Hint: Removed property "txtCPULogFile2".
+Hint: Removed property "txtGameLogFile2".
+Hint: Changed Top coord of TEdit from "74" to "60" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "24" to "10" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "55" to "41" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "5" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TComboBox from "74" to "60" inside TGroupBox.
+Hint: Changed Left coord of TComboBox from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TComboBox from "24" to "10" inside TGroupBox.
+Hint: Changed Left coord of TComboBox from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "55" to "41" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "5" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TComboBox from "32" to "18" inside TGroupBox.
+Hint: Changed Left coord of TComboBox from "24" to "22" inside TGroupBox.
+Hint: Changed Top coord of TCheckBox from "72" to "58" inside TGroupBox.
+Hint: Changed Left coord of TCheckBox from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TCheckBox from "9" to "0" inside TGroupBox.
+Hint: Changed Left coord of TCheckBox from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TCheckBox from "72" to "58" inside TGroupBox.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TCheckBox from "36" to "22" inside TGroupBox.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "10" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "7" to "5" inside TGroupBox.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Sim.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Globals.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Attack.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Attack.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Cards.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Cards.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Computer.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/ExpSubr.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/History.lfm *
+Hint: Removed property "ParentDoubleBuffered".
+Hint: Removed property "DoubleBuffered".
+Hint: Changed Top coord of TProgressBar from "8" to "6" inside TPanel.
+Hint: Changed Left coord of TProgressBar from "3" to "1" inside TPanel.
+Hint: Changed Top coord of TProgressBar from "8" to "6" inside TPanel.
+Hint: Changed Left coord of TProgressBar from "368" to "366" inside TPanel.
+Hint: Changed Top coord of TLabel from "93" to "91" inside TPanel.
+Hint: Changed Left coord of TLabel from "43" to "41" inside TPanel.
+Hint: Changed Top coord of TLabel from "73" to "71" inside TPanel.
+Hint: Changed Left coord of TLabel from "43" to "41" inside TPanel.
+Hint: Changed Top coord of TLabel from "23" to "21" inside TPanel.
+Hint: Changed Left coord of TLabel from "43" to "41" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/History.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Human.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Log.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Log.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SimMap.lfm *
+Hint: Changed Top coord of TImage from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "0" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SimMap.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Move.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Move.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/NewGame.lfm *
+Hint: Changed Top coord of TBitBtn from "79" to "65" inside TGroupBox.
+Hint: Changed Left coord of TBitBtn from "144" to "142" inside TGroupBox.
+Hint: Changed Top coord of TBitBtn from "79" to "65" inside TGroupBox.
+Hint: Changed Left coord of TBitBtn from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TComboBox from "22" to "8" inside TGroupBox.
+Hint: Changed Left coord of TComboBox from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "7" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "7" to "5" inside TGroupBox.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "136" to "134" inside TPanel.
+Hint: Changed Top coord of TCheckBox from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TCheckBox from "7" to "5" inside TPanel.
+Hint: Changed Top coord of TSpeedButton from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TSpeedButton from "177" to "175" inside TPanel.
+Hint: Changed Top coord of TImage from "1" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "108" to "106" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/NewGame.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Players.lfm *
+Hint: Removed property "ParentDoubleBuffered".
+Hint: Removed property "DoubleBuffered".
+Hint: Removed property "ParentDoubleBuffered".
+Hint: Removed property "DoubleBuffered".
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Players.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Programs.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Programs.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Stats.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Stats.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Territ.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/TRPError.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/TRPError.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/UDialog.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/UDialog.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SimRun.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SimRun.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Main.lfm *
+Hint: Changed Top coord of TPanel from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TPanel from "41" to "39" inside TPanel.
+Hint: Changed Top coord of TLabel from "6" to "4" inside TPanel.
+Hint: Changed Left coord of TLabel from "10" to "8" inside TPanel.
+Hint: Changed Top coord of TImage from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "0" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Main.pas *
 Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SimCPULog.lfm *
-Hint: Removed property "ExplicitWidth".
-Hint: Removed property "ExplicitWidth".
-Hint: Removed property "ExplicitWidth".
-Hint: Removed property "TextHeight".
-Hint: Removed property "OldCreateOrder".
 Hint: Changed Top coord of TListView from "0" to "0" inside TPanel.
 Hint: Changed Left coord of TListView from "0" to "0" inside TPanel.
 Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SimCPULog.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SimGameLog.lfm *
+Hint: Removed property "grdAnalysis".
+Hint: Removed property "DesignSize".
+Hint: Removed property "ExplicitWidth".
+Hint: Removed property "ExplicitWidth".
+Hint: Removed property "OnCaptionClick".
+Hint: Removed property "FixedFont.Style".
+Hint: Removed property "FixedFont.Name".
+Hint: Removed property "FixedFont.Height".
+Hint: Removed property "FixedFont.Color".
+Hint: Removed property "FixedFont.Charset".
+Hint: Removed property "Alignment".
+Hint: Changed Top coord of TListView from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TListView from "0" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SimGameLog.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/About.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/About.pas *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/floodfilltest.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Map.lfm *
+Hint: Changed Top coord of TImage from "0" to "0" inside TPanel.
+Hint: Changed Left coord of TImage from "0" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Map.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Pref.lfm *
+Hint: Changed Top coord of TEdit from "32" to "30" inside TPanel.
+Hint: Changed Left coord of TEdit from "94" to "92" inside TPanel.
+Hint: Changed Top coord of TTrackBar from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TTrackBar from "8" to "6" inside TPanel.
+Hint: Changed Top coord of TLabel from "35" to "33" inside TPanel.
+Hint: Changed Left coord of TLabel from "189" to "187" inside TPanel.
+Hint: Changed Top coord of TLabel from "35" to "33" inside TPanel.
+Hint: Changed Left coord of TLabel from "2" to "0" inside TPanel.
+Hint: Changed Top coord of TEdit from "32" to "30" inside TPanel.
+Hint: Changed Left coord of TEdit from "94" to "92" inside TPanel.
+Hint: Changed Top coord of TTrackBar from "3" to "1" inside TPanel.
+Hint: Changed Left coord of TTrackBar from "8" to "6" inside TPanel.
+Hint: Changed Top coord of TLabel from "35" to "33" inside TPanel.
+Hint: Changed Left coord of TLabel from "189" to "187" inside TPanel.
+Hint: Changed Top coord of TLabel from "35" to "33" inside TPanel.
+Hint: Changed Left coord of TLabel from "2" to "0" inside TPanel.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Pref.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Readme.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Readme.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/Rules.lfm *
+Hint: Changed Top coord of TEdit from "171" to "157" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "146" to "132" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "126" to "112" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "106" to "92" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "86" to "72" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "66" to "52" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "46" to "32" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "26" to "12" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "6" to "0" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "118" to "116" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "176" to "162" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "151" to "137" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "131" to "117" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "111" to "97" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "91" to "77" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "71" to "57" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "51" to "37" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "31" to "17" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "11" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "66" to "52" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "108" to "106" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "46" to "32" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "108" to "106" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "26" to "12" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "108" to "106" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "6" to "0" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "108" to "106" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "71" to "57" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "51" to "37" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "31" to "17" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "11" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "166" to "152" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "146" to "132" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "126" to "112" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "106" to "92" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "86" to "72" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "66" to "52" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "46" to "32" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "26" to "12" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TEdit from "6" to "0" inside TGroupBox.
+Hint: Changed Left coord of TEdit from "73" to "71" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "171" to "157" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "151" to "137" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "131" to "117" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "111" to "97" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "91" to "77" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "71" to "57" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "51" to "37" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "31" to "17" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: Changed Top coord of TLabel from "11" to "0" inside TGroupBox.
+Hint: Changed Left coord of TLabel from "8" to "6" inside TGroupBox.
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/Rules.pas *
+Hint: * Repairing form file /home/agreatnate/RISK/TurboRisk/SplashScreen.lfm *
+Hint: * Fixing used units for file /home/agreatnate/RISK/TurboRisk/SplashScreen.pas *
+Hint: Conversion took: 00:00:03
 Hint: Conversion Ready.

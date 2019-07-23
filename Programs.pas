@@ -21,6 +21,7 @@ type
     procedure lstPrgFileClickCheck(Sender: TObject);
     procedure lstPrgFileClick(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -66,11 +67,12 @@ begin
   if FindFirst(sG_AppPath+'players/*.trp', faAnyFile, rFileDesc) = 0 then begin
     repeat
       lstPrgFile.Items.Add(rFileDesc.Name);
+      writeln(rfileDesc.Name);
     until FindNext(rFileDesc) <> 0;
     FindClose(rFileDesc);
   end;
   // select current program, if any
-  {i := lstPrgFile.Items.IndexOf(fPlayers.cboPrgFile.Text);        }
+  i := lstPrgFile.Items.IndexOf(fPlayers.cboPrgFile.Text);
   if i>=0 then begin
     lstPrgFile.ItemIndex:=i;
     lstPrgFile.Checked[i] := true;
@@ -100,7 +102,7 @@ var
 begin
   if lstPrgFile.ItemIndex<0 then exit;
   txtPrgDesc.Clear;
-  AssignFile(fTRP,sG_AppPath+'players\'+lstPrgFile.Items[lstPrgFile.ItemIndex]);
+  AssignFile(fTRP,sG_AppPath+'players/'+lstPrgFile.Items[lstPrgFile.ItemIndex]);
   Reset(fTRP);
   try
     // read initial comment delimited by { and }
@@ -140,6 +142,11 @@ begin
     end;
   end;
   ModalResult := mrOK;
+end;
+
+procedure TfPrograms.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

@@ -1,207 +1,197 @@
 object fAttack: TfAttack
-  Left = 229
-  Top = 87
+  Left = 710
+  Height = 395
+  Top = 439
+  Width = 294
   HelpContext = 110
   BorderStyle = bsDialog
   Caption = 'Attack'
-  ClientHeight = 226
-  ClientWidth = 276
+  ClientHeight = 395
+  ClientWidth = 294
   Color = clBtnFace
-  Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
   Font.Height = -11
   Font.Name = 'MS Sans Serif'
-  Font.Style = []
   KeyPreview = True
-  Position = poDesigned
   OnKeyPress = FormKeyPress
   OnShow = FormShow
-  PixelsPerInch = 96
+  LCLVersion = '1.6.2.0'
   object Label1: TLabel
     Left = 55
-    Top = 5
-    Width = 23
     Height = 13
+    Top = 5
+    Width = 28
     Caption = 'From'
+    ParentColor = False
   end
   object Label2: TLabel
     Left = 170
-    Top = 5
-    Width = 13
     Height = 13
+    Top = 5
+    Width = 12
     Caption = 'To'
+    ParentColor = False
   end
   object Label3: TLabel
     Left = 5
-    Top = 25
-    Width = 38
     Height = 13
+    Top = 25
+    Width = 47
     Caption = 'Territory'
+    ParentColor = False
   end
   object Label4: TLabel
     Left = 5
-    Top = 45
-    Width = 31
     Height = 13
+    Top = 45
+    Width = 40
     Caption = 'Armies'
+    ParentColor = False
   end
   object Label5: TLabel
     Left = 5
-    Top = 65
-    Width = 29
     Height = 13
+    Top = 65
+    Width = 35
     Caption = 'Player'
+    ParentColor = False
   end
   object Label6: TLabel
     Left = 5
-    Top = 85
-    Width = 24
     Height = 13
+    Top = 85
+    Width = 30
     Caption = 'Color'
+    ParentColor = False
   end
   object lblUntil1: TLabel
     Left = 184
-    Top = 164
+    Height = 16
+    Top = 176
     Width = 12
-    Height = 13
     AutoSize = False
     Caption = '<='
+    ParentColor = False
   end
   object lblUntil2: TLabel
     Left = 184
-    Top = 198
-    Width = 12
     Height = 13
+    Top = 214
+    Width = 12
     AutoSize = False
     Caption = '<='
+    ParentColor = False
   end
   object panFromTerr: TPanel
     Left = 55
+    Height = 21
     Top = 20
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 0
   end
   object panFromArmies: TPanel
     Left = 55
+    Height = 21
     Top = 40
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 1
   end
   object panFromPlayer: TPanel
     Left = 55
+    Height = 21
     Top = 60
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 2
   end
   object panFromColor: TPanel
     Left = 55
+    Height = 21
     Top = 80
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 3
   end
   object panToTerr: TPanel
     Left = 170
+    Height = 21
     Top = 20
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 4
   end
   object panToArmies: TPanel
     Left = 170
+    Height = 21
     Top = 40
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 5
   end
   object panToPlayer: TPanel
     Left = 170
+    Height = 21
     Top = 60
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 6
   end
   object panToColor: TPanel
     Left = 170
+    Height = 21
     Top = 80
     Width = 101
-    Height = 21
     BevelOuter = bvNone
     BorderStyle = bsSingle
-    Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue
     Font.Height = -11
     Font.Name = 'MS Sans Serif'
-    Font.Style = []
     ParentFont = False
     TabOrder = 7
   end
   object cmdAttack: TBitBtn
     Left = 5
+    Height = 40
     Top = 125
-    Width = 76
-    Height = 26
+    Width = 84
     Caption = '&Attack'
-    Default = True
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100
       0400000000006801000000000000000000001000000000000000000000000000
@@ -221,23 +211,24 @@ object fAttack: TfAttack
       0000
     }
     NumGlyphs = 2
-    TabOrder = 8
     OnClick = cmdAttackClick
+    TabOrder = 8
   end
   object cmdRetreat: TBitBtn
     Left = 195
+    Height = 40
     Top = 125
-    Width = 76
-    Height = 26
+    Width = 93
     Caption = '&Retreat'
     Kind = bkCancel
+    OnClick = cmdCancel
     TabOrder = 9
   end
   object cmdDoOrDie: TBitBtn
-    Left = 100
+    Left = 96
+    Height = 40
     Top = 125
-    Width = 76
-    Height = 26
+    Width = 98
     Caption = '&Do or die'
     Glyph.Data = {
       F2010000424DF201000000000000760000002800000024000000130000000100
@@ -258,37 +249,34 @@ object fAttack: TfAttack
       000033333333333333A3333333333333333383330000
     }
     NumGlyphs = 2
-    TabOrder = 10
     OnClick = cmdDoOrDieClick
+    TabOrder = 10
   end
   object chkAutoMoveAll: TCheckBox
-    Left = 55
+    Left = 25
+    Height = 24
     Top = 105
-    Width = 216
-    Height = 17
+    Width = 281
     Caption = 'Move all armies in conquered territory'
     TabOrder = 11
   end
   object cmdAttackUntil1: TBitBtn
     Left = 5
-    Top = 159
+    Height = 36
+    Top = 165
     Width = 171
-    Height = 26
     Caption = 'Attack until &my armies'
-    Default = True
     NumGlyphs = 2
-    TabOrder = 12
     OnClick = cmdAttackUntil1Click
+    TabOrder = 12
   end
   object cboUntil1: TComboBox
     Left = 205
-    Top = 161
+    Height = 39
+    Top = 165
     Width = 66
-    Height = 21
+    ItemHeight = 0
     ItemIndex = 0
-    TabOrder = 13
-    Text = '3'
-    OnKeyPress = cboUntilKeyPress
     Items.Strings = (
       '3'
       '5'
@@ -296,27 +284,28 @@ object fAttack: TfAttack
       '20'
       '50'
     )
+    OnKeyPress = cboUntilKeyPress
+    TabOrder = 13
+    Text = '3'
   end
   object cmdAttackUntil2: TBitBtn
     Left = 5
-    Top = 193
+    Height = 39
+    Top = 208
     Width = 171
-    Height = 26
     Caption = 'Attack until &enemys armies'
     Default = True
     NumGlyphs = 2
-    TabOrder = 14
     OnClick = cmdAttackUntil2Click
+    TabOrder = 14
   end
   object cboUntil2: TComboBox
     Left = 205
-    Top = 195
+    Height = 39
+    Top = 208
     Width = 66
-    Height = 21
+    ItemHeight = 0
     ItemIndex = 0
-    TabOrder = 15
-    Text = '2'
-    OnKeyPress = cboUntilKeyPress
     Items.Strings = (
       '2'
       '5'
@@ -324,5 +313,8 @@ object fAttack: TfAttack
       '20'
       '50'
     )
+    OnKeyPress = cboUntilKeyPress
+    TabOrder = 15
+    Text = '2'
   end
 end

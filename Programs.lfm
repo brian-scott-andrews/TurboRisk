@@ -4,7 +4,7 @@ object fPrograms: TfPrograms
   HelpContext = 410
   BorderStyle = bsDialog
   Caption = 'Programs'
-  ClientHeight = 371
+  ClientHeight = 387
   ClientWidth = 551
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -50,7 +50,7 @@ object fPrograms: TfPrograms
     Left = 180
     Top = 340
     Width = 81
-    Height = 26
+    Height = 40
     Caption = 'OK'
     Default = True
     TabOrder = 2
@@ -78,8 +78,9 @@ object fPrograms: TfPrograms
     Left = 290
     Top = 340
     Width = 81
-    Height = 26
+    Height = 40
     TabOrder = 3
     Kind = bkCancel
+    OnClick = cmdCancel
   end
 end

@@ -1,4 +1,4 @@
-﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 		<PropertyGroup>
 			<ProjectGuid>{5D617A7F-3CFD-411D-8B33-DF8443BCC6EB}</ProjectGuid>
 			<MainSource>TurboRisk.dpr</MainSource>

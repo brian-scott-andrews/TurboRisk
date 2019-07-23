@@ -1,0 +1,539 @@
+object fRules: TfRules
+  Left = 220
+  Top = 73
+  HelpContext = 420
+  BorderStyle = bsDialog
+  Caption = 'Rules'
+  ClientHeight = 363
+  ClientWidth = 366
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  Scaled = False
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object tabRules: TPageControl
+    Left = 5
+    Top = 5
+    Width = 356
+    Height = 311
+    ActivePage = tbsRules
+    TabOrder = 0
+    object tbsRules: TTabSheet
+      Caption = 'Board setup'
+      object optAssegnazione: TRadioGroup
+        Left = 5
+        Top = 20
+        Width = 171
+        Height = 96
+        Caption = 'Assignment of territories'
+        ItemIndex = 0
+        Items.Strings = (
+          'One at a time, in turn'
+          'Randomly'
+        )
+        TabOrder = 0
+      end
+      object GroupBox1: TGroupBox
+        Left = 200
+        Top = 20
+        Width = 126
+        Height = 211
+        Caption = 'Intial armies'
+        TabOrder = 1
+        object Label1: TLabel
+          Left = 8
+          Top = 11
+          Width = 43
+          Height = 13
+          Caption = '2 Players'
+        end
+        object Label2: TLabel
+          Left = 8
+          Top = 31
+          Width = 43
+          Height = 13
+          Caption = '3 Players'
+        end
+        object Label3: TLabel
+          Left = 8
+          Top = 51
+          Width = 43
+          Height = 13
+          Caption = '4 Players'
+        end
+        object Label4: TLabel
+          Left = 8
+          Top = 71
+          Width = 43
+          Height = 13
+          Caption = '5 Players'
+        end
+        object Label5: TLabel
+          Left = 8
+          Top = 91
+          Width = 43
+          Height = 13
+          Caption = '6 Players'
+        end
+        object Label6: TLabel
+          Left = 8
+          Top = 111
+          Width = 43
+          Height = 13
+          Caption = '7 Players'
+        end
+        object Label7: TLabel
+          Left = 8
+          Top = 131
+          Width = 43
+          Height = 13
+          Caption = '8 Players'
+        end
+        object Label8: TLabel
+          Left = 8
+          Top = 151
+          Width = 43
+          Height = 13
+          Caption = '9 Players'
+        end
+        object Label9: TLabel
+          Left = 8
+          Top = 171
+          Width = 49
+          Height = 13
+          Caption = '10 Players'
+        end
+        object txtArmIn2: TEdit
+          Left = 73
+          Top = 6
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 0
+        end
+        object txtArmIn3: TEdit
+          Left = 73
+          Top = 26
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 1
+        end
+        object txtArmIn4: TEdit
+          Left = 73
+          Top = 46
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 2
+        end
+        object txtArmIn5: TEdit
+          Left = 73
+          Top = 66
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 3
+        end
+        object txtArmIn6: TEdit
+          Left = 73
+          Top = 86
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 4
+        end
+        object txtArmIn7: TEdit
+          Left = 73
+          Top = 106
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 5
+        end
+        object txtArmIn8: TEdit
+          Left = 73
+          Top = 126
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 6
+        end
+        object txtArmIn9: TEdit
+          Left = 73
+          Top = 146
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 7
+        end
+        object txtArmIn10: TEdit
+          Left = 73
+          Top = 166
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 8
+        end
+      end
+    end
+    object tbsCards: TTabSheet
+      Caption = 'Cards'
+      object Label23: TLabel
+        Left = 10
+        Top = 200
+        Width = 72
+        Height = 13
+        Caption = 'Max cards held'
+      end
+      object optUsoCarte: TRadioGroup
+        Left = 5
+        Top = 5
+        Width = 336
+        Height = 51
+        Caption = 'Cards trade in value'
+        Columns = 2
+        ItemIndex = 0
+        Items.Strings = (
+          'Based on combination'
+          'Based on progression'
+        )
+        TabOrder = 0
+        OnClick = optUsoCarteClick
+      end
+      object panCostante: TGroupBox
+        Left = 5
+        Top = 60
+        Width = 161
+        Height = 111
+        Caption = 'Combination values'
+        TabOrder = 1
+        object Label10: TLabel
+          Left = 8
+          Top = 11
+          Width = 53
+          Height = 13
+          Caption = '3 of artillery'
+        end
+        object Label11: TLabel
+          Left = 8
+          Top = 31
+          Width = 55
+          Height = 13
+          Caption = '3 of infantry'
+        end
+        object Label12: TLabel
+          Left = 8
+          Top = 51
+          Width = 55
+          Height = 13
+          Caption = '3 of cavalry'
+        end
+        object Label13: TLabel
+          Left = 8
+          Top = 71
+          Width = 89
+          Height = 13
+          Caption = '3 one of each kind'
+        end
+        object txtSetArt: TEdit
+          Left = 108
+          Top = 6
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 0
+          OnKeyPress = txtNumOnlyKeyPress
+        end
+        object txtSetInf: TEdit
+          Left = 108
+          Top = 26
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 1
+        end
+        object txtSetCav: TEdit
+          Left = 108
+          Top = 46
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 2
+        end
+        object txtSetDif: TEdit
+          Left = 108
+          Top = 66
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 3
+        end
+      end
+      object panProgressivo: TGroupBox
+        Left = 175
+        Top = 60
+        Width = 166
+        Height = 216
+        Caption = 'Progression values'
+        TabOrder = 2
+        object Label14: TLabel
+          Left = 8
+          Top = 11
+          Width = 41
+          Height = 13
+          Caption = '1st trade'
+        end
+        object Label15: TLabel
+          Left = 8
+          Top = 31
+          Width = 45
+          Height = 13
+          Caption = '2nd trade'
+        end
+        object Label16: TLabel
+          Left = 8
+          Top = 51
+          Width = 42
+          Height = 13
+          Caption = '3rd trade'
+        end
+        object Label17: TLabel
+          Left = 8
+          Top = 71
+          Width = 42
+          Height = 13
+          Caption = '4th trade'
+        end
+        object Label18: TLabel
+          Left = 8
+          Top = 91
+          Width = 39
+          Height = 13
+          Caption = '5thtrade'
+        end
+        object Label19: TLabel
+          Left = 8
+          Top = 111
+          Width = 39
+          Height = 13
+          Caption = '6thtrade'
+        end
+        object Label20: TLabel
+          Left = 8
+          Top = 131
+          Width = 42
+          Height = 13
+          Caption = '7th trade'
+        end
+        object Label21: TLabel
+          Left = 8
+          Top = 151
+          Width = 42
+          Height = 13
+          Caption = '8th trade'
+        end
+        object Label22: TLabel
+          Left = 8
+          Top = 176
+          Width = 103
+          Height = 13
+          Caption = 'Increment from 9th on'
+        end
+        object txtTrade1: TEdit
+          Left = 118
+          Top = 6
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 0
+        end
+        object txtTrade2: TEdit
+          Left = 118
+          Top = 26
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 1
+        end
+        object txtTrade3: TEdit
+          Left = 118
+          Top = 46
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 2
+        end
+        object txtTrade4: TEdit
+          Left = 118
+          Top = 66
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 3
+        end
+        object txtTrade5: TEdit
+          Left = 118
+          Top = 86
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 4
+        end
+        object txtTrade6: TEdit
+          Left = 118
+          Top = 106
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 5
+        end
+        object txtTrade7: TEdit
+          Left = 118
+          Top = 126
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 6
+        end
+        object txtTrade8: TEdit
+          Left = 118
+          Top = 146
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 7
+        end
+        object txtTradeInc: TEdit
+          Left = 118
+          Top = 171
+          Width = 36
+          Height = 21
+          AutoSize = False
+          MaxLength = 3
+          TabOrder = 8
+        end
+      end
+      object txtMaxCardsHeld: TEdit
+        Left = 125
+        Top = 195
+        Width = 36
+        Height = 21
+        AutoSize = False
+        MaxLength = 3
+        TabOrder = 3
+      end
+      object chkTradeCaptured: TCheckBox
+        Left = 7
+        Top = 240
+        Width = 154
+        Height = 17
+        Alignment = taLeftJustify
+        Caption = 'Trade captured immediately'
+        TabOrder = 4
+      end
+    end
+    object tbsMove: TTabSheet
+      Caption = 'Troop move'
+      object chkTrasfFinale: TCheckBox
+        Left = 10
+        Top = 25
+        Width = 181
+        Height = 17
+        Caption = 'Troops movement ends turn'
+        TabOrder = 0
+      end
+    end
+  end
+  object cmdOK: TBitBtn
+    Left = 5
+    Top = 325
+    Width = 86
+    Height = 31
+    Caption = 'OK'
+    Default = True
+    Glyph.Data = {
+      DE010000424DDE01000000000000760000002800000024000000120000000100
+      0400000000006801000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333333333
+      3333333333333333333333330000333333333333333333333333F33333333333
+      00003333344333333333333333388F3333333333000033334224333333333333
+      338338F3333333330000333422224333333333333833338F3333333300003342
+      222224333333333383333338F3333333000034222A22224333333338F338F333
+      8F33333300003222A3A2224333333338F3838F338F33333300003A2A333A2224
+      33333338F83338F338F33333000033A33333A222433333338333338F338F3333
+      0000333333333A222433333333333338F338F33300003333333333A222433333
+      333333338F338F33000033333333333A222433333333333338F338F300003333
+      33333333A222433333333333338F338F00003333333333333A22433333333333
+      3338F38F000033333333333333A223333333333333338F830000333333333333
+      333A333333333333333338330000333333333333333333333333333333333333
+      0000
+    }
+    NumGlyphs = 2
+    TabOrder = 1
+    OnClick = cmdOKClick
+  end
+  object cmdAnnulla: TBitBtn
+    Left = 100
+    Top = 325
+    Width = 81
+    Height = 31
+    Kind = bkCancel
+    TabOrder = 2
+  end
+  object cmdResetRules: TBitBtn
+    Left = 210
+    Top = 325
+    Width = 151
+    Height = 31
+    Caption = 'Reset to default rules'
+    Glyph.Data = {
+      DE010000424DDE01000000000000760000002800000024000000120000000100
+      0400000000006801000000000000000000001000000000000000000000000000
+      80000080000000808000800000008000800080800000C0C0C000808080000000
+      FF0000FF000000FFFF00FF000000FF00FF00FFFF0000FFFFFF00333333444444
+      33333333333F8888883F33330000324334222222443333388F3833333388F333
+      000032244222222222433338F8833FFFFF338F3300003222222AAAAA22243338
+      F333F88888F338F30000322222A33333A2224338F33F8333338F338F00003222
+      223333333A224338F33833333338F38F00003222222333333A444338FFFF8F33
+      3338888300003AAAAAAA33333333333888888833333333330000333333333333
+      333333333333333333FFFFFF000033333333333344444433FFFF333333888888
+      00003A444333333A22222438888F333338F3333800003A2243333333A2222438
+      F38F333333833338000033A224333334422224338338FFFFF8833338000033A2
+      22444442222224338F3388888333FF380000333A2222222222AA243338FF3333
+      33FF88F800003333AA222222AA33A3333388FFFFFF8833830000333333AAAAAA
+      3333333333338888883333330000333333333333333333333333333333333333
+      0000
+    }
+    NumGlyphs = 2
+    TabOrder = 3
+    OnClick = cmdResetRulesClick
+  end
+end

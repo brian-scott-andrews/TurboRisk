@@ -9,6 +9,9 @@ uses
   StdCtrls, Buttons, ExtCtrls;
 
 type
+
+  { TfAttack }
+
   TfAttack = class(TForm)
     panFromTerr: TPanel;
     Label1: TLabel;
@@ -41,6 +44,7 @@ type
     procedure cmdAttackUntil2Click(Sender: TObject);
     procedure cboUntilKeyPress(Sender: TObject; var Key: Char);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure cmdCancel(Sender: TObject);
   private
     procedure UpdateDisplay;
   public
@@ -222,5 +226,11 @@ begin
     ModalResult := mrCancel;
   end;
 end;
+
+procedure TfAttack.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
 
 end.

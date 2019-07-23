@@ -4,6 +4,9 @@ unit Territ;
 
 interface
 
+uses Forms, Graphics, SysUtils, Classes, ExtCtrls, IniFiles, Math,
+  Globals, Main, Stats, Log, Sim, SimMap, FPimage, IntfGraphics, GraphType, floodfilltest;
+
 // Load a map from file
 procedure LoadMap;
 
@@ -19,6 +22,8 @@ function TrovaTerritorio(iX, iY: integer): integer;
 // Visualizza un territorio
 procedure DisplayTerritory(iTerritory: integer);
 
+procedure FTFloodFill(Bitmap: TImage; InitX: Integer; InitY: Integer; FillColor: TColor);
+
 // Assegnazione territorio ad un giocatore
 procedure AssegnaTerritorio(iT, iG: integer);
 
@@ -33,8 +38,7 @@ function Confine(iT: integer): boolean;
 
 implementation
 
-uses Forms, Graphics, SysUtils, Classes, ExtCtrls, IniFiles, Math,
-  Globals, Main, Stats, Log, Sim, SimMap;
+
 
 // Resize main window according to map and toolbar
 procedure ResizeMainWindow;
@@ -521,7 +525,9 @@ begin
     end;
     ColoPrec := Canvas.Pixels[Orig[1].X, Orig[1].Y];
     for iOrig := 1 to NOrig do
-      Canvas.FloodFill(Orig[iOrig].X, Orig[iOrig].Y, ColoPrec, TFillStyle.fsSurface);  //fsSurface
+      //Canvas.FloodFill(Orig[iOrig].X, Orig[iOrig].Y, ColoPrec, TFillStyle.fsSurface);  //fsSurface
+      //FTFloodFill(imgDynMap, Orig[iOrig].X, Orig[iOrig].Y, Canvas.Brush.Color);
+      floodfilltest.FloodFill(imgDynMap.canvas, Orig[iOrig].X, Orig[iOrig].Y, ColoPrec, TFillStyle.fsSurface);
 
     // Armies
     Canvas.Font.Name := sMapFontName;
@@ -533,6 +539,53 @@ begin
       sArmies := copy(sArmies, 1, 3);
     Canvas.TextOut(Coord.X, Coord.Y, sArmies);
   end;
+end;
+
+procedure FTFloodFill(Bitmap: TImage; InitX: Integer; InitY: Integer; FillColor: TColor);
+var
+   X, Y: Integer;
+   ReplaceColor: TColor;
+   Stack: array of TPoint;
+
+procedure PutInStack(X, Y: Integer);
+begin
+     SetLength(Stack, Length(Stack)+1);
+     Stack[Length(Stack)-1] := Point(X, Y);
+end;
+
+procedure GetFromStack(var X, Y: Integer);
+begin
+     X := Stack[Length(Stack)-1].X;
+     Y := Stack[Length(Stack)-1].Y;
+     SetLength(Stack, Length(Stack)-1);
+end;
+begin
+     X := InitX;
+     Y := InitY;
+     if (X>= Bitmap.Width) or (Y>= Bitmap.Height) then
+        Exit;
+     ReplaceColor := Bitmap.Canvas.Pixels[X, Y];
+     if ReplaceColor = FillColor then
+        Exit;
+     PutInStack(X, Y);
+     while Length(Stack)>0 do
+        with Bitmap.Canvas do
+        begin
+           GetFromStack(X, Y);
+           while (X>0) and (Pixels[X-1, Y] = ReplaceColor) do
+              Dec(X);
+           while (X < Bitmap.Width) and (Pixels[X, Y] = ReplaceColor) do
+           begin
+              if Y>0 then
+                 if Pixels[X, Y-1] = ReplaceColor then
+                    PutInStack(X, Y-1);
+                 if Y+1 < Bitmap.Height then
+                    if Pixels[X, Y+1] = ReplaceColor then
+                       PutInStack(X, Y+1);
+                 Pixels[X, Y] := FillColor;
+                 Inc(X);
+           end;
+        end;
 end;
 
 // Assegnazione territorio ad un giocatore
@@ -570,6 +623,7 @@ begin
 end;
 
 // Collocazione di n armate su un territorio
+// Placement of armies on a territory
 procedure CollocaArmata(iT, iG, iArmies: integer);
 begin
   if iArmies > arPlayer[iG].NewArmy then
@@ -587,6 +641,7 @@ begin
 end;
 
 // Verifica se due territori sono confinanti
+// Check if two territories are neighboring
 function Confinante(iFrom, iTo: integer): boolean;
 var
   iT: integer;
@@ -600,6 +655,7 @@ begin
 end;
 
 // Verifica se un territorio è proprio e confina con territori nemici
+// Check if a territory is proper and borders on enemy territories
 function Confine(iT: integer): boolean;
 var
   iC: integer;

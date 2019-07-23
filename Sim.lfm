@@ -151,15 +151,15 @@ object fSim: TfSim
         Caption = 'TRP error handling'
         TabOrder = 6
         object Label1: TLabel
-          Left = 7
-          Top = 10
+          Left = 5
+          Top = 0
           Width = 79
           Height = 13
           Caption = 'In case of error:'
         end
         object chkErrorDump: TCheckBox
-          Left = 7
-          Top = 36
+          Left = 5
+          Top = 22
           Width = 124
           Height = 17
           Caption = 'Create a dump file'
@@ -168,8 +168,8 @@ object fSim: TfSim
           TabOrder = 0
         end
         object chkErrorAbort: TCheckBox
-          Left = 7
-          Top = 72
+          Left = 5
+          Top = 58
           Width = 124
           Height = 17
           Caption = 'Abort game'
@@ -195,24 +195,24 @@ object fSim: TfSim
         Caption = 'Map && Stats'
         TabOrder = 8
         object chkShowMap: TCheckBox
-          Left = 8
-          Top = 9
+          Left = 6
+          Top = 0
           Width = 274
           Height = 17
           Caption = 'Show game on map (slower)'
           TabOrder = 0
         end
         object chkShowStats: TCheckBox
-          Left = 8
-          Top = 72
+          Left = 6
+          Top = 58
           Width = 274
           Height = 17
           Caption = 'Show game stats (slower)'
           TabOrder = 1
         end
         object cboMap: TComboBox
-          Left = 24
-          Top = 32
+          Left = 22
+          Top = 18
           Width = 258
           Height = 21
           Style = csDropDownList
@@ -227,30 +227,30 @@ object fSim: TfSim
         Caption = 'Simulation log'
         TabOrder = 9
         object Label4: TLabel
-          Left = 8
-          Top = 5
+          Left = 6
+          Top = 0
           Width = 44
           Height = 13
           Caption = 'Game log'
         end
         object Label5: TLabel
-          Left = 8
-          Top = 55
+          Left = 6
+          Top = 41
           Width = 69
           Height = 13
           Caption = 'CPU usage log'
         end
         object txtGameLogFile: TComboBox
-          Left = 8
-          Top = 24
+          Left = 6
+          Top = 10
           Width = 274
           Height = 21
           TabOrder = 0
           OnClick = txtGameLogFileCustomDlg
         end
         object txtCPULogFile: TComboBox
-          Left = 8
-          Top = 74
+          Left = 6
+          Top = 60
           Width = 274
           Height = 21
           TabOrder = 1
@@ -265,22 +265,22 @@ object fSim: TfSim
         Caption = 'Game limits'
         TabOrder = 10
         object Label10: TLabel
-          Left = 7
-          Top = 5
+          Left = 5
+          Top = 0
           Width = 27
           Height = 13
           Caption = 'Turns'
         end
         object Label11: TLabel
-          Left = 7
-          Top = 55
+          Left = 5
+          Top = 41
           Width = 72
           Height = 13
           Caption = 'Time (seconds)'
         end
         object txtTurnLimit: TEdit
-          Left = 7
-          Top = 24
+          Left = 5
+          Top = 10
           Width = 79
           Height = 21
           NumbersOnly = True
@@ -288,8 +288,8 @@ object fSim: TfSim
           Text = '10'
         end
         object txtTimeLimit: TEdit
-          Left = 7
-          Top = 74
+          Left = 5
+          Top = 60
           Width = 79
           Height = 21
           NumbersOnly = True
@@ -315,30 +315,12 @@ object fSim: TfSim
         Height = 13
         Caption = 'CPU usage log'
       end
-      object txtGameLogFile2: TEdisComboDialog
-        Left = 10
-        Top = 38
-        Width = 331
-        Height = 21
-        TabOrder = 0
-        OnCustomDlg = txtGameLogFileCustomDlg
-      end
-      object txtCPULogFile2: TEdisComboDialog
-        Left = 10
-        Top = 116
-        Width = 331
-        Height = 21
-        TabOrder = 1
-        OnCustomDlg = txtCPULogFileCustomDlg
-      end
       object cmdAnalyseGameLog: TBitBtn
         Left = 347
         Top = 19
         Width = 103
         Height = 40
         Caption = 'Analyse'
-        DoubleBuffered = True
-        ParentDoubleBuffered = False
         TabOrder = 2
         OnClick = cmdAnalyseGameLogClick
       end
@@ -348,8 +330,6 @@ object fSim: TfSim
         Width = 103
         Height = 40
         Caption = 'Analyse'
-        DoubleBuffered = True
-        ParentDoubleBuffered = False
         TabOrder = 3
         OnClick = cmdAnalyseCPULogClick
       end

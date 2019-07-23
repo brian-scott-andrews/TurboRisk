@@ -72,22 +72,22 @@ object fPref: TfPref
         BevelOuter = bvNone
         TabOrder = 2
         object Label1: TLabel
-          Left = 2
-          Top = 35
+          Left = 0
+          Top = 33
           Width = 32
           Height = 13
           Caption = 'Darker'
         end
         object Label2: TLabel
-          Left = 189
-          Top = 35
+          Left = 187
+          Top = 33
           Width = 33
           Height = 13
           Caption = 'Lighter'
         end
         object trbMapHoover: TTrackBar
-          Left = 8
-          Top = 3
+          Left = 6
+          Top = 1
           Width = 206
           Height = 33
           LineSize = 5
@@ -99,8 +99,8 @@ object fPref: TfPref
           OnChange = trbMapHooverChange
         end
         object txtMapHoover: TEdit
-          Left = 94
-          Top = 32
+          Left = 92
+          Top = 30
           Width = 36
           Height = 21
           Alignment = taCenter
@@ -117,22 +117,22 @@ object fPref: TfPref
         BevelOuter = bvNone
         TabOrder = 3
         object Label3: TLabel
-          Left = 2
-          Top = 35
+          Left = 0
+          Top = 33
           Width = 32
           Height = 13
           Caption = 'Darker'
         end
         object Label4: TLabel
-          Left = 189
-          Top = 35
+          Left = 187
+          Top = 33
           Width = 33
           Height = 13
           Caption = 'Lighter'
         end
         object trbMapSelected: TTrackBar
-          Left = 8
-          Top = 3
+          Left = 6
+          Top = 1
           Width = 206
           Height = 33
           LineSize = 5
@@ -144,8 +144,8 @@ object fPref: TfPref
           OnChange = trbMapSelectedChange
         end
         object txtMapSelected: TEdit
-          Left = 94
-          Top = 32
+          Left = 92
+          Top = 30
           Width = 36
           Height = 21
           Alignment = taCenter
@@ -226,6 +226,7 @@ object fPref: TfPref
     Height = 31
     Kind = bkCancel
     TabOrder = 2
+    OnClick = cmdCancel
   end
   object cmdResetRules: TBitBtn
     Left = 280

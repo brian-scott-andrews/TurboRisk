@@ -1,0 +1,34 @@
+object fSplashScreen: TfSplashScreen
+  Left = 0
+  Top = 0
+  BorderStyle = bsNone
+  Caption = 'fSplashScreen'
+  ClientHeight = 72
+  ClientWidth = 235
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  Position = poScreenCenter
+  PixelsPerInch = 96
+  object Panel1: TPanel
+    Left = 0
+    Top = 0
+    Width = 235
+    Height = 72
+    Align = alClient
+    BevelInner = bvLowered
+    BorderWidth = 5
+    Caption = 'Loading TurboRisk...'
+    Font.Charset = DEFAULT_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -11
+    Font.Name = 'Tahoma'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 0
+  end
+end

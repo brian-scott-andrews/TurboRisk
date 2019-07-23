@@ -18,6 +18,7 @@ type
     procedure lstCardsClickCheck(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cmdTradeClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
     bReady: boolean;
@@ -234,6 +235,12 @@ begin
   Valuta(0,2,0,1);
   Valuta(0,0,2,1);
   Result := (iMaxBenefit>0);
+end;
+
+
+procedure TfCards.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel
 end;
 
 end.

@@ -177,15 +177,16 @@ begin
       txtMinPlayers.Text := IntToStr(ReadInteger('Params', 'MinPlayers', 2));
       txtMaxPlayers.Text := IntToStr(ReadInteger('Params', 'MaxPlayers', 10));
       chkShowMap.Checked := ReadBool('Params', 'ShowMap', true);
-      cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map',
-          'std_map_small.trm'));
+      cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map', 'std_map_small.trm'));
       chkShowStats.Checked := ReadBool('Params', 'ShowStats', true);
       chkErrorDump.Checked := ReadBool('Params', 'ErrorDump', true);
       chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
       txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
       txtCPULogFile.Text := ReadString('Params', 'CPULog', 'cpu_usage_log.scl');
-      txtGameLogFile2.Text := txtGameLogFile.Text;
-      txtCPULogFile2.Text := txtCPULogFile.Text;
+      Writeln(txtGameLogFile.Text);
+//      txtGameLogFile2.Text := txtGameLogFile.Text;
+      Writeln('hi2');
+//      txtCPULogFile2.Text := txtCPULogFile.Text;
       txtTurnLimit.Text := IntToStr(ReadInteger('Params', 'TurnLimit', 0));
       txtTimeLimit.Text := IntToStr(ReadInteger('Params', 'TimeLimit', 0));
       // Players
@@ -231,8 +232,8 @@ begin
       WriteBool('Params', 'ShowStats', chkShowStats.Checked);
       WriteBool('Params', 'ErrorDump', chkErrorDump.Checked);
       WriteBool('Params', 'ErrorAbort', chkErrorAbort.Checked);
-{      WriteString('Params', 'GameLog', txtGameLogFile.Text);
-      WriteString('Params', 'CPULog', txtCPULogFile.Text);     }
+      WriteString('Params', 'GameLog', txtGameLogFile.Text);
+      WriteString('Params', 'CPULog', txtCPULogFile.Text);
       WriteInteger('Params', 'TurnLimit', StrToIntDef(txtTurnLimit.Text,0));
       WriteInteger('Params', 'TimeLimit', StrToIntDef(txtTimeLimit.Text,0));
       // Players
@@ -329,8 +330,8 @@ begin
   iSimMaxPl := StrToIntDef(txtMaxPlayers.Text, 0);
   iSimTimeLimit := StrToIntDef(txtTimeLimit.Text, 0);
   iSimTurnLimit := StrToIntDef(txtTurnLimit.Text, 0);
-{  sSimGameLogFile := txtGameLogFile.Text;
-  sSimCPULogFile := txtCPULogFile.Text;  }
+  sSimGameLogFile := txtGameLogFile.Text;
+  sSimCPULogFile := txtCPULogFile.Text;
   // validity check
   if iSimGames <= 0 then begin
     ShowMessage('Invalid number of games.');

@@ -1,0 +1,80 @@
+object fUDialog: TfUDialog
+  Left = 0
+  Top = 0
+  BorderStyle = bsDialog
+  Caption = 'fUDialog'
+  ClientHeight = 165
+  ClientWidth = 410
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  KeyPreview = True
+  OldCreateOrder = False
+  Position = poMainFormCenter
+  OnKeyPress = FormKeyPress
+  OnShow = FormShow
+  PixelsPerInch = 96
+  TextHeight = 13
+  object lblMsg: TLabel
+    Left = 8
+    Top = 8
+    Width = 394
+    Height = 103
+    AutoSize = False
+    Caption = 'lblMsg'
+    WordWrap = True
+  end
+  object cmdB1: TButton
+    Tag = 1
+    Left = 8
+    Top = 124
+    Width = 74
+    Height = 33
+    Caption = 'cmdB1'
+    TabOrder = 0
+    OnClick = cmdBClick
+  end
+  object cmdB2: TButton
+    Tag = 2
+    Left = 88
+    Top = 124
+    Width = 74
+    Height = 33
+    Caption = 'cmdB2'
+    TabOrder = 1
+    OnClick = cmdBClick
+  end
+  object cmdB3: TButton
+    Tag = 3
+    Left = 168
+    Top = 124
+    Width = 74
+    Height = 33
+    Caption = 'cmdB3'
+    TabOrder = 2
+    OnClick = cmdBClick
+  end
+  object cmdB4: TButton
+    Tag = 4
+    Left = 248
+    Top = 124
+    Width = 74
+    Height = 33
+    Caption = 'cmdB4'
+    TabOrder = 3
+    OnClick = cmdBClick
+  end
+  object cmdB5: TButton
+    Tag = 5
+    Left = 328
+    Top = 124
+    Width = 74
+    Height = 33
+    Caption = 'cmdB5'
+    TabOrder = 4
+    OnClick = cmdBClick
+  end
+end

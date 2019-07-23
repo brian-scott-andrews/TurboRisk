@@ -128,23 +128,11 @@ object fSimGameLog: TfSimGameLog
         ScrollBars = ssVertical
         TabOrder = 0
         OnDrawCell = grdRankingDrawCell
-        Alignment = taCenter
-        FixedFont.Charset = DEFAULT_CHARSET
-        FixedFont.Color = clWindowText
-        FixedFont.Height = -11
-        FixedFont.Name = 'MS Sans Serif'
-        FixedFont.Style = []
-        OnCaptionClick = grdRankingCaptionClick
-        ExplicitWidth = 455
       end
     end
     object tbsAnalysis: TTabSheet
       Caption = 'Player''s analysis'
       ImageIndex = 2
-      ExplicitWidth = 455
-      DesignSize = (
-        682
-        447)
       object Label1: TLabel
         Left = 9
         Top = 11
@@ -160,31 +148,6 @@ object fSimGameLog: TfSimGameLog
         Style = csDropDownList
         TabOrder = 0
         OnSelect = cboPlayerSelect
-      end
-      object grdAnalysis: TJvStringGrid
-        Left = 0
-        Top = 65
-        Width = 682
-        Height = 382
-        Anchors = [akLeft, akTop, akRight, akBottom]
-        ColCount = 4
-        DefaultColWidth = 100
-        DefaultRowHeight = 17
-        DefaultDrawing = False
-        FixedCols = 0
-        FixedRows = 0
-        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
-        ScrollBars = ssVertical
-        TabOrder = 1
-        OnDrawCell = grdAnalysisDrawCell
-        Alignment = taCenter
-        FixedFont.Charset = DEFAULT_CHARSET
-        FixedFont.Color = clWindowText
-        FixedFont.Height = -11
-        FixedFont.Name = 'MS Sans Serif'
-        FixedFont.Style = []
-        OnCaptionClick = grdAnalysisCaptionClick
-        ExplicitWidth = 455
       end
     end
   end

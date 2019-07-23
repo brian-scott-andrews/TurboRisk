@@ -29,12 +29,21 @@ object fPlayers: TfPlayers
     Height = 13
     Caption = 'Color'
   end
-  object cboPrgFile: TComboBox
+  object cboPrgFile: TEdit
     Left = 5
     Top = 95
-    Width = 181
+    Width = 160
     Height = 21
     TabOrder = 5
+    OnClick = cboPrgFileCustomDlg
+  end
+  object cboPrgFileSelect: TButton
+    Left = 165
+    Top = 95
+    Height = 37
+    Width = 21
+    TabOrder = 5
+    Caption = '...'
     OnClick = cboPrgFileCustomDlg
   end
   object txtName: TEdit
@@ -60,12 +69,10 @@ object fPlayers: TfPlayers
   end
   object cmdOK: TBitBtn
     Left = 8
-    Top = 320
+    Top = 310
     Width = 76
-    Height = 26
-    DoubleBuffered = True
+    Height = 40
     Kind = bkOK
-    ParentDoubleBuffered = False
     TabOrder = 4
     OnClick = cmdOKClick
   end
@@ -84,7 +91,7 @@ object fPlayers: TfPlayers
   end
   object chkLog: TCheckBox
     Left = 5
-    Top = 280
+    Top = 275
     Width = 148
     Height = 17
     Caption = 'Keep log'
@@ -103,12 +110,11 @@ object fPlayers: TfPlayers
   end
   object BitBtn1: TBitBtn
     Left = 105
-    Top = 320
+    Top = 310
     Width = 76
-    Height = 26
-    DoubleBuffered = True
+    Height = 40
     Kind = bkCancel
-    ParentDoubleBuffered = False
     TabOrder = 7
+    OnClick = cmdCancel
   end
 end

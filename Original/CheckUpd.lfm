@@ -1,0 +1,208 @@
+object fCheckUpd: TfCheckUpd
+  Left = 534
+  Top = 275
+  HelpContext = 510
+  Caption = 'Update manager'
+  ClientHeight = 638
+  ClientWidth = 617
+  Color = clBtnFace
+  Constraints.MinHeight = 500
+  Constraints.MinWidth = 400
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poScreenCenter
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object Splitter1: TSplitter
+    Left = 0
+    Top = 209
+    Width = 617
+    Height = 5
+    Cursor = crVSplit
+    Align = alTop
+  end
+  object panNews: TPanel
+    Left = 0
+    Top = 0
+    Width = 617
+    Height = 209
+    Align = alTop
+    BevelOuter = bvLowered
+    TabOrder = 0
+    object Label2: TLabel
+      Left = 6
+      Top = 15
+      Width = 32
+      Height = 13
+      Caption = 'News'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object Label3: TLabel
+      Left = 410
+      Top = 15
+      Width = 83
+      Height = 13
+      Anchors = [akTop, akRight]
+      Caption = 'Show news since'
+    end
+    object Panel1: TPanel
+      Left = 6
+      Top = 34
+      Width = 601
+      Height = 165
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      BevelOuter = bvLowered
+      TabOrder = 0
+      object wbrNews: TWebBrowser
+        Left = 0
+        Top = 0
+        Width = 599
+        Height = 163
+        Align = alClient
+        TabOrder = 0
+        ExplicitWidth = 300
+        ExplicitHeight = 64
+        ControlData = {
+          4C000000E93D0000D91000000000000000000000000000000000000000000000
+          000000004C000000000000000000000001000000E0D057007335CF11AE690800
+          2B2E126208000000000000004C0000000114020000000000C000000000000046
+          8000000000000000000000000000000000000000000000000000000000000000
+          00000000000000000100000000000000000000000000000000000000}
+      end
+    end
+    object txtLastDate: TDateTimePicker
+      Left = 505
+      Top = 7
+      Width = 101
+      Height = 21
+      Anchors = [akTop, akRight]
+      Date = 40428.500000000000000000
+      Time = 40428.500000000000000000
+      TabOrder = 1
+      OnChange = txtLastDateChange
+    end
+  end
+  object panFiles: TPanel
+    Left = 0
+    Top = 214
+    Width = 617
+    Height = 424
+    Align = alClient
+    BevelOuter = bvLowered
+    TabOrder = 1
+    object Label1: TLabel
+      Left = 6
+      Top = 4
+      Width = 27
+      Height = 13
+      Caption = 'Files'
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -11
+      Font.Name = 'MS Sans Serif'
+      Font.Style = [fsBold]
+      ParentFont = False
+    end
+    object lstUpdates: TListView
+      Left = 7
+      Top = 23
+      Width = 599
+      Height = 337
+      Anchors = [akLeft, akTop, akRight, akBottom]
+      Checkboxes = True
+      Columns = <
+        item
+          Caption = 'Type'
+        end
+        item
+          Caption = 'File name'
+          Width = 150
+        end
+        item
+          Caption = 'Status'
+          Width = 100
+        end
+        item
+          Caption = 'Comments'
+          Width = 220
+        end>
+      TabOrder = 0
+      ViewStyle = vsReport
+    end
+    object panStatus: TPanel
+      Left = 7
+      Top = 391
+      Width = 436
+      Height = 27
+      Alignment = taLeftJustify
+      Anchors = [akLeft, akRight, akBottom]
+      BevelOuter = bvLowered
+      BorderWidth = 5
+      TabOrder = 2
+      Visible = False
+    end
+    object prbProgress: TProgressBar
+      Left = 6
+      Top = 366
+      Width = 600
+      Height = 26
+      Anchors = [akLeft, akRight, akBottom]
+      TabOrder = 3
+      Visible = False
+    end
+    object prbDownload: TProgressBar
+      Left = 449
+      Top = 391
+      Width = 157
+      Height = 26
+      Anchors = [akRight, akBottom]
+      TabOrder = 4
+      Visible = False
+    end
+    object cmdCancel: TBitBtn
+      Left = 511
+      Top = 373
+      Width = 96
+      Height = 36
+      Anchors = [akRight, akBottom]
+      Cancel = True
+      Caption = 'Close'
+      ModalResult = 2
+      TabOrder = 5
+    end
+    object cmdUpdate: TBitBtn
+      Left = 6
+      Top = 373
+      Width = 156
+      Height = 36
+      Anchors = [akLeft, akBottom]
+      Caption = 'Install/Update selected files'
+      TabOrder = 1
+      OnClick = cmdUpdateClick
+    end
+  end
+  object idHTTP: TIdHTTP
+    OnWork = idHTTPWork
+    OnWorkBegin = idHTTPWorkBegin
+    OnWorkEnd = idHTTPWorkEnd
+    AllowCookies = True
+    ProxyParams.BasicAuthentication = False
+    ProxyParams.ProxyPort = 0
+    Request.ContentLength = -1
+    Request.ContentType = 'text/html'
+    Request.Accept = 'text/html, */*'
+    Request.BasicAuthentication = False
+    Request.UserAgent = 'Mozilla/5.0 (Windows; U; Windows NT 6.0; it;'
+    HTTPOptions = [hoForceEncodeParams]
+    Left = 49
+    Top = 438
+  end
+end

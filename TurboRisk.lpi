@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
@@ -17,9 +17,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -27,9 +24,10 @@
       <Version Value="2"/>
     </PublishOptions>
     <RunParams>
-      <local>
-        <FormatVersion Value="1"/>
-      </local>
+      <FormatVersion Value="2"/>
+      <Modes Count="1">
+        <Mode0 Name="default"/>
+      </Modes>
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
@@ -60,7 +58,9 @@
       <Unit4>
         <Filename Value="NewGame.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fNewGame"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit4>
       <Unit5>
         <Filename Value="Computer.pas"/>
@@ -88,7 +88,9 @@
       <Unit10>
         <Filename Value="Attack.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fAttack"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit10>
       <Unit11>
         <Filename Value="Move.pas"/>
@@ -127,7 +129,9 @@
       <Unit18>
         <Filename Value="Programs.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fPrograms"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit18>
       <Unit19>
         <Filename Value="CheckUpd.pas"/>

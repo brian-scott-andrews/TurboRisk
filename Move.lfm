@@ -4,7 +4,7 @@ object fMove: TfMove
   HelpContext = 110
   BorderStyle = bsDialog
   Caption = 'Troops move'
-  ClientHeight = 171
+  ClientHeight = 201
   ClientWidth = 211
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -258,17 +258,17 @@ object fMove: TfMove
     Left = 5
     Top = 110
     Width = 76
-    Height = 26
+    Height = 40
     Caption = '&OK'
     Kind = bkOK
     TabOrder = 4
     OnClick = cmdOkClick
   end
   object cmdCancel: TBitBtn
-    Left = 130
+    Left = 100
     Top = 110
-    Width = 76
-    Height = 26
+    Width = 100
+    Height = 40
     Caption = '&Cancel'
     Kind = bkCancel
     TabOrder = 5
@@ -276,9 +276,9 @@ object fMove: TfMove
   end
   object cmdAll: TBitBtn
     Left = 5
-    Top = 140
+    Top = 152
     Width = 76
-    Height = 26
+    Height = 40
     Caption = '&All'
     Glyph.Data = {
       F2010000424DF201000000000000760000002800000024000000130000000100
@@ -304,10 +304,10 @@ object fMove: TfMove
     OnClick = cmdAllClick
   end
   object cmdBalance: TBitBtn
-    Left = 130
-    Top = 140
-    Width = 76
-    Height = 26
+    Left = 100
+    Top = 152
+    Width = 100
+    Height = 40
     Caption = '&Balance'
     Glyph.Data = {
       DE010000424DDE01000000000000760000002800000024000000120000000100

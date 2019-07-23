@@ -1,10 +1,10 @@
 object fCards: TfCards
   Left = 238
   Top = 176
-  HelpContext = 110
+  HelpContext = 140
   BorderStyle = bsDialog
   Caption = 'Cards'
-  ClientHeight = 116
+  ClientHeight = 146
   ClientWidth = 196
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object fCards: TfCards
     Left = 10
     Top = 10
     Width = 91
-    Height = 96
+    Height = 130
     OnClickCheck = lstCardsClickCheck
     ItemHeight = 13
     Items.Strings = (
@@ -38,7 +38,7 @@ object fCards: TfCards
     Left = 110
     Top = 10
     Width = 76
-    Height = 26
+    Height = 40
     Caption = 'Trade'
     Default = True
     Glyph.Data = {
@@ -65,18 +65,19 @@ object fCards: TfCards
   end
   object cmdHold: TBitBtn
     Left = 110
-    Top = 45
+    Top = 56
     Width = 76
-    Height = 26
+    Height = 40
     Caption = '&Hold'
     Kind = bkCancel
     TabOrder = 2
+    OnClick = cmdCancel
   end
   object panArmies: TPanel
     Left = 110
-    Top = 80
+    Top = 105
     Width = 76
-    Height = 26
+    Height = 30
     BevelOuter = bvLowered
     Font.Charset = DEFAULT_CHARSET
     Font.Color = clBlue

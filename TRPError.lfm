@@ -24,9 +24,9 @@ object fTRPError: TfTRPError
   end
   object cmdContinue: TBitBtn
     Left = 5
-    Top = 190
-    Width = 86
-    Height = 31
+    Top = 185
+    Width = 96
+    Height = 36
     Caption = '&Continue'
     Default = True
     Glyph.Data = {
@@ -51,20 +51,20 @@ object fTRPError: TfTRPError
     TabOrder = 1
   end
   object cmdDump: TBitBtn
-    Left = 100
-    Top = 190
-    Width = 86
-    Height = 31
+    Left = 108
+    Top = 185
+    Width = 115
+    Height = 36
     Caption = '&Dump memory'
     ModalResult = 6
     NumGlyphs = 2
     TabOrder = 2
   end
   object cmdQuit: TBitBtn
-    Left = 195
-    Top = 190
-    Width = 86
-    Height = 31
+    Left = 235
+    Top = 185
+    Width = 110
+    Height = 36
     Caption = '&Quit TurboRisk'
     ModalResult = 3
     NumGlyphs = 2

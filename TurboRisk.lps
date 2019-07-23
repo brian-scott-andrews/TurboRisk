@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectSession>
-    <Version Value="9"/>
+    <Version Value="11"/>
     <BuildModes Active="Default"/>
-    <Units Count="32">
+    <Units Count="46">
       <Unit0>
         <Filename Value="TurboRisk.lpr"/>
         <IsPartOfProject Value="True"/>
-        <TopLine Value="2"/>
-        <CursorPos Y="58"/>
-        <UsageCount Value="20"/>
+        <CursorPos Y="35"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
@@ -18,47 +17,48 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
       <Unit2>
         <Filename Value="Globals.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="5"/>
-        <TopLine Value="1845"/>
-        <CursorPos X="120" Y="1864"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="8"/>
+        <TopLine Value="1843"/>
+        <CursorPos X="49" Y="1893"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit2>
       <Unit3>
         <Filename Value="Territ.pas"/>
         <IsPartOfProject Value="True"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="9"/>
-        <TopLine Value="38"/>
-        <CursorPos X="49" Y="77"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="14"/>
+        <CursorPos X="6" Y="7"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit3>
       <Unit4>
         <Filename Value="NewGame.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fNewGame"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="17"/>
-        <TopLine Value="243"/>
-        <CursorPos X="137" Y="272"/>
-        <UsageCount Value="20"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="24"/>
+        <TopLine Value="255"/>
+        <CursorPos Y="284"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit4>
       <Unit5>
         <Filename Value="Computer.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="4"/>
+        <EditorIndex Value="7"/>
+        <TopLine Value="366"/>
         <CursorPos X="3" Y="423"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit5>
@@ -67,14 +67,14 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit6>
       <Unit7>
         <Filename Value="Human.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit7>
       <Unit8>
@@ -82,7 +82,9 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="230"/>
+        <CursorPos Y="287"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit8>
       <Unit9>
@@ -90,32 +92,41 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <CursorPos X="22" Y="21"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit9>
       <Unit10>
         <Filename Value="Attack.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fAttack"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <ResourceBaseClass Value="Form"/>
+        <EditorIndex Value="9"/>
+        <TopLine Value="72"/>
+        <CursorPos X="80" Y="72"/>
+        <UsageCount Value="62"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit10>
       <Unit11>
         <Filename Value="Move.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="1"/>
+        <TopLine Value="90"/>
+        <CursorPos X="16" Y="145"/>
+        <UsageCount Value="62"/>
+        <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit11>
       <Unit12>
         <Filename Value="Players.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="10"/>
-        <CursorPos X="2" Y="20"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="15"/>
+        <CursorPos X="22" Y="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit12>
@@ -124,7 +135,7 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit13>
       <Unit14>
@@ -132,16 +143,16 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit14>
       <Unit15>
         <Filename Value="ExpSubr.pas"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="6"/>
-        <TopLine Value="1156"/>
+        <EditorIndex Value="11"/>
+        <TopLine Value="1058"/>
         <CursorPos X="13" Y="1116"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit15>
@@ -149,10 +160,10 @@
         <Filename Value="Map.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="11"/>
-        <TopLine Value="73"/>
-        <CursorPos X="45" Y="122"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="17"/>
+        <TopLine Value="86"/>
+        <CursorPos X="66" Y="144"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit16>
@@ -160,21 +171,24 @@
         <Filename Value="History.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="12"/>
+        <EditorIndex Value="18"/>
         <TopLine Value="284"/>
         <CursorPos X="62" Y="314"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit17>
       <Unit18>
         <Filename Value="Programs.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fPrograms"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="13"/>
-        <TopLine Value="17"/>
-        <CursorPos X="133" Y="42"/>
-        <UsageCount Value="20"/>
+        <ResourceBaseClass Value="Form"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="19"/>
+        <TopLine Value="94"/>
+        <CursorPos X="27" Y="149"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit18>
@@ -184,17 +198,16 @@
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="13" Y="25"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit19>
       <Unit20>
         <Filename Value="TRPError.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="3"/>
+        <EditorIndex Value="-1"/>
         <CursorPos X="29" Y="32"/>
-        <UsageCount Value="20"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit20>
       <Unit21>
@@ -202,7 +215,9 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <TopLine Value="107"/>
+        <CursorPos X="17" Y="175"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit21>
       <Unit22>
@@ -210,16 +225,17 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit22>
       <Unit23>
         <Filename Value="UDialog.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="7"/>
+        <EditorIndex Value="12"/>
+        <TopLine Value="17"/>
         <CursorPos X="54" Y="17"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit23>
@@ -227,10 +243,10 @@
         <Filename Value="Main.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="2"/>
-        <TopLine Value="98"/>
-        <CursorPos X="37" Y="117"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="6"/>
+        <TopLine Value="92"/>
+        <CursorPos X="17" Y="132"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit24>
@@ -239,17 +255,16 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
         <EditorIndex Value="-1"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit25>
       <Unit26>
         <Filename Value="Sim.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="8"/>
-        <TopLine Value="250"/>
-        <CursorPos X="38" Y="259"/>
-        <UsageCount Value="20"/>
+        <EditorIndex Value="13"/>
+        <CursorPos X="24" Y="4"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit26>
@@ -257,26 +272,27 @@
         <Filename Value="SimGameLog.pas"/>
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
-        <EditorIndex Value="16"/>
-        <TopLine Value="525"/>
+        <EditorIndex Value="23"/>
+        <TopLine Value="505"/>
         <CursorPos X="26" Y="505"/>
-        <UsageCount Value="20"/>
+        <UsageCount Value="62"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit27>
       <Unit28>
         <Filename Value="SimRun.pas"/>
-        <EditorIndex Value="14"/>
+        <EditorIndex Value="21"/>
         <CursorPos X="30" Y="8"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="32"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit28>
       <Unit29>
         <Filename Value="SimCPULog.pas"/>
-        <EditorIndex Value="15"/>
+        <EditorIndex Value="22"/>
+        <TopLine Value="24"/>
         <CursorPos X="63" Y="81"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="32"/>
         <Loaded Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit29>
@@ -286,139 +302,192 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="6"/>
         <CursorPos X="5" Y="38"/>
-        <UsageCount Value="10"/>
+        <UsageCount Value="6"/>
       </Unit30>
       <Unit31>
         <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
-        <EditorIndex Value="1"/>
+        <EditorIndex Value="-1"/>
         <TopLine Value="2136"/>
         <CursorPos Y="2173"/>
-        <UsageCount Value="10"/>
-        <Loaded Value="True"/>
+        <UsageCount Value="29"/>
       </Unit31>
+      <Unit32>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/interfaces/gtk2/gtk2widgetset.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2375"/>
+        <CursorPos X="34" Y="2411"/>
+        <UsageCount Value="29"/>
+      </Unit32>
+      <Unit33>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/control.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="2709"/>
+        <CursorPos Y="2740"/>
+        <UsageCount Value="29"/>
+      </Unit33>
+      <Unit34>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/buttoncontrol.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="5"/>
+        <CursorPos X="26" Y="11"/>
+        <UsageCount Value="29"/>
+      </Unit34>
+      <Unit35>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/buttons.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="141"/>
+        <CursorPos Y="170"/>
+        <UsageCount Value="29"/>
+      </Unit35>
+      <Unit36>
+        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/bitbtn.inc"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="36"/>
+        <CursorPos Y="65"/>
+        <UsageCount Value="29"/>
+      </Unit36>
+      <Unit37>
+        <Filename Value="Attack.lfm"/>
+        <EditorIndex Value="10"/>
+        <CursorPos X="30" Y="6"/>
+        <UsageCount Value="30"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit37>
+      <Unit38>
+        <Filename Value="floodfilltest.pas"/>
+        <EditorIndex Value="16"/>
+        <CursorPos X="76" Y="5"/>
+        <UsageCount Value="14"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
+      </Unit38>
+      <Unit39>
+        <Filename Value="Move.lfm"/>
+        <EditorIndex Value="2"/>
+        <TopLine Value="259"/>
+        <CursorPos X="16" Y="270"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit39>
+      <Unit40>
+        <Filename Value="Cards.lfm"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="32"/>
+        <CursorPos X="14" Y="78"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit40>
+      <Unit41>
+        <Filename Value="TRPError.lfm"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="12"/>
+        <CursorPos X="14" Y="64"/>
+        <UsageCount Value="13"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit41>
+      <Unit42>
+        <Filename Value="NewGame.lfm"/>
+        <EditorIndex Value="-1"/>
+        <TopLine Value="70"/>
+        <CursorPos X="17" Y="74"/>
+        <UsageCount Value="11"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit42>
+      <Unit43>
+        <Filename Value="UDialog.lfm"/>
+        <EditorIndex Value="-1"/>
+        <CursorPos X="31" Y="29"/>
+        <UsageCount Value="11"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit43>
+      <Unit44>
+        <Filename Value="Players.lfm"/>
+        <EditorIndex Value="5"/>
+        <TopLine Value="16"/>
+        <CursorPos X="34" Y="38"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit44>
+      <Unit45>
+        <Filename Value="Programs.lfm"/>
+        <EditorIndex Value="20"/>
+        <TopLine Value="28"/>
+        <CursorPos X="21" Y="7"/>
+        <UsageCount Value="12"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="LFM"/>
+      </Unit45>
     </Units>
-    <JumpHistory Count="30" HistoryIndex="29">
+    <JumpHistory Count="15" HistoryIndex="14">
       <Position1>
-        <Filename Value="/usr/lib/lazarus/1.6.2/lcl/include/application.inc"/>
-        <Caret Line="2172" TopLine="2136"/>
+        <Filename Value="Move.lfm"/>
+        <Caret Line="310" Column="16" TopLine="259"/>
       </Position1>
       <Position2>
-        <Filename Value="Main.pas"/>
-        <Caret Line="28" Column="40" TopLine="7"/>
+        <Filename Value="Cards.lfm"/>
+        <Caret Line="74" Column="24" TopLine="31"/>
       </Position2>
       <Position3>
-        <Filename Value="Main.pas"/>
-        <Caret Line="64" Column="14" TopLine="16"/>
+        <Filename Value="Players.lfm"/>
+        <Caret Line="24" Column="44"/>
       </Position3>
       <Position4>
-        <Filename Value="TRPError.pas"/>
-        <Caret Line="18" Column="47"/>
+        <Filename Value="Players.pas"/>
+        <Caret Line="94" Column="27" TopLine="36"/>
       </Position4>
       <Position5>
-        <Filename Value="TurboRisk.lpr"/>
-        <Caret Line="40" TopLine="2"/>
+        <Filename Value="Players.pas"/>
+        <Caret Line="89" Column="21" TopLine="36"/>
       </Position5>
       <Position6>
         <Filename Value="Globals.pas"/>
-        <Caret Line="844" Column="34" TopLine="842"/>
+        <Caret Line="15" Column="44"/>
       </Position6>
       <Position7>
         <Filename Value="Globals.pas"/>
-        <Caret Line="1106" Column="34" TopLine="1057"/>
+        <Caret Line="16" Column="43"/>
       </Position7>
       <Position8>
         <Filename Value="Globals.pas"/>
-        <Caret Line="556" Column="59" TopLine="529"/>
+        <Caret Line="17" Column="47"/>
       </Position8>
       <Position9>
-        <Filename Value="Main.pas"/>
-        <Caret Line="115" Column="9" TopLine="102"/>
+        <Filename Value="Globals.pas"/>
+        <Caret Line="19" Column="65"/>
       </Position9>
       <Position10>
-        <Filename Value="Main.pas"/>
-        <Caret Line="117" Column="37" TopLine="102"/>
+        <Filename Value="Globals.pas"/>
+        <Caret Line="1005" Column="49" TopLine="982"/>
       </Position10>
       <Position11>
-        <Filename Value="Main.pas"/>
-        <Caret Line="185" Column="35" TopLine="136"/>
+        <Filename Value="Globals.pas"/>
+        <Caret Line="1006" Column="58" TopLine="982"/>
       </Position11>
       <Position12>
-        <Filename Value="Main.pas"/>
-        <Caret Line="195" Column="35" TopLine="146"/>
+        <Filename Value="Globals.pas"/>
+        <Caret Line="1009" Column="38" TopLine="982"/>
       </Position12>
       <Position13>
-        <Filename Value="Main.pas"/>
-        <Caret Line="272" Column="57" TopLine="223"/>
+        <Filename Value="Programs.pas"/>
+        <Caret Line="69" Column="13" TopLine="40"/>
       </Position13>
       <Position14>
-        <Filename Value="Map.pas"/>
-        <Caret Line="122" Column="46" TopLine="93"/>
+        <Filename Value="Programs.pas"/>
+        <Caret Line="74" Column="3" TopLine="40"/>
       </Position14>
       <Position15>
-        <Filename Value="Map.pas"/>
-        <Caret Line="135" Column="14" TopLine="93"/>
+        <Filename Value="Players.pas"/>
+        <Caret Line="69" Column="42" TopLine="30"/>
       </Position15>
-      <Position16>
-        <Filename Value="Map.pas"/>
-        <Caret Line="144" Column="12" TopLine="93"/>
-      </Position16>
-      <Position17>
-        <Filename Value="Map.pas"/>
-        <Caret Line="18" Column="12"/>
-      </Position17>
-      <Position18>
-        <Filename Value="Map.pas"/>
-        <Caret Line="31" Column="22"/>
-      </Position18>
-      <Position19>
-        <Filename Value="Map.pas"/>
-        <Caret Line="56" Column="33" TopLine="7"/>
-      </Position19>
-      <Position20>
-        <Filename Value="Map.pas"/>
-        <Caret Line="64" Column="53" TopLine="15"/>
-      </Position20>
-      <Position21>
-        <Filename Value="Map.pas"/>
-        <Caret Line="79" Column="12" TopLine="30"/>
-      </Position21>
-      <Position22>
-        <Filename Value="Map.pas"/>
-        <Caret Line="114" Column="24" TopLine="65"/>
-      </Position22>
-      <Position23>
-        <Filename Value="Globals.pas"/>
-        <Caret Line="560" Column="143" TopLine="201"/>
-      </Position23>
-      <Position24>
-        <Filename Value="Globals.pas"/>
-        <Caret Line="1018" Column="38" TopLine="963"/>
-      </Position24>
-      <Position25>
-        <Filename Value="Sim.pas"/>
-        <Caret Line="527" Column="53" TopLine="475"/>
-      </Position25>
-      <Position26>
-        <Filename Value="Sim.pas"/>
-        <Caret Line="282" Column="35" TopLine="254"/>
-      </Position26>
-      <Position27>
-        <Filename Value="Programs.pas"/>
-        <Caret Line="11" Column="109"/>
-      </Position27>
-      <Position28>
-        <Filename Value="NewGame.pas"/>
-        <Caret Line="17" Column="33"/>
-      </Position28>
-      <Position29>
-        <Filename Value="Territ.pas"/>
-        <Caret Line="517" Column="66" TopLine="502"/>
-      </Position29>
-      <Position30>
-        <Filename Value="Territ.pas"/>
-        <Caret Line="66" Column="51" TopLine="38"/>
-      </Position30>
     </JumpHistory>
+    <RunParams>
+      <FormatVersion Value="2"/>
+      <Modes Count="0" ActiveMode="default"/>
+    </RunParams>
   </ProjectSession>
-  <SkipCheckLCLInterfaces Value="True"/>
 </CONFIG>

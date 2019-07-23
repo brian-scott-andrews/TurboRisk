@@ -1,0 +1,671 @@
+object fNewGame: TfNewGame
+  Left = 251
+  Top = 120
+  HelpContext = 210
+  BorderStyle = bsDialog
+  Caption = 'New Game'
+  ClientHeight = 469
+  ClientWidth = 241
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  Position = poMainFormCenter
+  Scaled = False
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object Label1: TLabel
+    Left = 5
+    Top = 5
+    Width = 34
+    Height = 13
+    Caption = 'Players'
+  end
+  object panPlayer1: TPanel
+    Left = 5
+    Top = 20
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 0
+    object imgType1: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange1: TSpeedButton
+      Tag = 1
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName1: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor1: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object panPlayer2: TPanel
+    Left = 5
+    Top = 50
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 1
+    object imgType2: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange2: TSpeedButton
+      Tag = 2
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName2: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName2'
+      TabOrder = 0
+    end
+    object panColor2: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel1: TPanel
+    Left = 5
+    Top = 80
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 2
+    object imgType3: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange3: TSpeedButton
+      Tag = 3
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName3: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor3: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel3: TPanel
+    Left = 5
+    Top = 110
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 3
+    object imgType4: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange4: TSpeedButton
+      Tag = 4
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName4: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor4: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel5: TPanel
+    Left = 5
+    Top = 140
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 4
+    object imgType5: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange5: TSpeedButton
+      Tag = 5
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName5: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor5: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel7: TPanel
+    Left = 5
+    Top = 170
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 5
+    object imgType6: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange6: TSpeedButton
+      Tag = 6
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName6: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor6: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel9: TPanel
+    Left = 5
+    Top = 200
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 6
+    object imgType7: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange7: TSpeedButton
+      Tag = 7
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName7: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName2'
+      TabOrder = 0
+    end
+    object panColor7: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel11: TPanel
+    Left = 5
+    Top = 230
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 7
+    object imgType8: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange8: TSpeedButton
+      Tag = 8
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName8: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor8: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel13: TPanel
+    Left = 5
+    Top = 260
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 8
+    object imgType9: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange9: TSpeedButton
+      Tag = 9
+      Left = 177
+      Top = 3
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName9: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor9: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object Panel15: TPanel
+    Left = 5
+    Top = 290
+    Width = 231
+    Height = 26
+    BevelOuter = bvLowered
+    TabOrder = 9
+    object imgType10: TImage
+      Left = 108
+      Top = 1
+      Width = 20
+      Height = 20
+      Center = True
+    end
+    object cmdChange10: TSpeedButton
+      Tag = 10
+      Left = 177
+      Top = 0
+      Width = 47
+      Height = 17
+      Caption = 'Change'
+      OnClick = cmdChangeClick
+    end
+    object chkName10: TCheckBox
+      Left = 7
+      Top = 3
+      Width = 97
+      Height = 17
+      Caption = 'chkName1'
+      TabOrder = 0
+    end
+    object panColor10: TPanel
+      Left = 136
+      Top = 3
+      Width = 35
+      Height = 16
+      BevelOuter = bvNone
+      Color = clBlue
+      DoubleBuffered = True
+      ParentBackground = False
+      ParentDoubleBuffered = False
+      TabOrder = 1
+    end
+  end
+  object cmdOK: TBitBtn
+    Left = 35
+    Top = 430
+    Width = 76
+    Height = 31
+    Caption = 'Start'
+    Kind = bkOK
+    TabOrder = 10
+    OnClick = cmdOKClick
+  end
+  object BitBtn1: TBitBtn
+    Left = 125
+    Top = 430
+    Width = 76
+    Height = 31
+    Kind = bkCancel
+    TabOrder = 11
+    OnClick = BitBtn1Click
+  end
+  object GroupBox1: TGroupBox
+    Left = 5
+    Top = 322
+    Width = 231
+    Height = 99
+    Caption = 'Quick setup'
+    TabOrder = 12
+    object Label2: TLabel
+      Left = 7
+      Top = 7
+      Width = 57
+      Height = 13
+      Caption = 'Setup name'
+    end
+    object cboSetup: TComboBox
+      Left = 7
+      Top = 22
+      Width = 213
+      Height = 21
+      TabOrder = 0
+      OnSelect = cboSetupSelect
+    end
+    object cmdSaveSetup: TBitBtn
+      Left = 7
+      Top = 49
+      Width = 76
+      Height = 26
+      Caption = 'Save setup'
+      NumGlyphs = 2
+      TabOrder = 1
+      OnClick = cmdSaveSetupClick
+    end
+    object cmdDeleteSetup: TBitBtn
+      Left = 144
+      Top = 49
+      Width = 76
+      Height = 26
+      Caption = 'Delete setup'
+      NumGlyphs = 2
+      TabOrder = 2
+      OnClick = cmdDeleteSetupClick
+    end
+  end
+  object imlPlayers: TImageList
+    Top = 430
+    Bitmap = {
+      494C010102005400540010001000FFFFFFFFFF10FFFFFFFFFFFFFFFF424D3600
+      0000000000003600000028000000400000001000000001002000000000000010
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000E7E3DD00DCD0C300D6C6B600D1BFAE00D3C4B500DAD0
+      C700F2F1F0000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000FBFCFC00D8CCC000C39E7B00C8A07800CFA67F00D0A77F00BE966E00B38D
+      6600AF8F7000D7CDC40000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000CCB7
+      A100C59A7000C8A48100E3C0A700D8B18800E3BD9600E3BD9700D5B08E00C6A0
+      7B00B9916900C1A9940000000000000000000000000000000000000000000000
+      00000000000000000000CDCDCE00C4C3C400D4D5D500DBDBDB00CECECE00B7B7
+      B700ADADAD00E7E7E70000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000CEB6
+      9A00D0A67C00CDAB8800EFD2C000DBB38B00E7C29C00EAC4A000DAB79600C9A4
+      7F00B58D6500C9B5A300000000000000000000000000CDCDCE00DADBDB00D2D2
+      D300F9F9F90000000000B2B1B100BDBDBD00CECECF00D7D7D700BCBBBC00A3A3
+      A3008D8E8D00CBCBCC0000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000DCC8
+      B200D5AA7F00D8B69300FFEADE00E4BE9B00E7C09A00EEC9A700DDBC9E00CBA7
+      8200B0886100DACDC2000000000000000000FAFAFA00A9A5A5007D7D7E009393
+      9400C2C3C300D9D9D900D6D6D600B1B1B100B0AFAF00A9A9A9007E818000868B
+      8B00A6AEB000C9CED00000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000EBE1
+      D500D8B08500E9C5A300D9D5D100DEC9B600EABF9500E8C29E00DAB89700C59E
+      7700B5927100F4F1EF000000000000000000F5F6F600C6BDBD00848685009595
+      9400A6A6A600A3A3A400FDFFFF00D8DCDC00ABB3B40089929300A29E9E00B79F
+      9D00BD868100B88C870000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000FEFDFB00F8E0C70028527B00254E7600345A7F0097867600D2B39500EFE7
+      E00000000000000000000000000000000000F5F5F500C6BDBC00A3A3A300A9AB
+      AB0092898A0086514C00861D1700860D05008E07000098060000B8352300BF3A
+      2700C73B2500CA5E4D00F7F8F800000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000FAFCFD00829CB30032587E00284D7300224C76005D708100FBFAF9000000
+      000000000000000000000000000000000000F4F5F500B7B0B000B1B1B100B7BB
+      BC00A28C8C0088110900850C02008C0A00009B100100A5100000D4604C00DA61
+      4B00DF624C00DE6E5A00F0F2F300000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000C3CFD900355D840041668C003C6187001D456D0093A6B900000000000000
+      000000000000000000000000000000000000F4F5F500ADA7A800B7B7B800BCBD
+      BF00B2A9A90095362F00921A1000980E0000A7120100B4130000E5827100EA82
+      6F00EF857100EE857200E6E9EA00000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000099B0C6004C749C0051779C00486D940030577D00A7B3BF00000000000000
+      000000000000000000000000000000000000F8F7F8007D877D00BDBCBD00C1C2
+      C300BAB6B6009D4D480097150800A3100000B1130000C41D0400F2A09100F49F
+      9000F6A39400F69D8D00DEE2E300000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000FCFC
+      FD008CABC9007BA1C8006F96BB005D83A900496F95002A4A6A00000000000000
+      000000000000000000000000000000000000FEFEFE00E7E7E700E7E8E800DCDD
+      DD00D1D6D600AC757000AC0F0000C51A0000DC170000F1553700FFD3C600FFD5
+      C700FFD8CA00FFD6C500D0D3D400000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000FCFC
+      FD009DBCD90095BBDF007AA0C600638BB3004961790035373A00FDFDFD000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000F8FCFC00AE767100B5150000CD1B0000E3170000F7846C00FFE5DC00FFE6
+      DD00FFE8DF00FFE4DA00D0D2D300000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000000000000000000000000000FEFF
+      FF00AFCBE5009CC5EA0085ABD100648EB90046576A0034312F00FCFBFB000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000B4888400BA0D0000D3100000E8140000F9A08D00F5CEC300F1CE
+      C100EECEC100EDD0C400DBDDDD00FEFEFE000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000C1CEDB007A92AB006F869D005C6F82004D50530036363500000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000BDA8A600B34F4300C46D6000D68A7D00DFBEB800E6D9D600ECE6
+      E300EFEEED00F7F7F800FEFEFE00000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000FDFDFD00D9D8D90082828300717171007A797900ADACAC00000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      00000000000000000000FAF9FA00F5F5F5000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      0000000000000000000000000000000000000000000000000000000000000000
+      000000000000000000000000000000000000424D3E000000000000003E000000
+      2800000040000000100000000100010000000000800000000000000000000000
+      000000000000000000000000FFFFFF00FC07FFFF00000000F003FFFF00000000
+      E003FC0300000000E003840300000000E003000300000000E003000300000000
+      F00F000100000000F01F000100000000F03F000100000000F03F000100000000
+      E03F000100000000E01FF00100000000E01FF80000000000F03FF80100000000
+      F03FFFFF00000000FCFFFFFF0000000000000000000000000000000000000000
+      000000000000
+    }
+  end
+end

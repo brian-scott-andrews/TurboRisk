@@ -131,6 +131,7 @@ object fMap: TfMap
     Height = 26
     Kind = bkCancel
     TabOrder = 4
+    OnClick = cmdCancel
   end
   object txtMapAuthor: TEdit
     Left = 330

@@ -103,7 +103,9 @@ begin
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
   if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
-    ModalResult := mrCancel;              // non considero lo spostamento avvenuto
+    ModalResult := mrCancel              // non considero lo spostamento avvenuto
+  else
+    ModalResult := mrOK;
 end;
 
 procedure TfMove.cmdAllClick(Sender: TObject);
@@ -113,7 +115,9 @@ begin
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
   if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
-    ModalResult := mrCancel;              // non considero lo spostamento avvenuto
+    ModalResult := mrCancel              // non considero lo spostamento avvenuto
+  else
+    ModalResult := mrOK;
 end;
 
 procedure TfMove.cmdBalanceClick(Sender: TObject);
@@ -138,7 +142,7 @@ end;
 
 procedure TfMove.cmdCancelClick(Sender: TObject);
 begin
-  //
+  ModalResult := mrCancel;
 end;
 
 end.

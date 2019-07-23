@@ -192,15 +192,15 @@ object fMain: TfMain
       BevelOuter = bvNone
       TabOrder = 0
       object Label1: TLabel
-        Left = 10
-        Top = 6
+        Left = 8
+        Top = 4
         Width = 25
         Height = 13
         Caption = 'Turn:'
       end
       object panTurn: TPanel
-        Left = 41
-        Top = 3
+        Left = 39
+        Top = 1
         Width = 98
         Height = 23
         BevelOuter = bvLowered

@@ -45,71 +45,71 @@ object fRules: TfRules
         Caption = 'Intial armies'
         TabOrder = 1
         object Label1: TLabel
-          Left = 8
-          Top = 11
+          Left = 6
+          Top = 0
           Width = 43
           Height = 13
           Caption = '2 Players'
         end
         object Label2: TLabel
-          Left = 8
-          Top = 31
+          Left = 6
+          Top = 17
           Width = 43
           Height = 13
           Caption = '3 Players'
         end
         object Label3: TLabel
-          Left = 8
-          Top = 51
+          Left = 6
+          Top = 37
           Width = 43
           Height = 13
           Caption = '4 Players'
         end
         object Label4: TLabel
-          Left = 8
-          Top = 71
+          Left = 6
+          Top = 57
           Width = 43
           Height = 13
           Caption = '5 Players'
         end
         object Label5: TLabel
-          Left = 8
-          Top = 91
+          Left = 6
+          Top = 77
           Width = 43
           Height = 13
           Caption = '6 Players'
         end
         object Label6: TLabel
-          Left = 8
-          Top = 111
+          Left = 6
+          Top = 97
           Width = 43
           Height = 13
           Caption = '7 Players'
         end
         object Label7: TLabel
-          Left = 8
-          Top = 131
+          Left = 6
+          Top = 117
           Width = 43
           Height = 13
           Caption = '8 Players'
         end
         object Label8: TLabel
-          Left = 8
-          Top = 151
+          Left = 6
+          Top = 137
           Width = 43
           Height = 13
           Caption = '9 Players'
         end
         object Label9: TLabel
-          Left = 8
-          Top = 171
+          Left = 6
+          Top = 157
           Width = 49
           Height = 13
           Caption = '10 Players'
         end
         object txtArmIn2: TEdit
-          Left = 73
-          Top = 6
+          Left = 71
+          Top = 0
           Width = 36
           Height = 21
           AutoSize = False
@@ -117,8 +117,8 @@ object fRules: TfRules
           TabOrder = 0
         end
         object txtArmIn3: TEdit
-          Left = 73
-          Top = 26
+          Left = 71
+          Top = 12
           Width = 36
           Height = 21
           AutoSize = False
@@ -126,8 +126,8 @@ object fRules: TfRules
           TabOrder = 1
         end
         object txtArmIn4: TEdit
-          Left = 73
-          Top = 46
+          Left = 71
+          Top = 32
           Width = 36
           Height = 21
           AutoSize = False
@@ -135,8 +135,8 @@ object fRules: TfRules
           TabOrder = 2
         end
         object txtArmIn5: TEdit
-          Left = 73
-          Top = 66
+          Left = 71
+          Top = 52
           Width = 36
           Height = 21
           AutoSize = False
@@ -144,8 +144,8 @@ object fRules: TfRules
           TabOrder = 3
         end
         object txtArmIn6: TEdit
-          Left = 73
-          Top = 86
+          Left = 71
+          Top = 72
           Width = 36
           Height = 21
           AutoSize = False
@@ -153,8 +153,8 @@ object fRules: TfRules
           TabOrder = 4
         end
         object txtArmIn7: TEdit
-          Left = 73
-          Top = 106
+          Left = 71
+          Top = 92
           Width = 36
           Height = 21
           AutoSize = False
@@ -162,8 +162,8 @@ object fRules: TfRules
           TabOrder = 5
         end
         object txtArmIn8: TEdit
-          Left = 73
-          Top = 126
+          Left = 71
+          Top = 112
           Width = 36
           Height = 21
           AutoSize = False
@@ -171,8 +171,8 @@ object fRules: TfRules
           TabOrder = 6
         end
         object txtArmIn9: TEdit
-          Left = 73
-          Top = 146
+          Left = 71
+          Top = 132
           Width = 36
           Height = 21
           AutoSize = False
@@ -180,8 +180,8 @@ object fRules: TfRules
           TabOrder = 7
         end
         object txtArmIn10: TEdit
-          Left = 73
-          Top = 166
+          Left = 71
+          Top = 152
           Width = 36
           Height = 21
           AutoSize = False
@@ -222,36 +222,36 @@ object fRules: TfRules
         Caption = 'Combination values'
         TabOrder = 1
         object Label10: TLabel
-          Left = 8
-          Top = 11
+          Left = 6
+          Top = 0
           Width = 53
           Height = 13
           Caption = '3 of artillery'
         end
         object Label11: TLabel
-          Left = 8
-          Top = 31
+          Left = 6
+          Top = 17
           Width = 55
           Height = 13
           Caption = '3 of infantry'
         end
         object Label12: TLabel
-          Left = 8
-          Top = 51
+          Left = 6
+          Top = 37
           Width = 55
           Height = 13
           Caption = '3 of cavalry'
         end
         object Label13: TLabel
-          Left = 8
-          Top = 71
+          Left = 6
+          Top = 57
           Width = 89
           Height = 13
           Caption = '3 one of each kind'
         end
         object txtSetArt: TEdit
-          Left = 108
-          Top = 6
+          Left = 106
+          Top = 0
           Width = 36
           Height = 21
           AutoSize = False
@@ -260,8 +260,8 @@ object fRules: TfRules
           OnKeyPress = txtNumOnlyKeyPress
         end
         object txtSetInf: TEdit
-          Left = 108
-          Top = 26
+          Left = 106
+          Top = 12
           Width = 36
           Height = 21
           AutoSize = False
@@ -269,8 +269,8 @@ object fRules: TfRules
           TabOrder = 1
         end
         object txtSetCav: TEdit
-          Left = 108
-          Top = 46
+          Left = 106
+          Top = 32
           Width = 36
           Height = 21
           AutoSize = False
@@ -278,8 +278,8 @@ object fRules: TfRules
           TabOrder = 2
         end
         object txtSetDif: TEdit
-          Left = 108
-          Top = 66
+          Left = 106
+          Top = 52
           Width = 36
           Height = 21
           AutoSize = False
@@ -295,71 +295,71 @@ object fRules: TfRules
         Caption = 'Progression values'
         TabOrder = 2
         object Label14: TLabel
-          Left = 8
-          Top = 11
+          Left = 6
+          Top = 0
           Width = 41
           Height = 13
           Caption = '1st trade'
         end
         object Label15: TLabel
-          Left = 8
-          Top = 31
+          Left = 6
+          Top = 17
           Width = 45
           Height = 13
           Caption = '2nd trade'
         end
         object Label16: TLabel
-          Left = 8
-          Top = 51
+          Left = 6
+          Top = 37
           Width = 42
           Height = 13
           Caption = '3rd trade'
         end
         object Label17: TLabel
-          Left = 8
-          Top = 71
+          Left = 6
+          Top = 57
           Width = 42
           Height = 13
           Caption = '4th trade'
         end
         object Label18: TLabel
-          Left = 8
-          Top = 91
+          Left = 6
+          Top = 77
           Width = 39
           Height = 13
           Caption = '5thtrade'
         end
         object Label19: TLabel
-          Left = 8
-          Top = 111
+          Left = 6
+          Top = 97
           Width = 39
           Height = 13
           Caption = '6thtrade'
         end
         object Label20: TLabel
-          Left = 8
-          Top = 131
+          Left = 6
+          Top = 117
           Width = 42
           Height = 13
           Caption = '7th trade'
         end
         object Label21: TLabel
-          Left = 8
-          Top = 151
+          Left = 6
+          Top = 137
           Width = 42
           Height = 13
           Caption = '8th trade'
         end
         object Label22: TLabel
-          Left = 8
-          Top = 176
+          Left = 6
+          Top = 162
           Width = 103
           Height = 13
           Caption = 'Increment from 9th on'
         end
         object txtTrade1: TEdit
-          Left = 118
-          Top = 6
+          Left = 116
+          Top = 0
           Width = 36
           Height = 21
           AutoSize = False
@@ -367,8 +367,8 @@ object fRules: TfRules
           TabOrder = 0
         end
         object txtTrade2: TEdit
-          Left = 118
-          Top = 26
+          Left = 116
+          Top = 12
           Width = 36
           Height = 21
           AutoSize = False
@@ -376,8 +376,8 @@ object fRules: TfRules
           TabOrder = 1
         end
         object txtTrade3: TEdit
-          Left = 118
-          Top = 46
+          Left = 116
+          Top = 32
           Width = 36
           Height = 21
           AutoSize = False
@@ -385,8 +385,8 @@ object fRules: TfRules
           TabOrder = 2
         end
         object txtTrade4: TEdit
-          Left = 118
-          Top = 66
+          Left = 116
+          Top = 52
           Width = 36
           Height = 21
           AutoSize = False
@@ -394,8 +394,8 @@ object fRules: TfRules
           TabOrder = 3
         end
         object txtTrade5: TEdit
-          Left = 118
-          Top = 86
+          Left = 116
+          Top = 72
           Width = 36
           Height = 21
           AutoSize = False
@@ -403,8 +403,8 @@ object fRules: TfRules
           TabOrder = 4
         end
         object txtTrade6: TEdit
-          Left = 118
-          Top = 106
+          Left = 116
+          Top = 92
           Width = 36
           Height = 21
           AutoSize = False
@@ -412,8 +412,8 @@ object fRules: TfRules
           TabOrder = 5
         end
         object txtTrade7: TEdit
-          Left = 118
-          Top = 126
+          Left = 116
+          Top = 112
           Width = 36
           Height = 21
           AutoSize = False
@@ -421,8 +421,8 @@ object fRules: TfRules
           TabOrder = 6
         end
         object txtTrade8: TEdit
-          Left = 118
-          Top = 146
+          Left = 116
+          Top = 132
           Width = 36
           Height = 21
           AutoSize = False
@@ -430,8 +430,8 @@ object fRules: TfRules
           TabOrder = 7
         end
         object txtTradeInc: TEdit
-          Left = 118
-          Top = 171
+          Left = 116
+          Top = 157
           Width = 36
           Height = 21
           AutoSize = False
@@ -506,6 +506,7 @@ object fRules: TfRules
     Height = 31
     Kind = bkCancel
     TabOrder = 2
+    OnClick = cmdCancel
   end
   object cmdResetRules: TBitBtn
     Left = 210

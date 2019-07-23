@@ -302,7 +302,7 @@ begin
     ModalResult := mrNone;
     MessageDlg('At least two players required.', mtError, [mbOK], 0);
   end;
-
+  ModalResult := mrOK;    //Added this line
 end;
 
 procedure TfNewGame.cmdSaveSetupClick(Sender: TObject);
@@ -405,6 +405,7 @@ end;
 procedure TfNewGame.BitBtn1Click(Sender: TObject);
 begin
   ActivePlayers;
+  ModalResult := mrCancel;    //Added this line
 end;
 
 end.

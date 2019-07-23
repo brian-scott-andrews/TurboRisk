@@ -30,6 +30,7 @@ type
       Change: TItemChange);
     procedure lstMapSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure cmdCancel(Sender: TObject);
   private
     bLoading: boolean;
   public
@@ -144,6 +145,11 @@ begin
     txtMapSize.Text := '';
     panMapPreview.Caption := 'Cannot find bitmap file';
   end;
+end;
+
+procedure TfMap.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;    //Added this line
 end;
 
 end.
