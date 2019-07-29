@@ -5,3 +5,12 @@
 20190722,4,human,simple,rambo,napoleon
 20190722,8,australian+,raptorbot,zotob,digger,shy2,era$or-bot,wyrm,nathan
 20190723,5,nathan,australian,napoleon,simple,rambo
+20190723,3,simple,napoleon,rambo
+20190723,3,simple,napoleon,rambo
+20190723,3,simple,rambo,napoleon
+20190723,3,simple,napoleon,rambo
+20190723,4,simple,australian,rambo,napoleon
+20190723,4,simple,australian,rambo,napoleon
+20190728,3,simple,napoleon,rambo
+20190728,4,nathan,napoleon,simple,rambo
+20190728,4,nathan,rambo,simple,napoleon

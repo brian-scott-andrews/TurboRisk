@@ -10,6 +10,7 @@ in TurboRisk. As simplicity was the main goal, the resulting strategy is very we
 
 // History: Fortification Procedure updated for TurboRisk 2.0 by Nathan Scarbrough August 2009
 
+
 procedure Assignment(var ToTerritory: integer);
 var
   T: integer;
@@ -26,20 +27,28 @@ end;
 
 procedure Placement(var ToTerritory: integer);
 var
-  T: integer;
-  Ratio,MaxRatio: double;
+  T, A,B: integer;
+  Ratio,MaxRatio,NewRatio: double;
 begin
+  {$DEFINE PS_DELPHIDIV}
+//  ULogOn;
   // reinforce territory with greatest ratio between total enemy armies and
   // own armies
   ToTerritory:=0;
   MaxRatio:=0;
   for T:=1 to 42 do begin
     if TIsFront(T) then begin  // territory is mine and front
-      Ratio := TPressure(T) / TArmies(T);
+      Ratio := 1.0*TPressure(T) / TArmies(T);
+      A:=1;
+      B:=2;
+      NewRatio := A / B;
+      ULog('Here');
+      if NewRatio>0 then begin
+         ULog('It is!');
+      end;
       if Ratio>MaxRatio then begin
         ToTerritory:=T;
         MaxRatio:=Ratio;
-        Writeln(MaxRatio);
       end;
     end;
   end;

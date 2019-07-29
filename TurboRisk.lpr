@@ -36,7 +36,6 @@ begin
   fSplashScreen.Show;
   Application.Initialize;
   fSplashScreen.Update;
-  Application.Title := 'TurboRisk';
   Application.CreateForm(TfMain, fMain);
   Application.CreateForm(TfSimMap, fSimMap);
   Application.CreateForm(TfNewGame, fNewGame);

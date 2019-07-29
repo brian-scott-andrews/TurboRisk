@@ -1,12 +1,12 @@
 object fAttack: TfAttack
   Left = 710
-  Height = 395
+  Height = 375
   Top = 439
   Width = 294
   HelpContext = 110
   BorderStyle = bsDialog
   Caption = 'Attack'
-  ClientHeight = 395
+  ClientHeight = 375
   ClientWidth = 294
   Color = clBtnFace
   Font.Color = clWindowText

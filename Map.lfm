@@ -38,14 +38,14 @@ object fMap: TfMap
   end
   object Label4: TLabel
     Left = 330
-    Top = 275
+    Top = 285
     Width = 31
     Height = 13
     Caption = 'Author'
   end
   object Label5: TLabel
     Left = 330
-    Top = 320
+    Top = 345
     Width = 41
     Height = 13
     Caption = 'Revision'
@@ -98,9 +98,9 @@ object fMap: TfMap
   end
   object cmdOK: TBitBtn
     Left = 455
-    Top = 435
+    Top = 421
     Width = 81
-    Height = 26
+    Height = 40
     Caption = 'OK'
     Default = True
     Glyph.Data = {
@@ -126,16 +126,16 @@ object fMap: TfMap
   end
   object cmdAnnulla: TBitBtn
     Left = 545
-    Top = 435
+    Top = 421
     Width = 81
-    Height = 26
+    Height = 40
     Kind = bkCancel
     TabOrder = 4
     OnClick = cmdCancel
   end
   object txtMapAuthor: TEdit
     Left = 330
-    Top = 290
+    Top = 302
     Width = 301
     Height = 21
     ReadOnly = True
@@ -143,7 +143,7 @@ object fMap: TfMap
   end
   object txtMapRevision: TEdit
     Left = 330
-    Top = 335
+    Top = 359
     Width = 301
     Height = 21
     ReadOnly = True

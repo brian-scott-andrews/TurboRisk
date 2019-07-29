@@ -4,7 +4,7 @@ unit Globals;
 
 interface
 
-uses LCLIntf, LCLType, LMessages, Graphics, Classes, uPSRuntime;
+uses LCLIntf, LCLType, LMessages, Graphics, Classes, uPSRuntime, uPSPreProcessor;
 
 const
   VERSION = '2.0.5'; // TurboRisk
@@ -898,6 +898,7 @@ function CompileTRP(Compiler: TPSPascalCompiler;
 var
   sCompErr: string;
   iErr: integer;
+  sPPout: ansistring;
 begin
   Result := False;
   sCompErr := 'Program: ' + sName + #13#10;
@@ -939,7 +940,9 @@ var
   PrgTemp: TstringList;
   Compiler: TPSPascalCompiler; // TPSPascalCompiler is the compiler part of the scriptengine. This will
   // translate a Pascal script into a compiled for the executer understands.
+  Preproc: TPSPreProcessor;
   bCompErrors: boolean; // true if at least one compilation failed
+  sPPout: ansistring;
 
 begin
 
@@ -947,6 +950,7 @@ begin
   PrgTemp := TstringList.Create;
   // create input buffer for source code
   Compiler := TPSPascalCompiler.Create;
+  Preproc := TPSPreProcessor.Create;
   // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.
   Compiler.OnExportCheck := ScriptOnExportCheck;
@@ -1018,7 +1022,10 @@ begin
             bAttackFound := False;
             bOccupationFound := False;
             bFortificationFound := False;
-            if CompileTRP(Compiler, PrgFile, PrgTemp.Text) then begin
+            Preproc.MainFileName := sG_AppPath + 'players/' + PrgFile;
+            Preproc.MainFile := PrgTemp.Text;
+            Preproc.PreProcess(Preproc.MainFileName, sPPout);
+            if CompileTRP(Compiler, PrgFile, sPPout) then begin
               Compiler.GetOutput(Code);
             end
             else begin
@@ -1093,6 +1100,7 @@ begin
     UpdateStats;
   finally
     PrgTemp.Free;
+    Preproc.Free;
     Compiler.Free;
   end;
 end;
@@ -1779,6 +1787,7 @@ var
   PrgTemp: TstringList;
   Compiler: TPSPascalCompiler; // TPSPascalCompiler is the compiler part of the scriptengine. This will
   // translate a Pascal script into a compiled for the executer understands.
+  Preproc: TPSPreProcessor;
   bCompErrors: boolean; // true if at least one compilation failed
 
 begin
@@ -1870,6 +1879,7 @@ begin
   PrgTemp := TstringList.Create;
   // create input buffer for source code
   Compiler := TPSPascalCompiler.Create;
+  Preproc := TPSPreProcessor.Create;
   // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.
   Compiler.OnExportCheck := ScriptOnExportCheck;
@@ -1974,6 +1984,7 @@ begin
     fMain.panTurn.Caption := arPlayer[iTurn].Name;
   finally
     PrgTemp.Free;
+    Preproc.Free;
     Compiler.Free;
   end;
 end;
