@@ -8,7 +8,7 @@ uses
   LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, ExtCtrls, StdCtrls, ComCtrls, {JvComponentBase, JvPropertyStore,
   JvProgramVersionCheck, IdAntiFreezeBase, IdAntiFreeze, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin;
+  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin, LHelpControl;
 
 type
   TfMain = class(TForm)
@@ -80,7 +80,7 @@ type
     procedure mnuOptRulesClick(Sender: TObject);
     procedure mnuOptPlayersClick(Sender: TObject);
     procedure mnuVieLogClick(Sender: TObject);
-{    procedure mnuHelReadmeClick(Sender: TObject);   }
+    procedure mnuHelReadmeClick(Sender: TObject);
     procedure mnuHelAboutClick(Sender: TObject);
     procedure mnuOptMapClick(Sender: TObject);
     procedure mnuVieHistClick(Sender: TObject);
@@ -263,6 +263,12 @@ end;
 procedure TfMain.mnuOptMapClick(Sender: TObject);
 begin
   fMap.ShowModal;
+end;
+
+
+procedure TfMain.mnuHelReadmeClick(Sender: TObject);
+begin
+
 end;
 
 {

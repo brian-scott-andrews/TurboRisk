@@ -29,13 +29,16 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="pascalscript"/>
+        <PackageName Value="lhelpcontrolpkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="LCL"/>
+        <PackageName Value="pascalscript"/>
       </Item2>
+      <Item3>
+        <PackageName Value="LCL"/>
+      </Item3>
     </RequiredPackages>
     <Units Count="28">
       <Unit0>
@@ -161,7 +164,9 @@
       <Unit24>
         <Filename Value="Main.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fMain"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit24>
       <Unit25>
         <Filename Value="Readme.pas"/>
