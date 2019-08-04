@@ -31,10 +31,10 @@
     </RunParams>
     <RequiredPackages Count="3">
       <Item1>
-        <PackageName Value="lhelpcontrolpkg"/>
+        <PackageName Value="pascalscript"/>
       </Item1>
       <Item2>
-        <PackageName Value="pascalscript"/>
+        <PackageName Value="lhelpcontrolpkg"/>
       </Item2>
       <Item3>
         <PackageName Value="LCL"/>

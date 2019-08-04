@@ -4,6 +4,9 @@ TurboRisk
 backup
 *.ppu
 *.ini
+*.trd
+Original*
+lhelp/lhelp
 
 # Windows image file caches
 Thumbs.db

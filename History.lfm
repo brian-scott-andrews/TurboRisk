@@ -61,7 +61,8 @@ object fHistory: TfHistory
         ScrollBars = ssVertical
         TabOrder = 0
         OnDrawCell = grdRankingDrawCell
-        OnClick = grdRankingCaptionClick
+        ColumnClickSorts = True
+        OnCompareCells = GridCompareCells
       end
     end
     object tbsCompare: TTabSheet

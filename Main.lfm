@@ -285,6 +285,11 @@ object fMain: TfMain
     end
     object mnuHel: TMenuItem
       Caption = '&Help'
+      object mnuHelReadme: TMenuItem
+        Caption = '&Users guide'
+        ShortCut = 112
+        OnClick = mnuHelReadmeClick
+      end
       object N2: TMenuItem
         Caption = '-'
       end
@@ -299,8 +304,9 @@ object fMain: TfMain
       object N5: TMenuItem
         Caption = '-'
       end
-      object N3: TMenuItem
-        Caption = '-'
+      object mnuHelAbout: TMenuItem
+        Caption = '&About...'
+        OnClick = mnuHelAboutClick
       end
     end
   end

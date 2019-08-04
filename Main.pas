@@ -8,7 +8,7 @@ uses
   LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   Menus, ExtCtrls, StdCtrls, ComCtrls, {JvComponentBase, JvPropertyStore,
   JvProgramVersionCheck, IdAntiFreezeBase, IdAntiFreeze, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin, LHelpControl;
+  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin, LHelpControl, LazFileUtils, LResources;
 
 type
   TfMain = class(TForm)
@@ -93,6 +93,7 @@ type
       X, Y: Integer);
     procedure mnuOptPrefClick(Sender: TObject);
     procedure mnuHelGroupClick(Sender: TObject);
+    function GetLHelpFilename: string;
   private
   public
     { Public declarations }
@@ -100,6 +101,7 @@ type
 
 var
   fMain: TfMain;
+  Help: TLHelpConnection;
 
 implementation
 
@@ -110,11 +112,18 @@ uses Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
   About, ExpSubr, Map, History, Pref, SplashScreen;
 
 procedure TfMain.FormShow(Sender: TObject);
+var
+   LHelp: String;
 begin
   bG_TRSim := false;
   Setup;
   Caption := 'TurboRisk ' + sG_AppVers;
-  Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
+  LHelp := GetLHelpFilename;
+  if not FileExistsUTF8(LHelp) then
+    MessageDlg('Missing lhelp','Can not find the lhelp application "'+LHelp+'"',
+       mtError,[mbOk],0);
+  Help := TLHelpConnection.Create;
+  //Help.ProcessWhileWaiting := @Application.ProcessMessages;
   // remove splash screen
   fSplashScreen.Hide;
   fSplashScreen.Free;
@@ -267,8 +276,29 @@ end;
 
 
 procedure TfMain.mnuHelReadmeClick(Sender: TObject);
+var
+  Res: TLHelpResponse;
 begin
+  try
+    if Help.ServerRunning = false then
+      Help.StartHelpServer('letters', GetLHelpFilename);
+    Res := Help.OpenFile(sG_AppPath + 'TurboRisk.chm');
+  finally
+    Screen.Cursor := crDefault;
+  end;
+  //Label1.Caption := ResponseToString(Res);
+end;
 
+
+function TfMain.GetLHelpFilename: string;
+begin
+  Result := './lhelp/lhelp';
+  {$IFDEF Windows}
+  Result := '.\lhelp\lhelp.exe';
+  {$ENDIF}
+  {$IFDEF darwin} //OS X
+  Result:=Result+'.app/Contents/MacOS/'+ExtractFilename(Result);
+  {$ENDIF}
 end;
 
 {
