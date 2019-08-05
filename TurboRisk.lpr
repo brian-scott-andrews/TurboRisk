@@ -32,9 +32,9 @@ uses
 {.$R *.RES}
 
 begin
+  Application.Initialize;
   fSplashScreen := TfSplashScreen.Create(Application) ;
   fSplashScreen.Show;
-  Application.Initialize;
   fSplashScreen.Update;
   Application.CreateForm(TfMain, fMain);
   Application.CreateForm(TfSimMap, fSimMap);

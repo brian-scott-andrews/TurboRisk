@@ -1,6 +1,7 @@
 *.o
 *.or
 TurboRisk
+TRSim
 backup
 *.ppu
 *.ini

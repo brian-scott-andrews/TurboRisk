@@ -207,7 +207,6 @@ begin
       chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
       txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
       txtCPULogFile.Text := ReadString('Params', 'CPULog', 'cpu_usage_log.scl');
-      Writeln(txtGameLogFile.Text);
       txtGameLogFile2.Text := txtGameLogFile.Text;
       txtCPULogFile2.Text := txtCPULogFile.Text;
       txtTurnLimit.Text := IntToStr(ReadInteger('Params', 'TurnLimit', 0));
