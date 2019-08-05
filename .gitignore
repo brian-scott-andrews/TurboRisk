@@ -9,8 +9,8 @@ Original*
 lhelp/lhelp
 *.sgl
 *.scl
-
-
+history.txt
+*.lfm
 
 # Windows image file caches
 Thumbs.db

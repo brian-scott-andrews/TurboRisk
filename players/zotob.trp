@@ -1213,7 +1213,7 @@ Descartes:
               end;
             end;
             if (FT>0) then begin
-              TerritoryValue:=10000-(EA2*4+(FA/FT));
+              TerritoryValue:=10000-(EA2*4+Round(FA/FT));
             end
             else begin 
              TerritoryValue:=5000;
