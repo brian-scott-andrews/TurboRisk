@@ -128,6 +128,8 @@ object fSimGameLog: TfSimGameLog
         ScrollBars = ssVertical
         TabOrder = 0
         OnDrawCell = grdRankingDrawCell
+        ColumnClickSorts = True
+        OnCompareCells = grdRankingCompareCells
       end
     end
     object tbsAnalysis: TTabSheet
@@ -148,6 +150,25 @@ object fSimGameLog: TfSimGameLog
         Style = csDropDownList
         TabOrder = 0
         OnSelect = cboPlayerSelect
+      end
+      object grdAnalysis: TStringGrid
+        Left = 0
+        Top = 65
+        Width = 682
+        Height = 382
+        Anchors = [akLeft, akTop, akRight, akBottom]
+        ColCount = 4
+        DefaultColWidth = 100
+        DefaultRowHeight = 17
+        DefaultDrawing = False
+        FixedCols = 0
+        FixedRows = 0
+        Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine]
+        ScrollBars = ssVertical
+        TabOrder = 1
+        OnDrawCell = grdAnalysisDrawCell
+        ColumnClickSorts = True
+        OnCompareCells = grdAnalysisCompareCells
       end
     end
   end

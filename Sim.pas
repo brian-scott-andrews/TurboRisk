@@ -35,10 +35,12 @@ type
     cboMap: TComboBox;
     Label1: TLabel;
     GroupBox2: TGroupBox;
-    txtGameLogFile: TComboBox;
     Label4: TLabel;
     Label5: TLabel;
-    txtCPULogFile: TComboBox;
+    txtGameLogFile: TEdit;
+    txtGameLogFilebtn: TButton;
+    txtCPULogFile: TEdit;
+    txtCPULogFilebtn: TButton;
     GroupBox3: TGroupBox;
     txtTurnLimit: TEdit;
     Label10: TLabel;
@@ -48,8 +50,10 @@ type
     dlgOpenLogFile: TOpenDialog;
     Label13: TLabel;
     Label14: TLabel;
-    txtGameLogFile2: TComboBox;
-    txtCPULogFile2: TComboBox;
+    txtGameLogFile2: TEdit;
+    txtGameLogFile2btn: TButton;
+    txtCPULogFile2: TEdit;
+    txtCPULogFile2btn: TButton;
     cmdAnalyseGameLog: TBitBtn;
     cmdAnalyseCPULog: TBitBtn;
     procedure FormShow(Sender: TObject);
@@ -122,22 +126,42 @@ end;
 procedure TfSim.txtGameLogFileCustomDlg(Sender: TObject);
 begin
   dlgOpenLogFile.InitialDir := sG_AppPath;
-  dlgOpenLogFile.DefaultExt := 'sgl';
+  dlgOpenLogFile.DefaultExt := '.sgl';
   dlgOpenLogFile.FileName := '*.sgl';
-  dlgOpenLogFile.Filter := 'TRSim Game Log|sgl';
-  if dlgOpenLogFile.Execute then begin (Sender as TComboBox) //TEdisComboDialog)
-    .Text := ExtractFileName(dlgOpenLogFile.FileName);
+  dlgOpenLogFile.Filter := 'TRSim Game Log (*.sgl)|*.sgl';
+  if dlgOpenLogFile.Execute then begin //TEdisComboDialog)
+    if Sender is TEdit then begin
+      TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
+    end;
+    if Sender is TButton then begin
+      if TButton(Sender).Tag =1 then begin
+        txtGameLogFile.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end
+      else begin
+        txtGameLogFile2.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end;
+    end;
   end;
 end;
 
 procedure TfSim.txtCPULogFileCustomDlg(Sender: TObject);
 begin
   dlgOpenLogFile.InitialDir := sG_AppPath;
-  dlgOpenLogFile.DefaultExt := 'scl';
+  dlgOpenLogFile.DefaultExt := '.scl';
   dlgOpenLogFile.FileName := '*.scl';
-  dlgOpenLogFile.Filter := 'TRSim CPU Log|scl';
-  if dlgOpenLogFile.Execute then begin (Sender as TComboBox)
-    .Text := ExtractFileName(dlgOpenLogFile.FileName);
+  dlgOpenLogFile.Filter := 'TRSim CPU Log (*.scl)|*.scl';
+  if dlgOpenLogFile.Execute then begin //TEdisComboDialog)
+    if Sender is TEdit then begin
+      TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
+    end;
+    if Sender is TButton then begin
+      if TButton(Sender).Tag =1 then begin
+        txtCPULogFile.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end
+      else begin
+        txtCPULogFile2.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end;
+    end;
   end;
 end;
 
@@ -184,9 +208,8 @@ begin
       txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
       txtCPULogFile.Text := ReadString('Params', 'CPULog', 'cpu_usage_log.scl');
       Writeln(txtGameLogFile.Text);
-//      txtGameLogFile2.Text := txtGameLogFile.Text;
-      Writeln('hi2');
-//      txtCPULogFile2.Text := txtCPULogFile.Text;
+      txtGameLogFile2.Text := txtGameLogFile.Text;
+      txtCPULogFile2.Text := txtCPULogFile.Text;
       txtTurnLimit.Text := IntToStr(ReadInteger('Params', 'TurnLimit', 0));
       txtTimeLimit.Text := IntToStr(ReadInteger('Params', 'TimeLimit', 0));
       // Players

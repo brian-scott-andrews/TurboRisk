@@ -46,6 +46,7 @@
 {$R-}{$Q-}
 
 
+{$DEFINE PS_DELPHIDIV} //Required for TRP programs to run correctly
 {
 Defines:
   PS_NOSMARTLIST    - Don't use the smart list option

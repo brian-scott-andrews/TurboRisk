@@ -64,10 +64,12 @@ type
     procedure FormCreate(Sender: TObject);
     procedure grdRankingCaptionClick(Sender: TStringGrid;
       AColumn, ARow: integer);
+    procedure grdRankingCompareCells(Sender: TObject; ACol, ARow, BCol, BRow: Integer; var Result: integer);
     procedure grdRankingDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
     procedure grdAnalysisCaptionClick(Sender: TStringGrid;
       AColumn, ARow: integer);
+    procedure grdAnalysisCompareCells(Sender: TObject; ACol, ARow, BCol, BRow: Integer; var Result: integer);
     procedure grdAnalysisDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
     procedure cboPlayerSelect(Sender: TObject);
@@ -208,6 +210,24 @@ begin
   Screen.Cursor := crDefault;
 end;
 
+procedure TfSimGameLog.grdAnalysisCompareCells(Sender: TObject; ACol, ARow, BCol, BRow: Integer; var Result: integer);
+begin
+  // Result will be either <0, =0, or >0 for normal order.
+  if (ACol >= 1) and (ACol <= 3) then begin
+     result := StrToIntDef(grdAnalysis.Cells[ACol,ARow],0)-StrToIntDef(grdAnalysis.Cells[BCol,BRow],0);
+  end
+  else if (ACol >= 4) and (ACol <= 5) then begin
+    result := round((StrToFloatDef(StringReplace(grdAnalysis.Cells[ACol,ARow],'%','',[rfReplaceAll,rfIgnoreCase]),0)-StrToFloatDef(StringReplace(grdAnalysis.Cells[BCol,BRow],'%','',[rfReplaceAll,rfIgnoreCase]),0))*10);
+  end
+  else if ACol = 6 then begin
+    result := round((StrToFloatDef(grdAnalysis.Cells[ACol,ARow],0)-StrToFloatDef(grdAnalysis.Cells[BCol,BRow],0))*10);
+  end;
+  // For inverse order, just negate the result (eg. based on grid's SortOrder).
+  if grdAnalysis.SortOrder = soDescending then
+    result := -result;
+end;
+
+
 procedure TfSimGameLog.grdAnalysisDrawCell(Sender: TObject;
   ACol, ARow: integer; Rect: TRect; State: TGridDrawState);
 begin
@@ -258,6 +278,25 @@ begin
   end;             }
   Screen.Cursor := crDefault;
 end;
+
+procedure TfSimGameLog.grdRankingCompareCells(Sender: TObject; ACol, ARow, BCol, BRow: Integer; var Result: integer);
+begin
+  // Result will be either <0, =0, or >0 for normal order.
+  case ACol of
+    3:    // Percent
+      result := round((StrToFloatDef(StringReplace(grdRanking.Cells[ACol,ARow],'%','',[rfReplaceAll,rfIgnoreCase]),0)-StrToFloatDef(StringReplace(grdRanking.Cells[BCol,BRow],'%','',[rfReplaceAll,rfIgnoreCase]),0))*10);
+    5: // Float
+      result := round((StrToFloatDef(grdRanking.Cells[ACol,ARow],0)-StrToFloatDef(grdRanking.Cells[BCol,BRow],0))*10);
+    6: // Float
+      result := round((StrToFloatDef(grdRanking.Cells[ACol,ARow],0)-StrToFloatDef(grdRanking.Cells[BCol,BRow],0))*10);
+  else
+    result := StrToIntDef(grdRanking.Cells[ACol,ARow],0)-StrToIntDef(grdRanking.Cells[BCol,BRow],0);
+  end;
+  // For inverse order, just negate the result (eg. based on grid's SortOrder).
+  if grdRanking.SortOrder = soDescending then
+    result := -result;
+end;
+
 
 procedure TfSimGameLog.grdRankingDrawCell(Sender: TObject; ACol, ARow: integer;
   Rect: TRect; State: TGridDrawState);

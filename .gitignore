@@ -7,6 +7,10 @@ backup
 *.trd
 Original*
 lhelp/lhelp
+*.sgl
+*.scl
+
+
 
 # Windows image file caches
 Thumbs.db

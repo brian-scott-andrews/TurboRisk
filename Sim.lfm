@@ -240,21 +240,43 @@ object fSim: TfSim
           Height = 13
           Caption = 'CPU usage log'
         end
-        object txtGameLogFile: TComboBox
+        object txtGameLogFile: TEdit
           Left = 6
           Top = 10
-          Width = 274
+          Width = 254
           Height = 21
           TabOrder = 0
           OnClick = txtGameLogFileCustomDlg
+          Tag = 1
         end
-        object txtCPULogFile: TComboBox
+        object txtGameLogFilebtn: TButton
+          Left = 254
+          Top = 10
+          Height = 21
+          Width = 21
+          TabOrder = 1
+          Caption = '...'
+          OnClick = txtGameLogFileCustomDlg
+          Tag = 1
+        end
+        object txtCPULogFile: TEdit
           Left = 6
           Top = 60
-          Width = 274
+          Width = 254
           Height = 21
-          TabOrder = 1
+          TabOrder = 2
           OnClick = txtCPULogFileCustomDlg
+          Tag = 1
+        end
+        object txtCPULogFilebtn: TButton
+          Left = 254
+          Top = 60
+          Height = 21
+          Width = 21
+          TabOrder = 3
+          Caption = '...'
+          OnClick = txtCPULogFileCustomDlg
+          Tag = 1
         end
       end
       object GroupBox3: TGroupBox
@@ -315,22 +337,60 @@ object fSim: TfSim
         Height = 13
         Caption = 'CPU usage log'
       end
+      object txtGameLogFile2: TEdit
+        Left = 10
+        Top = 38
+        Width = 315
+        Height = 21
+        TabOrder = 0
+        OnClick = txtGameLogFileCustomDlg
+        Tag = 2
+      end
+      object txtGameLogFile2btn: TButton
+        Left = 316
+        Top = 38
+        Height = 21
+        Width = 21
+        TabOrder = 1
+        Caption = '...'
+        OnClick = txtGameLogFileCustomDlg
+        Tag = 2
+      end
+      object txtCPULogFile2: TEdit
+        Left = 10
+        Top = 116
+        Width = 315
+        Height = 21
+        TabOrder = 2
+        OnClick = txtCPULogFileCustomDlg
+        Tag = 2
+      end
+      object txtCPULogFile2btn: TButton
+        Left = 316
+        Top = 116
+        Height = 21
+        Width = 21
+        TabOrder = 3
+        Caption = '...'
+        OnClick = txtCPULogFileCustomDlg
+        Tag = 2
+      end
       object cmdAnalyseGameLog: TBitBtn
         Left = 347
-        Top = 19
+        Top = 28
         Width = 103
         Height = 40
         Caption = 'Analyse'
-        TabOrder = 2
+        TabOrder = 4
         OnClick = cmdAnalyseGameLogClick
       end
       object cmdAnalyseCPULog: TBitBtn
         Left = 347
-        Top = 97
+        Top = 106
         Width = 103
         Height = 40
         Caption = 'Analyse'
-        TabOrder = 3
+        TabOrder = 5
         OnClick = cmdAnalyseCPULogClick
       end
     end

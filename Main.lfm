@@ -8,7 +8,7 @@ object fMain: TfMain
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'TurboRisk'
-  ClientHeight = 552
+  ClientHeight = 559
   ClientWidth = 719
   Color = clBtnFace
   Font.Color = clWindowText
@@ -47,8 +47,8 @@ object fMain: TfMain
   end
   object panStatus: TStatusBar
     Left = 0
-    Height = 22
-    Top = 530
+    Height = 19
+    Top = 540
     Width = 719
     Panels = <    
       item
