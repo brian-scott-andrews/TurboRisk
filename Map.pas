@@ -54,7 +54,7 @@ begin
   bLoading := true;
   // load list of map
   lstMap.Clear;
-  if FindFirst(sG_AppPath+'maps/*.trm', 0, SearchRec) = 0 then begin
+  if FindFirst(sG_AppPath+'maps'+PathDelim+'*.trm', 0, SearchRec) = 0 then begin
     repeat
       with lstMap.Items.Add do begin
         Caption := SearchRec.Name;
@@ -62,7 +62,7 @@ begin
           Checked := true;
           lstMap.ItemIndex := lstMap.Items.Count-1;
         end;
-        IniFile := TIniFile.Create(sG_AppPath+'maps/'+SearchRec.Name);
+        IniFile := TIniFile.Create(sG_AppPath+'maps'+PathDelim+SearchRec.Name);
         try
           SubItems.Add(IniFile.ReadString('Map','Desc',''));
           SubItems.Add(IniFile.ReadString('Map','Author',''));
@@ -120,7 +120,7 @@ var
 begin
   if bLoading then exit;
   if lstMap.ItemIndex<0 then exit;
-  sBmpFile := ChangeFileExt(sG_AppPath+'maps/'+Item.Caption,'.bmp');
+  sBmpFile := ChangeFileExt(sG_AppPath+'maps'+PathDelim+Item.Caption,'.bmp');
   if FileExists(sBmpFile) then begin
     bmp := TBitmap.Create;
     try

@@ -129,7 +129,7 @@ begin
   dlgOpenLogFile.DefaultExt := '.sgl';
   dlgOpenLogFile.FileName := '*.sgl';
   dlgOpenLogFile.Filter := 'TRSim Game Log (*.sgl)|*.sgl';
-  if dlgOpenLogFile.Execute then begin //TEdisComboDialog)
+  if dlgOpenLogFile.Execute then begin
     if Sender is TEdit then begin
       TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
     end;
@@ -150,7 +150,7 @@ begin
   dlgOpenLogFile.DefaultExt := '.scl';
   dlgOpenLogFile.FileName := '*.scl';
   dlgOpenLogFile.Filter := 'TRSim CPU Log (*.scl)|*.scl';
-  if dlgOpenLogFile.Execute then begin //TEdisComboDialog)
+  if dlgOpenLogFile.Execute then begin
     if Sender is TEdit then begin
       TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
     end;
@@ -280,7 +280,7 @@ var
   sTRP: string;
 begin
   // load program list
-  if FindFirst(sG_AppPath + 'players/*.trp', faAnyFile, rFileDesc) = 0 then
+  if FindFirst(sG_AppPath + 'players' + PathDelim + '*.trp', faAnyFile, rFileDesc) = 0 then
   begin
     repeat
       // get TRP name from file system
@@ -303,7 +303,7 @@ var
 begin
   cboMap.Items.Clear;
   // load map list
-  if FindFirst(sG_AppPath + 'maps/*.trm', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath + 'maps'+ PathDelim + '*.trm', faAnyFile, rFileDesc) = 0 then begin
     repeat
       // get TRP name from file system
       sMap := lowercase(rFileDesc.Name);

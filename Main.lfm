@@ -195,15 +195,15 @@ object fMain: TfMain
       object Label1: TLabel
         Left = 8
         Height = 13
-        Top = 4
+        Top = 10
         Width = 28
         Caption = 'Turn:'
         ParentColor = False
       end
       object panTurn: TPanel
         Left = 39
-        Height = 23
-        Top = 1
+        Height = 24
+        Top = 5
         Width = 98
         BevelOuter = bvLowered
         TabOrder = 0

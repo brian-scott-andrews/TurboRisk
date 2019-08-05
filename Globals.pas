@@ -1006,11 +1006,11 @@ begin
           Rank := 0;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players/' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players/' + PrgFile)
+            if FileExists(sG_AppPath + 'players'+ PathDelim + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players' + PathDelim + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players/' +
+              (sG_AppPath + 'players' + PathDelim +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;
@@ -1022,7 +1022,7 @@ begin
             bAttackFound := False;
             bOccupationFound := False;
             bFortificationFound := False;
-            Preproc.MainFileName := sG_AppPath + 'players/' + PrgFile;
+            Preproc.MainFileName := sG_AppPath + 'players' + PathDelim + PrgFile;
             Preproc.MainFile := PrgTemp.Text;
             Preproc.PreProcess(Preproc.MainFileName, sPPout);
             if CompileTRP(Compiler, PrgFile, sPPout) then begin
@@ -1900,11 +1900,11 @@ begin
           FlMove := False;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players/' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players/' + PrgFile)
+            if FileExists(sG_AppPath + 'players' + PathDelim + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players' + PathDelim + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players/' +
+              (sG_AppPath + 'players' + PathDelim +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;

@@ -49,11 +49,11 @@ begin
       mrYes: begin
           // dump memory if required
           sMsg := StrTran(sMsg, #13#10, '\n');
-          if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-            if not CreateDir(sG_AppPath + '\Dump') then
-              raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+          if not SysUtils.DirectoryExists(sG_AppPath + PathDelim + 'Dump') then begin
+            if not CreateDir(sG_AppPath + PathDelim + 'Dump') then
+              raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
           end;
-          SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime
+          SaveGame(sG_AppPath + 'Dump' + PathDelim + 'trdump_' + FormatDateTime
             ('yyyymmdd_hhmmss', Now) + '.trd', sMsg);
         end;
       mrAbort: begin
@@ -66,11 +66,11 @@ begin
     if fSim.chkErrorDump.Checked then begin
       // dump memory if required
       sMsg := StrTran(sMsg, #13#10, '\n');
-      if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-        if not CreateDir(sG_AppPath + '\Dump') then
-          raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+      if not SysUtils.DirectoryExists(sG_AppPath + PathDelim +'Dump') then begin
+        if not CreateDir(sG_AppPath + PathDelim + 'Dump') then
+          raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
       end;
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump'+PathDelim+'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '.trd', sMsg);
     end;
     if fSim.chkErrorAbort.Checked then begin

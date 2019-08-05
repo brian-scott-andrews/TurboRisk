@@ -1161,16 +1161,16 @@ procedure UTakeSnapshot(M: string);
 begin
   if arPlayer[iTurn].USnapShotEnabled then begin
     // create dump folder, if not existing
-    if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-      if not CreateDir(sG_AppPath + '\Dump') then
-        raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+    if not SysUtils.DirectoryExists(sG_AppPath + PathDelim + 'Dump') then begin
+      if not CreateDir(sG_AppPath + PathDelim+'Dump') then
+        raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
     end;
     if bG_TRSim then begin
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump' + PathDelim + 'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '_simgame_' + FormatFloat('000', iSimCurr) + '.trd', M);
     end
     else begin
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump' + PathDelim +'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '.trd', M)
     end;
   end;
