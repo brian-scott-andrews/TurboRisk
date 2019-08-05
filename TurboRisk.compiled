@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <Compiler Value="/usr/bin/fpc" Date="1540814642"/>
-  <Params Value=" -Twin32 -Pi386 -MDelphi -Scghi -CX -O3 -XX -WG -l -vewnhibq -Fu/home/nathan/TurboRisk/Risk/PascalScript/Source/lib/i386-win32 -Fu/home/nathan/.lazarus/lib/lhelpcontrolpkg/lib/i386-win32/win32 -Fu/home/nathan/.lazarus/lib/units/i386-win32/win32 -Fu/home/nathan/.lazarus/lib/LCLBase/units/i386-win32 -Fu/home/nathan/.lazarus/lib/LazUtils/lib/i386-win32 -Fu/home/nathan/.lazarus/lib/units/i386-win32 -Fu/home/nathan/TurboRisk/Risk/ -o/home/nathan/TurboRisk/Risk/TurboRisk.exe -dLCL -dLCLwin32 -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL TurboRisk.lpr"/>
-</CONFIG>

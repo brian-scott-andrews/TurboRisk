@@ -70,7 +70,7 @@ object fMap: TfMap
     SortType = stText
     TabOrder = 0
     ViewStyle = vsReport
-    OnChange = lstMapChange
+    OnItemChecked = lstMapChange
     OnSelectItem = lstMapSelectItem
   end
   object panMapPreview: TPanel

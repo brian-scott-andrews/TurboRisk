@@ -12,6 +12,7 @@ lhelp/lhelp
 *.scl
 history.txt
 *.lps
+*.compiled
 
 
 # Windows image file caches

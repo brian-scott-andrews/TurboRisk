@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CONFIG>
-  <Compiler Value="/usr/bin/fpc" Date="1540814642"/>
-  <Params Value=" -MDelphi -Scghi -Cg -O1 -g -gl -l -vewnhibq -Fu/home/nathan/TurboRisk/Risk/PascalScript/Source/lib/x86_64-linux -Fu/usr/share/lazarus/2.0.2/components/chmhelp/packages/help/lib/x86_64-linux/gtk2 -Fu/usr/share/lazarus/2.0.2/lcl/units/x86_64-linux/gtk2 -Fu/usr/share/lazarus/2.0.2/lcl/units/x86_64-linux -Fu/usr/share/lazarus/2.0.2/components/lazutils/lib/x86_64-linux -Fu/usr/share/lazarus/2.0.2/packager/units/x86_64-linux -Fu/home/nathan/TurboRisk/Risk/ -o/home/nathan/TurboRisk/Risk/TRSim -dLCL -dLCLgtk2 -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL TRSim.lpr"/>
-</CONFIG>
