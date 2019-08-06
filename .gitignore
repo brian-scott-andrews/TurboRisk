@@ -13,6 +13,7 @@ lhelp/lhelp
 history.txt
 *.lps
 *.compiled
+*.trg
 
 
 # Windows image file caches

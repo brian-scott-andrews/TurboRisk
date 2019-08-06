@@ -1,3 +1,41 @@
+Changes (By Nathan McNew)
+--------
+This is a port of TurboRisk to Lazarus/Free Pascal.  It has been made multiplatform and tested on both Linux 
+(Linux Mint 18) and Windows (Windows 7).  No features have been added, this is as close as possible to the 
+version 2.0.5 originally released on Github.  One feature was removed: The ability to check for updates to the 
+software, as that no longer seemed as relevant and was more difficult to port.  That feature could easily be 
+added back again in the future
+
+Some notes on the code:
+ - In order to make it multiplatform, the "help" was moved from Windows help to the Lazarus lhelp program. As such 
+the code for lhelp has been included as a subdirectory and can be compiled to produce the lhelp executable 
+(required to view the help file in the game).
+
+ - PascalScript defaults to treating division of ints as an int, rather than a float.  This behaviour can be 
+changed by adding the preprocessor command {$DEFINE PS_DELPHIDIV} to the include file for PascalScript.  As this 
+behavior breaks several trp players, PascalScript has been included as a subdirectory as well so that this include 
+file can be changed, and the code recompiled with this flag.
+
+ - the TCanvas.floodfill command (necessary for changing the color of territories on the map) is unimplemented in 
+Lazarus in Linux, as documented in the forums.  As a result, a workaround proposed in the forums has been included 
+as a separate file (floodfilltest.pas) which implements a (slower) floodfill so the program will still work in 
+Linux.  When compiled for Windows TurboRisk will still use the original, functional TCanvas command.
+
+---------
+Issues:
+ 
+ - A couple of players, notably Australian+.trp cause an "Access Violation" and are unplayable when used on Linux.  
+This issue only seems to arise when only computer players (no humans) are present, and if no other games have 
+already occurred.  The issue doesn't seem to be present in Windows.  
+
+ - The player frank+.trp causes an "Error: Script Loading Failed" whenever it is used.  The reason for this is not 
+currently known.
+
+---------
+The original Readme follows.
+
+
+
 TurboRisk notes for the developers
 ==================================
 
