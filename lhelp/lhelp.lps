@@ -2,7 +2,6 @@
 <CONFIG>
   <ProjectSession>
     <Version Value="11"/>
-    <BuildModes Active="win32"/>
     <Units Count="10">
       <Unit0>
         <Filename Value="lhelp.lpr"/>
@@ -14,6 +13,7 @@
         <IsPartOfProject Value="True"/>
         <UnitName Value="ChmDataProvider"/>
         <IsVisibleTab Value="True"/>
+        <TopLine Value="4"/>
         <CursorPos X="8" Y="16"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
