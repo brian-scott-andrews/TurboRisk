@@ -1,3 +1,6 @@
+// Taken from a post on the Lazarus Bug Tracker here: https://bugs.freepascal.org/view.php?id=15346
+// Used only when compiled in linux
+
 unit floodfilltest;
 
 {$mode objfpc}{$H+}
