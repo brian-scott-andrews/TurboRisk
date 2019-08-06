@@ -1,3 +1,8 @@
+To Compile/Run:
+ - Install Lazarus Pascal IDE
+ - Open each of the projects TurboRisk.lpi, TRSim.lpi and lhelp/lhelp.lpi and build them.
+   (Or run `lazbuild TurboRisk.lpi` etc.)
+
 Changes (By Nathan McNew)
 --------
 This is a port of TurboRisk to Lazarus/Free Pascal.  It has been made multiplatform and tested on both Linux 
