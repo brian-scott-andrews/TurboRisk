@@ -56,6 +56,9 @@ type
     txtCPULogFile2btn: TButton;
     cmdAnalyseGameLog: TBitBtn;
     cmdAnalyseCPULog: TBitBtn;
+    procedure CheckParameters;
+    procedure WriteHelp;
+
     procedure FormShow(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
@@ -89,15 +92,74 @@ uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
 
 procedure TfSim.FormShow(Sender: TObject);
 begin
-  bG_TRSim := true; // main is TRSim
-  Setup; // generic TurboRisk setup in globals
-  PopulateMapList;
-  SimSetup; // TRSim specific setup
-  Caption := 'TRSim ' + sG_AppVers;
-  Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
-  PopulateTRPList;
-  pgcSim.ActivePage := tbsSim;
+  if ParamCount > 0 then begin
+    CheckParameters;  //Check to see if TRSim was called with parameters
+    Halt;
+  end
+  else begin
+    bG_TRSim := true; // main is TRSim
+    Setup; // generic TurboRisk setup in globals
+    PopulateMapList;
+    SimSetup; // TRSim specific setup
+    Caption := 'TRSim ' + sG_AppVers;
+    Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
+    PopulateTRPList;
+    pgcSim.ActivePage := tbsSim;
+  end;
 end;
+
+procedure TfSim.CheckParameters;
+var
+  I : Integer;
+  params : TStringList;
+  longOpts : array [1..1] of string = ('help');
+  ErrorMsg : string;
+begin
+  params := TStringList.create;
+  ErrorMsg := Application.CheckOptions('hg:mMsS','help games: minplayers maxplayers show-map showstats');
+  if ErrorMsg.length > 0 then begin
+    WriteLn(ErrorMsg);
+    WriteHelp;
+    Halt;
+  end;
+  Application.GetNonOptions('hl:',longOpts,params);
+  for I := 0 to params.count - 1 do begin
+    WriteLn(params[I]);
+  end;
+  if Application.HasOption('h','help') then begin
+    WriteHelp;
+    Halt;
+  end;
+end;
+
+
+procedure TfSim.WriteHelp;
+begin
+  WriteLn('TRSim can be called with parameters to run in non-interactive mode.  If called without paremeters then the GUI is displayed.');
+  WriteLn('Available Parameters:');
+  WriteLn(#9'-h --help'#9'Display this help.');
+  WriteLn(#9'-g --games'#9'Number of games to play (Default=1).');
+  WriteLn(#9'-m --minplayers'#9'Minimum number of players in a game (Default=2).');
+  WriteLn(#9'-M --maxplayers'#9'Maximum number of players in a game (Default=8).');
+  WriteLn(#9'-s --show-map'#9'Show the map (Hidden by default).');
+  WriteLn(#9'-S --show-stats'#9'Show the stats (Hidden by default).');
+
+{        txtGames.Text := IntToStr(ReadInteger('Params', 'Games', 0));
+      txtMinPlayers.Text := IntToStr(ReadInteger('Params', 'MinPlayers', 2));
+      txtMaxPlayers.Text := IntToStr(ReadInteger('Params', 'MaxPlayers', 10));
+      chkShowMap.Checked := ReadBool('Params', 'ShowMap', true);
+      cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map', 'std_map_small.trm'));
+      chkShowStats.Checked := ReadBool('Params', 'ShowStats', true);
+      chkErrorDump.Checked := ReadBool('Params', 'ErrorDump', true);
+      chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
+      txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
+      txtCPULogFile.Text := ReadString('Params', 'CPULog', 'cpu_usage_log.scl');
+      txtGameLogFile2.Text := txtGameLogFile.Text;
+      txtCPULogFile2.Text := txtCPULogFile.Text;
+      txtTurnLimit.Text := IntToStr(ReadInteger('Params', 'TurnLimit', 0));
+      txtTimeLimit.Text := IntToStr(ReadInteger('Params', 'TimeLimit', 0)); }
+end;
+
 
 procedure TfSim.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
 begin
