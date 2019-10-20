@@ -1,9 +1,11 @@
 unit TRPError;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, Buttons;
 
 type
@@ -13,7 +15,7 @@ type
     cmdDump: TBitBtn;
     cmdHelp: TBitBtn;
     cmdQuit: TBitBtn;
-    procedure cmdHelpClick(Sender: TObject);
+{    procedure cmdHelpClick(Sender: TObject);}
   private
     { Private declarations }
   public
@@ -25,11 +27,11 @@ var
 
 implementation
 
-{$R *.dfm}
-
+{$R *.lfm}
+{
 procedure TfTRPError.cmdHelpClick(Sender: TObject);
 begin
   Application.HelpSystem.ShowContextHelp(fTRPError.HelpContext,Application.HelpFile);
 end;
-
+           }
 end.

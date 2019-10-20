@@ -1,8 +1,10 @@
 unit Globals;
 
+{$MODE Delphi}
+
 interface
 
-uses Windows, Graphics, Classes, uPSRuntime;
+uses LCLIntf, LCLType, LMessages, Graphics, Classes, uPSRuntime, uPSPreProcessor;
 
 const
   VERSION = '2.0.5'; // TurboRisk
@@ -81,7 +83,7 @@ type
     NewArmy: integer; // Armies to be placed
     Territ: integer; // Number of owned territories
     Cards: array [TCard] of integer; // Count of the owned cards (number of cards per kind)
-    NScambi: integer; // N° scambi carte effettuati
+    NScambi: integer; // NÂ° scambi carte effettuati
     FlConq: boolean; // Flag, true if the player conquered at least one territory during the turn
     FlMove: boolean; // Flag, true if the player performed at leaste one troops move during the turn
     LastTurn, // last turn played by the player
@@ -488,7 +490,8 @@ begin
   Randomize;
 
   // get the frequency of the high-resolution performance counter
-  QueryPerformanceFrequency(iPerformanceFrequency);
+  iPerformanceFrequency:=1;//SysUtils.GetTickCount64();
+//  QueryPerformanceFrequency(iPerformanceFrequency);
   if iPerformanceFrequency = 0 then
     iPerformanceFrequency := 1;
 
@@ -869,7 +872,7 @@ begin
   ScriptExec.RegisterDelphiFunction(@URandom, 'URANDOM', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UTakeSnapshot, 'UTAKESNAPSHOT',
     cdRegister);
-  ScriptExec.RegisterDelphiFunction(@UDialog, 'UDIALOG', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@UDialogO, 'UDIALOGO', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UAbortGame, 'UABORTGAME', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOff, 'ULOGOFF', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOn, 'ULOGON', cdRegister);
@@ -895,6 +898,7 @@ function CompileTRP(Compiler: TPSPascalCompiler;
 var
   sCompErr: string;
   iErr: integer;
+  sPPout: ansistring;
 begin
   Result := False;
   sCompErr := 'Program: ' + sName + #13#10;
@@ -936,7 +940,9 @@ var
   PrgTemp: TstringList;
   Compiler: TPSPascalCompiler; // TPSPascalCompiler is the compiler part of the scriptengine. This will
   // translate a Pascal script into a compiled for the executer understands.
+  Preproc: TPSPreProcessor;
   bCompErrors: boolean; // true if at least one compilation failed
+  sPPout: ansistring;
 
 begin
 
@@ -944,6 +950,7 @@ begin
   PrgTemp := TstringList.Create;
   // create input buffer for source code
   Compiler := TPSPascalCompiler.Create;
+  Preproc := TPSPreProcessor.Create;
   // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.
   Compiler.OnExportCheck := ScriptOnExportCheck;
@@ -999,11 +1006,11 @@ begin
           Rank := 0;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players\' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players\' + PrgFile)
+            if FileExists(sG_AppPath + 'players'+ PathDelim + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players' + PathDelim + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players\' +
+              (sG_AppPath + 'players' + PathDelim +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;
@@ -1015,7 +1022,10 @@ begin
             bAttackFound := False;
             bOccupationFound := False;
             bFortificationFound := False;
-            if CompileTRP(Compiler, PrgFile, PrgTemp.Text) then begin
+            Preproc.MainFileName := sG_AppPath + 'players' + PathDelim + PrgFile;
+            Preproc.MainFile := PrgTemp.Text;
+            Preproc.PreProcess(Preproc.MainFileName, sPPout);
+            if CompileTRP(Compiler, PrgFile, sPPout) then begin
               Compiler.GetOutput(Code);
             end
             else begin
@@ -1090,6 +1100,7 @@ begin
     UpdateStats;
   finally
     PrgTemp.Free;
+    Preproc.Free;
     Compiler.Free;
   end;
 end;
@@ -1175,9 +1186,9 @@ begin
   with arPlayer[iTurn] do begin
     // Log
     if KeepLog then
-      ScriviLog('Cards in hand: ' + IntToStr(Cards[caInf]) + '×Inf ' + IntToStr
-        (Cards[caCav]) + '×Cav ' + IntToStr(Cards[caArt]) + '×Art ' + IntToStr
-        (Cards[caJok]) + '×Jok');
+      ScriviLog('Cards in hand: ' + IntToStr(Cards[caInf]) + 'Ã—Inf ' + IntToStr
+        (Cards[caCav]) + 'Ã—Cav ' + IntToStr(Cards[caArt]) + 'Ã—Art ' + IntToStr
+        (Cards[caJok]) + 'Ã—Jok');
     if not bCardsOnly then begin
       // armies from count of territories
       iArmyTer := Territ div 3;
@@ -1776,6 +1787,7 @@ var
   PrgTemp: TstringList;
   Compiler: TPSPascalCompiler; // TPSPascalCompiler is the compiler part of the scriptengine. This will
   // translate a Pascal script into a compiled for the executer understands.
+  Preproc: TPSPreProcessor;
   bCompErrors: boolean; // true if at least one compilation failed
 
 begin
@@ -1867,6 +1879,7 @@ begin
   PrgTemp := TstringList.Create;
   // create input buffer for source code
   Compiler := TPSPascalCompiler.Create;
+  Preproc := TPSPreProcessor.Create;
   // create an instance of the compiler.
   Compiler.OnUses := ScriptOnUses; // assign the OnUses event.
   Compiler.OnExportCheck := ScriptOnExportCheck;
@@ -1887,11 +1900,11 @@ begin
           FlMove := False;
           if Computer then begin
             // Load TRPs
-            if FileExists(sG_AppPath + 'players\' + PrgFile) then
-              PrgTemp.LoadFromFile(sG_AppPath + 'players\' + PrgFile)
+            if FileExists(sG_AppPath + 'players' + PathDelim + PrgFile) then
+              PrgTemp.LoadFromFile(sG_AppPath + 'players' + PathDelim + PrgFile)
             else begin
               MessageDlg
-              (sG_AppPath + 'players\' +
+              (sG_AppPath + 'players' + PathDelim +
                 PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;
@@ -1971,6 +1984,7 @@ begin
     fMain.panTurn.Caption := arPlayer[iTurn].Name;
   finally
     PrgTemp.Free;
+    Preproc.Free;
     Compiler.Free;
   end;
 end;

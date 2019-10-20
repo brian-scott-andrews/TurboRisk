@@ -1,5 +1,7 @@
 unit ExpSubr;
 
+{$MODE Delphi}
+
 // Routines rese disponibili all'interprete
 
 interface
@@ -54,7 +56,7 @@ procedure UBufferSet(B: integer; V: double);
 function UBufferGet(B: integer): double;
 function URandom(R: integer): double;
 procedure UTakeSnapshot(M: string);
-function UDialog(M, B: string): integer;
+function UDialogO(M, B: string): integer;
 procedure UAbortGame;
 procedure ULogOff;
 procedure ULogOn;
@@ -70,7 +72,7 @@ implementation
 uses Clipbrd, SysUtils, Classes, Dialogs, Globals, Territ, Log, Stats, UDialog;
 
 type
-  TPrioCont = array [0 .. 5] of record // Lista priorit‡ conquista continenti
+  TPrioCont = array [0 .. 5] of record // Lista priorit√† conquista continenti
   Cont: TContId;
 Valore :
 double;
@@ -1159,22 +1161,22 @@ procedure UTakeSnapshot(M: string);
 begin
   if arPlayer[iTurn].USnapShotEnabled then begin
     // create dump folder, if not existing
-    if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-      if not CreateDir(sG_AppPath + '\Dump') then
-        raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+    if not SysUtils.DirectoryExists(sG_AppPath + PathDelim + 'Dump') then begin
+      if not CreateDir(sG_AppPath + PathDelim+'Dump') then
+        raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
     end;
     if bG_TRSim then begin
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump' + PathDelim + 'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '_simgame_' + FormatFloat('000', iSimCurr) + '.trd', M);
     end
     else begin
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump' + PathDelim +'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '.trd', M)
     end;
   end;
 end;
 
-function UDialog(M, B: string): integer;
+function UDialogO(M, B: string): integer;
 // display a modal window with message M and B buttons
 // B is a comma-separated string (like 'Continue;Dump;Stop') max 5 buttons
 // returns a number corresponding to the button pressed by

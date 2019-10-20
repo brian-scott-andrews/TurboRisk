@@ -1,12 +1,14 @@
 unit SimMap;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Menus, ExtCtrls, StdCtrls, ComCtrls, JvComponentBase, JvPropertyStore,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Menus, ExtCtrls, StdCtrls, ComCtrls, {JvComponentBase, JvPropertyStore,
   JvProgramVersionCheck, IdAntiFreezeBase, IdAntiFreeze, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdFTP, ImgList, ToolWin;
+  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin;
 
 type
   TfSimMap = class(TForm)
@@ -23,7 +25,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals;
 

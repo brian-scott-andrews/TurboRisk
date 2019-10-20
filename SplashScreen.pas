@@ -1,9 +1,11 @@
 unit SplashScreen;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ExtCtrls;
 
 type
@@ -20,6 +22,6 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 end.

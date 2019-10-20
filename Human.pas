@@ -1,5 +1,7 @@
 unit Human;
 
+{$MODE Delphi}
+
 interface
 
 // Mostra istruzioni per giocatore umano

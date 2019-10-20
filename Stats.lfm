@@ -1,0 +1,85 @@
+object fStats: TfStats
+  Left = 359
+  Top = 237
+  HelpContext = 310
+  BorderStyle = bsToolWindow
+  Caption = 'Statistics'
+  ClientHeight = 208
+  ClientWidth = 336
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  FormStyle = fsStayOnTop
+  Position = poDesigned
+  OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object grdStats: TStringGrid
+    Left = 0
+    Top = 0
+    Width = 316
+    Height = 208
+    Hint = 'Right click to configure stats'
+    TabStop = False
+    BorderStyle = bsNone
+    ColCount = 6
+    DefaultRowHeight = 18
+    RowCount = 11
+    Options = [goFixedVertLine, goFixedHorzLine, goVertLine, goHorzLine, goRowSelect]
+    ParentShowHint = False
+    PopupMenu = mnuStats
+    ScrollBars = ssNone
+    ShowHint = True
+    TabOrder = 0
+    OnDrawCell = grdStatsDrawCell
+    ColWidths = (
+      64
+      36
+      50
+      91
+      33
+      64
+    )
+    RowHeights = (
+      18
+      18
+      18
+      18
+      18
+      18
+      18
+      18
+      18
+      18
+      18
+    )
+  end
+  object mnuStats: TPopupMenu
+    Left = 235
+    Top = 165
+    object mnuStaTer: TMenuItem
+      Caption = 'Territories'
+      OnClick = mnuStaTerClick
+    end
+    object mnuStaArm: TMenuItem
+      Caption = 'Armies'
+      OnClick = mnuStaArmClick
+    end
+    object mnuStaCon: TMenuItem
+      Caption = 'Continents'
+      OnClick = mnuStaConClick
+    end
+    object mnuStaCar: TMenuItem
+      Caption = 'Cards'
+      OnClick = mnuStaCarClick
+    end
+    object mnuStaCTIV: TMenuItem
+      Caption = 'Card Turn In Value'
+      OnClick = mnuStaCTIVClick
+    end
+  end
+end

@@ -1,3 +1,22 @@
+*.o
+*.or
+TurboRisk
+TRSim
+backup
+*.ppu
+*.ini
+*.trd
+Original*
+lhelp/lhelp
+*.sgl
+*.scl
+history.txt
+*.lps
+*.compiled
+*.trg
+*.dproj
+
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db

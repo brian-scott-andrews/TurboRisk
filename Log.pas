@@ -1,9 +1,11 @@
 unit Log;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls;
 
 type
@@ -23,7 +25,7 @@ procedure ScriviLog(sMsg: string);
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Main;
 

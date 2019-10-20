@@ -1,9 +1,11 @@
 unit Programs;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, CheckLst, Buttons;
 
 type
@@ -14,10 +16,12 @@ type
     lstPrgFile: TCheckListBox;
     cmdOK: TBitBtn;
     cmdAnnulla: TBitBtn;
+    function strTran(ctext, cfor, cwith: string): string;
     procedure FormShow(Sender: TObject);
     procedure lstPrgFileClickCheck(Sender: TObject);
     procedure lstPrgFileClick(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -29,9 +33,29 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses StdPas, Players, Globals;
+uses {StdPas,} Players, Globals;
+
+{ Character by Character String Replacement }
+function TfPrograms.strTran(ctext, cfor, cwith: string): string;
+var
+   ntemp  : word  ;
+   nreplen: word  ;
+begin
+   cfor    := upperCase(cfor)   ;
+   nreplen := length(cfor)      ;
+   for ntemp := 1 to length(ctext) do begin
+      if (upperCase(copy(ctext, ntemp, nreplen)) = cfor) then
+      begin
+         delete(ctext, ntemp, nreplen);
+         insert(cwith, ctext, ntemp);
+      end;
+   end;
+   result := ctext;
+end;
+
+
 
 procedure TfPrograms.FormShow(Sender: TObject);
 var
@@ -40,9 +64,10 @@ var
 begin
   // load program list
   lstPrgFile.Items.Clear;
-  if FindFirst(sG_AppPath+'players\*.trp', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath+'players/*.trp', faAnyFile, rFileDesc) = 0 then begin
     repeat
       lstPrgFile.Items.Add(rFileDesc.Name);
+      writeln(rfileDesc.Name);
     until FindNext(rFileDesc) <> 0;
     FindClose(rFileDesc);
   end;
@@ -77,7 +102,7 @@ var
 begin
   if lstPrgFile.ItemIndex<0 then exit;
   txtPrgDesc.Clear;
-  AssignFile(fTRP,sG_AppPath+'players\'+lstPrgFile.Items[lstPrgFile.ItemIndex]);
+  AssignFile(fTRP,sG_AppPath+'players/'+lstPrgFile.Items[lstPrgFile.ItemIndex]);
   Reset(fTRP);
   try
     // read initial comment delimited by { and }
@@ -117,6 +142,11 @@ begin
     end;
   end;
   ModalResult := mrOK;
+end;
+
+procedure TfPrograms.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

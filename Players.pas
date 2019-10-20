@@ -1,10 +1,12 @@
 unit Players;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  StdCtrls, Buttons, ExtCtrls, EdisCustom;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs, ColorBox,
+  StdCtrls, Buttons, ExtCtrls{, EdisCustom};
 
 type
   TfPlayers = class(TForm)
@@ -15,7 +17,8 @@ type
     cmdOK: TBitBtn;
     optCarte: TRadioGroup;
     chkLog: TCheckBox;
-    cboPrgFile: TEdisComboDialog;
+    cboPrgFile: TEdit;
+    cboPrgFileSelect: TButton;
     cboColor: TColorBox;
     BitBtn1: TBitBtn;
     procedure FormShow(Sender: TObject);
@@ -23,6 +26,7 @@ type
     procedure cboPrgFileCustomDlg(Sender: TObject);
     procedure cboColorChange(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -34,7 +38,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Stats, Programs;
 
@@ -56,12 +60,14 @@ begin
   case optTipo.ItemIndex of
     0: begin
         cboPrgFile.Visible := false;
+        cboPrgFileSelect.Visible := false;
         txtName.Visible := true;
         lblName.Caption := 'Name';
         optCarte.Enabled := true;
       end;
     1: begin
         cboPrgFile.Visible := true;
+        cboPrgFileSelect.Visible := true;
         txtName.Visible := false;
         lblName.Caption := 'Program';
         optCarte.Enabled := false;
@@ -82,6 +88,12 @@ begin
     cboPrgFile.SetFocus;
     ModalResult := mrNone;
   end;
+  ModalResult := mrOK;
+end;
+
+procedure TfPlayers.cmdCancel(Sender:TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

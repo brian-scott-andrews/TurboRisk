@@ -1,9 +1,11 @@
 unit Pref;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, ComCtrls, StdCtrls, Buttons, ExtCtrls, CheckLst;
 
 type
@@ -19,13 +21,13 @@ type
     panMapHoover: TPanel;
     trbMapHoover: TTrackBar;
     Label1: TLabel;
-    txtMapHoover: TEdit;
+//    txtMapHoover: TEdit;
     Label2: TLabel;
     panMapSelected: TPanel;
     Label3: TLabel;
     Label4: TLabel;
     trbMapSelected: TTrackBar;
-    txtMapSelected: TEdit;
+//    txtMapSelected: TEdit;
     lstTlbButtons: TListView;
     tbsGame: TTabSheet;
     chkGameConfirmAbort: TCheckBox;
@@ -34,12 +36,13 @@ type
     chkUpdateCheck: TCheckBox;
     chkExpertAttack: TCheckBox;
     procedure FormShow(Sender: TObject);
-    procedure trbMapHooverChange(Sender: TObject);
+//    procedure trbMapHooverChange(Sender: TObject);
     procedure chkMapHooverClick(Sender: TObject);
-    procedure trbMapSelectedChange(Sender: TObject);
+//    procedure trbMapSelectedChange(Sender: TObject);
     procedure cmdOKClick(Sender: TObject);
     procedure cmdResetRulesClick(Sender: TObject);
     procedure chkMapSelectedClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -51,7 +54,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 uses Globals, Main, Territ;
 
@@ -65,7 +68,7 @@ begin
   for i := 0 to fMain.tlbToolBar.ButtonCount - 3 do begin
     with lstTlbButtons.Items.Add do begin
       Caption := fMain.tlbToolBar.Buttons[i].Caption;
-      ImageIndex := i;
+//      ImageIndex := i;
       Checked := fMain.tlbToolBar.Buttons[i].Visible;
     end;
   end;
@@ -74,15 +77,15 @@ begin
   panMapHoover.Visible := bPrefMapHoover;
   chkMapSelected.Checked := bPrefMapSelected;
   panMapSelected.Visible := bPrefMapSelected;
-  txtMapHoover.Text := IntToStr(iPrefMapHoover);
-  txtMapSelected.Text := IntToStr(iPrefMapSelected);
+//  txtMapHoover.Text := IntToStr(iPrefMapHoover);
+//  txtMapSelected.Text := IntToStr(iPrefMapSelected);
   trbMapHoover.Position := iPrefMapHoover div 5;
   trbMapSelected.Position := iPrefMapSelected div 5;
   // game
   chkGameConfirmAbort.Checked := bPrefConfirmAbort;
   chkExpertAttack.Checked := bPrefExpertAttack;
   // update
-  chkUpdateCheck.Checked := bPrefCheckUpdate;
+//  chkUpdateCheck.Checked := bPrefCheckUpdate;
 end;
 
 procedure TfPref.chkMapHooverClick(Sender: TObject);
@@ -90,20 +93,23 @@ begin
   panMapHoover.Visible := chkMapHoover.Checked;
 end;
 
+{
 procedure TfPref.trbMapHooverChange(Sender: TObject);
 begin
-  txtMapHoover.Text := IntToStr(trbMapHoover.Position * 5);
-end;
+  txtMapHoover.Text := IntToStr(
+  .Position * 5);
+end; }
 
 procedure TfPref.chkMapSelectedClick(Sender: TObject);
 begin
   panMapSelected.Visible := chkMapSelected.Checked;
 end;
 
+{
 procedure TfPref.trbMapSelectedChange(Sender: TObject);
 begin
   txtMapSelected.Text := IntToStr(trbMapSelected.Position * 5);
-end;
+end; }
 
 procedure TfPref.cmdOKClick(Sender: TObject);
 var
@@ -128,14 +134,14 @@ begin
   // map
   bPrefMapHoover := chkMapHoover.Checked;
   bPrefMapSelected := chkMapSelected.Checked;
-  iPrefMapHoover := StrToIntDef(txtMapHoover.Text, 0);
-  iPrefMapSelected := StrToIntDef(txtMapSelected.Text, 0);
+  iPrefMapHoover := trbMapHoover.Position * 5;
+  iPrefMapSelected := trbMapSelected.Position * 5;
   ModalResult := mrOK;
   // game
   bPrefConfirmAbort := chkGameConfirmAbort.Checked;
   bPrefExpertAttack := chkExpertAttack.Checked;
   // update
-  bPrefCheckUpdate := chkUpdateCheck.Checked;
+//  bPrefCheckUpdate := chkUpdateCheck.Checked;
   // resize main window according to map and toolbar
   ResizeMainWindow;
 end;
@@ -150,23 +156,31 @@ begin
     exit;
   // toolbar
   chkTlbShowToolbar.Checked := true;
+  lstTlbButtons.Items.BeginUpdate;
   for i := 0 to fMain.tlbToolBar.ButtonCount - 3 do begin
     with lstTlbButtons.Items[i] do begin
       Checked := (i >= 1) and (i <= 5);
     end;
   end;
+  lstTlbButtons.Items.EndUpdate;
+  lstTlbButtons.Refresh;
   // map
   chkMapHoover.Checked := true;
   chkMapSelected.Checked := true;
-  txtMapHoover.Text := IntToStr(-20);
-  txtMapSelected.Text := IntToStr(-20);
-  trbMapHoover.Position := -20 div 5;
+//  txtMapHoover.Text := IntToStr(-20);
+//  txtMapSelected.Text := IntToStr(-20);
+  trbMapHoover.Position := 20 div 5;
   trbMapSelected.Position := -20 div 5;
   // game
   chkGameConfirmAbort.Checked := true;
   chkExpertAttack.Checked := false;
   // update
-  chkUpdateCheck.Checked := false;
+//  chkUpdateCheck.Checked := false;
+end;
+
+procedure TfPref.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

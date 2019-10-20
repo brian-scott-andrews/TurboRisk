@@ -1,0 +1,43 @@
+object fSimMap: TfSimMap
+  Left = 274
+  Top = 364
+  HelpType = htKeyword
+  HelpContext = 100
+  AutoSize = True
+  BorderIcons = []
+  BorderStyle = bsSingle
+  Caption = 'Simulation Map'
+  ClientHeight = 450
+  ClientWidth = 648
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'MS Sans Serif'
+  Font.Style = []
+  KeyPreview = True
+  Position = poDesigned
+  OnShow = FormShow
+  PixelsPerInch = 96
+  object panMap: TPanel
+    Left = 0
+    Top = 0
+    Width = 648
+    Height = 450
+    AutoSize = True
+    BevelOuter = bvLowered
+    BorderWidth = 1
+    BorderStyle = bsSingle
+    Caption = 'panMap'
+    TabOrder = 0
+    object imgMap: TImage
+      Left = 0
+      Top = 0
+      Width = 640
+      Height = 442
+      AutoSize = True
+      ParentShowHint = False
+      ShowHint = False
+    end
+  end
+end
