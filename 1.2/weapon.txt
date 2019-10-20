@@ -1,0 +1,764 @@
+Weapon.txt - Version 1.0
+
+Overview
+--------
+
+A set of procedures/functions hopefully usefull for TRP programs creation.
+
+Author
+------
+  
+Stefano Ferrari
+Via Gandhi, 14
+41XX1 Campogalliano (MO)
+Italy
+E-mail: ferraristefano@iol.it
+
+Disclaimer
+----------
+
+You have the permission to use and distribute these routines as long as you agree that the Author
+has no warranty obligations or liability resulting from the use or misuse of them.
+
+Routines about Combat
+---------------------
+
+function XDoOrDie(AA, DA: integer; var SCP, ALP, DLP: double): boolean;
+simulate a Do or Die combat between attacking AA and defending DA armies
+in order to have a statistic result combat is repeated 1000 times
+returns false if attacking AA or defending DA armies are out of range (< 1), true otherwise
+the "var" variables will contain information on combat result:
+ SCP: attacker's successful combat %-age
+ ALP: attacker's losses %-age
+ DLP: defender's losses %-age
+
+function XSingleCombat(AA, DA: integer; var AL, DL: integer): boolean;
+simulate a single combat between attacking AA and defending DA armies
+returns false if attacking AA or defending DA armies are out of range (1..3), true otherwise
+the "var" variables will contain information on combat result:
+ AL: attacker's losses
+ DL: defender's losses
+
+Routines about Territory
+--------------------------
+
+function TContinentBorders(T: integer): integer;
+returns the number of bordering territories which are on other continents, -1 if T is out of range
+
+function TIsEncircled(T: integer): integer;
+returns player if bordering territory are all owned by a single oppponent, 0 if not, -1 if T is out of range
+
+function TPBorder(T, P: integer; var PT, PA, ET, EA: integer): boolean
+returns false if T or P are out of range, otherwise true
+the "var" variables will contain information on territory T for player P:
+ PT: the number of territories owned by player P and bordering on territory T
+ PA: the number of player's P armies bordering on territory T
+ ET: the number of territories owned by player's P enemies and bordering on territory T
+ EA: the number of player's P enemy armies bordering on territory T
+
+function TPPressure(T, P: integer): integer;
+returns the number of player's P armies bordering on territory T
+-1 if territory T or player P are out of range
+
+function TPSortBorders(T, P, O: integer): integer;
+sort player's P territories bordering on territory T, basing on armies count
+sort order is based on O parameter: 0 for descending, 1 for ascending order
+returns number of player's P territories bordering on territory T, -1 i T or P or O are out of range
+sort results are stored in UBuffer: from 1 to 6 armies, from 7 to 12 territories
+
+function TPStrongestBorder(T, P: integer; var PT, PA: integer): boolean;
+returns false if T or P are out of range, true otherwise
+the "var" variables will contain information on territory T:
+ PT: strongest territory owned by player P and bordering on territory T, 0 if no territory found
+ PA: player's P armies on territory PT
+
+function TPThreat(T, P: integer): integer;
+returns the number of player's P armies available to attack territory T
+-1 if territory T or player P are out of range
+
+function TPWeakestBorder(T, P: integer; var PT, PA: integer): boolean;
+returns false if T or P are out of range, true otherwise
+the "var" variables will contain information on territory T:
+ PT: weakest territory owned by player P and bordering on territory T, 0 if no territory found
+ PA: player's P armies on territory PT
+
+function TSortFronts(T, O: integer): integer;
+sort territory's T fronts, basing on armies count
+sort order is based on O parameter: 0 for descending, 1 for ascending order
+returns number of fronts for territory T, -1 i T or O are out of range
+sort results are stored in UBuffer: from 1 to 6 armies, from 7 to 12 territories
+ 
+Routines about Continent
+------------------------
+
+function CPAnalysis(C, P: integer; var PT, PA, ET, EA): boolean;
+returns false if C or P are out of range, true otherwise
+the "var" variables will contain information on continent C for player P:
+ PT: the number of territories owned by player P on continent C
+ PA: the number of player's P armies on continent C
+ ET: the number of territories owned by player's P enemies on continent C
+ EA: the number of player's P enemy armies on continent C
+
+function CSortArmies(C, O: integer): integer;
+sort player, basing on armies count on continent C
+sort order is based on O parameter: 0 for descending, 1 for ascending order
+returns number of players having armies on continent C, -1 i C or O are out of range
+sort results are stored in UBuffer: from 1 to 10 armies, from 11 to 20 players
+
+function CSortTerritories(C, O: integer): integer;
+sort players, basing on territory ownership on continent C
+sort order is based on O parameter: 0 for descending, 1 for ascending order
+returns number of players having territory on continent C, -1 i C or O are out of range
+sort results are stored in UBuffer: from 1 to 10 territories, from 11 to 20 territories
+
+Routines about Player
+---------------------------------
+
+function PFriend(P: integer): boolean;
+returns true if player P is the same program of current player
+
+procedure POrder(D: integer);
+stores into buffer first and last palyer respectevely in 49th and 50th position
+D is a 'dummy' parameter
+WARNING: works only in assignment routine!
+ 
+Routines about Status of the game
+---------------------------------
+function SFirstPlacement(D: integer): boolean;
+returns true if placement before first attack turn, false otherwise
+D is a 'dummy' parameter
+
+Combat Routines Code
+--------------------
+
+function XDoOrDie(AAXX, DAXX: integer; var SCPXX, ALPXX, DLPXX: double): boolean;
+var
+  IXX,
+  SCAAXX,            
+  SCALXX,
+  SCCXX,
+  SCDAXX,
+  SCDLXX,
+  TCAAXX,
+  TCALXX,
+  TCDAXX,
+  TCDLXX: integer;
+begin
+  if (AAXX < 1) or (DAXX < 1) then
+    result := false
+  else begin
+    result := true;
+    SCCXX := 0;
+    SCPXX := 0;
+    ALPXX := 0;
+    DLPXX := 0;
+    TCALXX := 0;
+    TCDLXX := 0; 
+    for IXX := 1 to 1000 do begin
+      TCAAXX := AAXX;   
+      TCDAXX := DAXX; 
+      // repeat combat untill a winner is claimed
+      while (TCAAXX > 0) and (TCDAXX > 0) do begin
+        if TCAAXX > 3 then
+          SCAAXX := 3
+        else
+          SCAAXX := TCAAXX; 
+        if TCDAXX > 3 then
+          SCDAXX := 3
+        else
+          SCDAXX := TCDAXX;
+        // execute single combat
+        SCALXX := 0;
+        SCDLXX := 0;
+        // generate attacker dice rolls 
+        UBufferSet(1, URandom(6) + 1);
+        if SCAAXX = 1 then begin
+          UBufferSet(2, 0);
+          UBufferSet(3, 0);
+        end 
+        else begin
+          UBufferSet(2, URandom(6) + 1);
+          if SCAAXX = 2 then
+            UBufferSet(3, 0)
+          else
+            UBufferSet(3, URandom(6) + 1);
+        end;  
+        // sort them in descending order
+        for HXX := 1 to 2 do
+          for JXX := HXX + 1 to 3 do
+            if UBufferGet(JXX) > UBufferGet(HXX) then begin 
+              KXX := UBufferGet(HXX);                  
+              UBufferSet(HXX, UBufferGet(JXX));
+              UBufferSet(JXX, KXX);
+            end;
+        // generate defender dice rolls
+        UBufferSet(4, URandom(6) + 1);
+        if SCDAXX = 1 then begin
+          UBufferSet(5, 0);
+          UBufferSet(6, 0);
+        end
+        else begin
+          UBufferSet(5, URandom(6) + 1);
+          if SCDAXX = 2 then
+            UBufferSet(6, 0)
+          else
+            UBufferSet(6, URandom(6) + 1);
+        end;
+        // sort them in descending order
+        for HXX := 4 to 5 do
+          for JXX := HXX + 1 to 6 do
+            if UBufferGet(JXX) > UBufferGet(HXX) then begin
+              KXX := UBufferGet(HXX);
+              UBufferSet(HXX, UBufferGet(JXX));
+              UBufferSet(JXX, KXX);
+            end;
+        // compare dice results
+        if SCAAXX >= SCDAXX then
+          JXX := SCDAXX
+        else
+          JXX := SCAAXX;
+        for HXX := 1 to JXX do
+          if UBufferGet(HXX) > UBufferGet(3 + HXX) then
+            SCDLXX := SCDLXX + 1
+          else
+            SCALXX := SCALXX + 1;
+        // adjust counters
+        TCAAXX := TCAAXX - SCALXX;
+        TCDAXX := TCDAXX - SCDLXX;
+        TCALXX := TCALXX + SCALXX;
+        TCDLXX := TCDLXX + SCDLXX;
+      end;
+      // if attacker won increase success counter
+      if TCAAXX > 0 then
+        SCCXX := SCCXX + 1;
+    end;
+    //  calculate %-age
+    SCPXX := SCCXX /1000;
+    ALPXX := TCALXX / (1000 * AAXX);
+    DLPXX := TCDLXX / (1000 * DAXX);
+  end;
+end;
+
+function XSingleCombat(AAXX, DAXX: integer; var ALXX, DLXX: integer): boolean;
+var
+  IXX,
+  JXX,
+  KXX: integer; 
+begin
+  if (AAXX < 1) or (AAXX > 3) or (DAXX < 1) or (DAXX >3) then
+    result := false
+  else begin
+    result := true;
+    ALXX := 0;
+    DLXX := 0;
+    // generate attacker dice rolls 
+    UBufferSet(1, URandom(6) + 1);
+    if AAXX = 1 then begin
+      UBufferSet(2, 0);
+      UBufferSet(3, 0);
+    end 
+    else begin
+      UBufferSet(2, URandom(6) + 1);
+      if AAXX = 2 then
+        UBufferSet(3, 0)
+      else
+        UBufferSet(3, URandom(6) + 1);
+    end;  
+    // sort them in descending order
+    for IXX := 1 to 2 do
+      for JXX := IXX + 1 to 3 do
+        if UBufferGet(JXX) > UBufferGet(IXX) then begin 
+          KXX := UBufferGet(IXX);                  
+          UBufferSet(IXX, UBufferGet(JXX));
+          UBufferSet(JXX, KXX);
+        end;
+    // generate defender dice rolls 
+    UBufferSet(4, URandom(6) + 1);
+    if DAXX = 1 then begin
+      UBufferSet(5, 0);
+      UBufferSet(6, 0);
+    end 
+    else begin
+      UBufferSet(5, URandom(6) + 1);
+      if DAXX = 2 then
+        UBufferSet(6, 0)
+      else
+        UBufferSet(6, URandom(6) + 1);
+    end;  
+    // sort them in descending order
+    for IXX := 4 to 5 do
+      for JXX := IXX + 1 to 6 do
+        if UBufferGet(JXX) > UBufferGet(IXX) then begin 
+          KXX := UBufferGet(IXX);                  
+          UBufferSet(IXX, UBufferGet(JXX));
+          UBufferSet(JXX, KXX);
+        end;
+   // compare dice results
+   if AAXX >= DAXX then
+     JXX := DAXX
+   else
+     JXX := AAXX;
+   for IXX := 1 to JXX do
+     if UBufferGet(IXX) > UBufferGet(3 + IXX) then
+       DLXX := DLXX + 1
+     else
+       ALXX := ALXX + 1;
+  end;
+end;
+
+Territory Routines Code
+-----------------------
+
+function TContinentBorders(TXX: integer): integer;
+var
+ BXX,
+ IXX: integer;
+begin
+ if (TXX < 1) or (TXX > 42) then
+   result := -1
+ else begin
+   BXX := 0; 
+   for IXX := 1 to TBordersCount(TXX) do
+     if TContinent(TXX) <> TContinent(TBorder(TXX, IXX)) then
+       BXX := BXX + 1;
+   result := BXX;
+   end;
+end;
+
+function TIsEncircled(TXX: integer): integer;
+var
+ IXX,
+ OXX,
+ PXX: integer
+begin
+  if (TXX < 1) ot (TXX > 42) then
+    result := -1
+  else begin
+  PXX := TOwner(TBorder(TXX, 1); 
+  result := PXX;
+  for IXX := 2 to TBordersCount(TXX) do begin
+    OXX := TOwner(TBorder(TXX, IXX));
+    if (OXX = 0) or (OXX <> PXX) or (OXX = TOwner(TXX) then
+      result := 0;
+  end;
+end;
+
+function TPBorders(TXX, PXX: integer; var PTXX, PAXX, ETXX, EAXX: integer): boolean;
+var
+  IXX,
+  OXX: integer;
+begin
+  if (TXX < 1) or (TXX > 42) or (PXX < 1) or (PXX > 10) then
+    result := false
+  else begin
+    result := true;
+    PTXX := 0;
+    PAXX := 0;
+    ETXX := 0;
+    EAXX := 0;
+    for IXX := 1 to TBordersCount(TXX) do begin
+      OXX := TOwner(TBorder(TXX, IXX));
+      if OXX = PXX then begin
+        PTXX := PTXX + 1;
+        PAXX := PAXX + TArmies(TXX);
+      end 
+      else
+        if OXX > 0 then begin
+          ETXX := ETXX + 1;
+          EAXX := EAXX + TArmies(TXX);
+        end;         
+    end;
+  end;
+end;
+
+function TPPressure(TXX, PXX: integer): integer;
+var
+  AXX, 
+  BXX,
+  IXX: integer;                
+begin
+  if (TXX < 1) or TXX > 42) or (PXX < 1) or (PXX > 10) then
+    result := -1
+  else begin
+    AXX := 0;
+    for IXX := 1 to TBordersCount(TXX) do begin
+      BXX := TBorder(TXX, IXX);
+      if TOwner(BXX) = PXX then
+        AXX := AXX + TArmies(BXX);
+    end;
+    result := AXX;
+  end;
+end;
+
+function TPSortBorders(TXX, PXX, OXX: integer): integer;
+var
+  BXX,
+  IXX,
+  JXX, 
+  KXX: integer;
+begin
+  if TXX < 1) or (TXX > 42) or (PXX < 1) or (Pxx > 10) or (OXX < 0 ) or (OXX > 1) then
+    result := -1
+  else begin
+    BXX := 0;
+    // store armies & fronts in buffer
+    for IXX := 1 to 12 do
+      UBufferSet(IXX, 0); 
+    for IXX := 1 to TBordersCount(TXX) do
+      if TOwner(TBorder(TXX, IXX) = PXX then begin
+        BXX := BXX + 1;
+        UBufferSet(BXX, TArmies(TFront(TXX, IXX));
+        UBufferSet(BXX + 6, TFront(TXX));
+      end;
+    // sort buffer
+    if OXX = 0 then
+    // descending order
+      for IXX := 1 to BXX -1 do
+        for JXX := IXX + 1 to BXX do
+          if UBufferGet(JXX) > UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 6);
+            UBufferSet(IXX + 6, UBufferGet(JXX + 6));
+            UBufferSet(JXX + 6, KXX);
+          end;
+    else
+    // ascending order
+      for IXX := 1 to BXX - 1 do
+        for JXX := IXX + 1 to BXX do
+          if UBufferGet(JXX) < UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 6);
+            UBufferSet(IXX + 6, UBufferGet(JXX + 6));
+            UBufferSet(JXX + 6, KXX);
+          end;
+    result := BXX;
+  end;
+end;
+
+function TPStrongestBorder(TXX, PXX: integer; var PTXX, PAXX: integer): boolean;
+var
+ AXX,
+ BXX,
+ IXX: integer;
+begin
+  if (TXX < 1) or (TXX > 42) or (PXX < 1) or (PXX > 10) then 
+    result := false
+  else begin
+    result := true;
+    PTXX := 0;
+    PAXX := 0;
+    for IXX := 1 to TBordersCount(TXX) do begin
+      BXX := TBorder(TXX, IXX);
+      if TOwner(BXX) = PXX then begin
+        AXX := TArmies(BXX); 
+        if AXX > PAXX then begin
+          PTXX := BXX;
+          PAXX := AXX;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TPThreat(TXX, PXX: integer): integer;
+var
+  AXX,
+  BXX,
+  IXX: integer;    
+begin
+  if (TXX < 1) or TXX > 42) or (PXX < 1) or (PXX > 10) then
+    result := -1
+  else begin
+    AXX := 0; 
+    for IXX := 1 to TBordersCount(TXX) do
+      BXX := TBorder(TXX, IXX);
+      if TOwner(BXX)) = PXX then
+        AXX := AXX + TArmies(BXX) - 1;
+    end;
+    result := AXX;
+  end;
+end;
+
+function TPWeakestBorder(TXX, PXX: integer; var PTXX, PAXX: integer): boolean;
+var
+ AXX,
+ BXX,
+ IXX: integer;
+begin
+  if (TXX < 1) or (TXX > 42) or (PXX < 1) or (PXX > 10) then 
+    result := false
+  else begin
+    result := true;
+    PTXX := 0;
+    PAXX := 0;
+    for IXX := 1 to TBordersCount(TXX) do begin
+      BXX := TBorder(TXX, IXX);
+      if TOwner(BXX) = PXX then begin
+        AXX := TArmies(BXX); 
+        if (AXX < PAXX) or (PAXX = 0) then begin
+          PTXX := BXX;
+          PAXX := AXX;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function TSortFronts(TXX, OXX: integer): integer;
+var
+  FXX,
+  IXX,
+  JXX, 
+  KXX: integer;
+begin
+  if TXX < 1) or (TXX > 42) or (OXX < 0) or (Oxx > 1) then
+    result := -1
+  else begin
+    FXX := TFrontsCount(TXX);
+    // store armies & fronts in buffer
+    for IXX := 1 to 12 do
+      UBufferSet(IXX, 0); 
+    for IXX := 1 to FXX do begin
+      UBufferSet(IXX, TArmies(TFront(TXX, IXX));
+      UBufferSet(IXX + 6, TFront(TXX));
+    end;
+    // sort buffer
+    if OXX = 0 then
+    // descending order
+      for IXX := 1 to FXX - 1 do
+        for JXX := IXX + 1 to FXX do
+          if UBufferGet(JXX) > UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 6);
+            UBufferSet(IXX + 6, UBufferGet(JXX + 6));
+            UBufferSet(JXX + 6, KXX);
+          end;
+    else
+    // ascending order
+      for IXX := 1 to FXX - 1 do
+        for JXX := IXX + 1 to FXX do
+          if UBufferGet(JXX) < UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 6);
+            UBufferSet(IXX + 6, UBufferGet(JXX + 6));
+            UBufferSet(JXX + 6, KXX);
+          end;
+    result := FXX;
+  end;
+end;
+
+Continent Routines Code
+-----------------------
+
+function CPAnalysis(CXX, PXX: integer; var PTXX, PAXX, ETXX, EAXX): boolean;
+var
+ IXX,
+ TXX: integer;
+begin
+  if (CXX < 1) or (CXX > 6) or (PXX < 1) or (PXX > 10) then
+    result := false
+  else begin
+    result := true;
+    PTXX := 0;
+    PAXX := 0;
+    ETXX := 0;
+    EAXX := 0;
+    for IXX := 1 to CTerritoriesCount(CXX) do begin
+      TXX := CTerritory(CXX, IXX);
+      if TOwner(TXX) = PXX then begin
+        PTXX := PTXX + 1;
+        PAXX := PAXX + TArmies(TXX);
+      end
+      else
+        if TOwner(TXX) > 0 then
+          ETXX := ETXX + 1;
+          EAXX := EAXX + TArmies(TXX);
+        end;
+    end; 
+  end;
+end;
+
+function CSortArmies(CXX, OXX: integer): integer;
+var
+  AXX,
+  IXX,
+  JXX,
+  KXX,
+  PXX,
+  TXX: integer;
+begin
+  if (CXX < 1) or (CXX > 6) or (OXX <0) or (OXX > 1) then
+    result := -1
+  else begin
+    PXX := 0;
+    // store armies & players in buffer
+    for IXX := 1 to 20 do
+      UBufferSet(IXX, 0);
+    for IXX := 1 to SPlayersCount do
+      if PActive(IXX) then begin
+        PXX := PXX +1;
+        AXX := 0;
+        for JXX := 1 to CTerritoriesCount(CXX) do begin
+          TXX := CTerritory(CXX, JXX);
+          if TOwner(TXX) = IXX then
+            AXX := AXX + TArmies(TXX);
+        end;
+        UBufferSEt(PXX, AXX);
+        UBufferSet(PXX + 10, IXX);
+      end;
+    // sort buffer
+    if OXX = 0 then
+    // descending order
+      for IXX := 1 to PXX - 1 do
+        for JXX := IXX + 1 to PXX do
+          if UBufferGet(JXX) > UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 10);
+            UBufferSet(IXX + 10, UBufferGet(JXX + 10));
+            UBufferSet(JXX + 10, KXX);
+          end;
+    else
+    // ascending order
+      for IXX := 1 to PXX - 1 do
+        for JXX := IXX + 1 to PXX do
+          if UBufferGet(JXX) < UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 10);
+            UBufferSet(IXX + 10, UBufferGet(JXX + 10));
+            UBufferSet(JXX + 10, KXX);
+          end;
+    result := PXX;
+  end;
+end;
+
+function CSortTerritories(CXX, OXX: integer): integer;
+var
+  AXX,
+  IXX,
+  JXX,
+  KXX,
+  PXX: integer;
+begin
+  if (CXX < 1) or (CXX > 6) or (OXX <0) or (OXX > 1) then
+    result := -1
+  else begin
+    PXX := 0;
+    // store territories & players in buffer
+    for IXX := 1 to 20 do
+      UBufferSet(IXX, 0);
+    for IXX := 1 to SPlayersCount do
+      if PActive(IXX) then begin
+        PXX := PXX +1;
+        AXX := 0;
+        for JXX := 1 to CTerritoriesCount(CXX) do
+          if TOwner(CTerritory(CXX, JXX)) = IXX then
+            AXX := AXX + 1;
+        UBufferSEt(PXX, AXX);
+        UBufferSet(PXX + 10, IXX);
+      end;
+    // sort buffer
+    if OXX = 0 then
+    // descending order
+      for IXX := 1 to PXX - 1 do
+        for JXX := IXX + 1 to PXX do
+          if UBufferGet(JXX) > UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 10);
+            UBufferSet(IXX + 10, UBufferGet(JXX + 10));
+            UBufferSet(JXX + 10, KXX);
+          end;
+    else
+    // ascending order
+      for IXX := 1 to PXX - 1 do
+        for JXX := IXX + 1 to PXX do
+          if UBufferGet(JXX) < UBufferGet(IXX) then begin
+            KXX := UBufferGet(IXX);
+            UBufferSet(IXX, UBufferGet(JXX));
+            UBufferSet(JXX, KXX);
+            KXX := UBufferGet(IXX + 10);
+            UBufferSet(IXX + 10, UBufferGet(JXX + 10));
+            UBufferSet(JXX + 10, KXX);
+          end;
+    result := PXX;
+  end;
+end;
+
+
+Player Routines Code
+--------------------
+
+function PFriend(PXX: integer): boolean
+begin
+  if (PXX < 1) or (PXX > 10) then
+    result := false
+  else begin
+    result := false;
+    if (PProgram(PXX)=PProgram(PMe)) and (PXX <> PMe) then
+      result := true;
+end;
+
+procedure POrder(DXX: integer);
+var
+  FXX,
+  LXX,
+  PXX: integer;
+begin
+  if UBufferGet(48) = 0 then begin
+    UBufferSet(48, 1);
+    FXX := 0;
+    LXX := 0;
+    if PXX < 10 then
+      PXX := PMe + 1
+    else
+      PXX := 1;
+    while (PXX <> PMe) and (FXX = 0) do begin
+      if PActive(PXX) and (PTerritoriesCount(PXX) = 1) then
+        FXX := PXX;
+      PXX := PXX + 1;
+      if PXX = 10 then
+        PXX := 1;
+    end;
+    if FXX = 0 then
+      FXX := PMe;
+    UBufferSEt(49, FXX);
+    if FXX = 1 then 
+      PXX := 10
+    else
+      PXX := FXX - 1;
+    while (PXX <> FXX) and (LXX = 0) do begin
+      if PActive(PXX) then
+        LXX := PXX; 
+      PXX := PXX - 1;
+      if PXX = 0 then
+        PXX := 10;
+    end;
+    UBufferSet(50, LXX);
+  end;
+end;
+
+Routines about Status of the game
+---------------------------------
+
+function SFirstPlacement(DXX: integer): boolean;
+var
+  IXX: integer;
+begin
+  result := false
+  for IXX := 1 to 10 do
+    if PActive(IXX) and (PNewArmies(IXX) > 1) and (PXX <> PMe)then
+      result := true;
+end;

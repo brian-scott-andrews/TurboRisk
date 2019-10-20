@@ -1,0 +1,263 @@
+Constantin - a TurboRisk-program by Konstantin Schwarze 
+(it is based on the program simple.trp)
+	
+This Program is a blackbox! I'm sure it doesn't 
+do what I want, but it works.	
+	
+
+procedure Assignment;
+var
+  T: integer;
+begin
+  {// find first free territory (a very stupid way to start the game!) }
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+procedure Placement;
+var tmax,t:integer; x,max:real; 
+
+procedure kontinenteroberung;
+	var c,pt,pa,et,ea,cmax,b:integer; kontopt,maxxx:real; grenzkont:boolean;
+	begin
+	for c:=1 to 6 do
+		ubufferset(42+c,1);
+	for c:=1 to 6 do
+		begin
+		if cowner(c)=0 then
+			begin
+			canalysis(c,pt,pa,et,ea);
+			kontopt:=(cbonus(c)/cborderscount(c))*(pa/ea);
+			ubufferset(42+c,kontopt);
+			end;
+		end;
+	maxxx:=0;
+	for c:=1 to 6 do
+		begin
+		if cowner(c)=0 then
+			begin
+			if ubufferget(42+c)>maxxx then
+				begin
+				maxxx:=ubufferget(42+c);
+				cmax:=c;
+				end;
+			end;
+		end;
+	if maxxx>0 then
+		begin
+		canalysis(cmax,pt,pa,et,ea);
+		kontopt:=(cbonus(cmax)/cborderscount(cmax))*((pa+pnewarmies(pme))/ea);
+		ubufferset(42+cmax,kontopt);
+		end;
+	for t:=1 to 42 do
+		begin
+		maxxx:=ubufferget(42+tcontinent(t)); 
+		for b:=1 to 6 do
+			if (ubufferget(42+tcontinent(tborder(t,b)))>maxxx) and (tborder(t,b)<>-1) then 
+			begin
+			maxxx:=ubufferget(42+tcontinent(tborder(t,b)));
+			end;
+		ubufferset(t,ubufferget(t)*2+maxxx);
+		end;
+	end;
+
+procedure kontinentsicherung;
+          var c,b,n:integer;
+    procedure grenz(t,h:integer);
+              var nnn:integer;
+              begin
+              if not (tisfront(t)) and (h<3) then
+                 begin
+                 for nnn:=1 to 6 do
+                     begin
+                     if (tismine(tborder(t,nnn))) and not (tcontinent(tborder(t,nnn))=c) then grenz(tborder(t,nnn),h+1);
+                     end;
+                 end else ubufferset(t,1+(cbonus(c)/h));
+              end;
+          begin
+          for n:=1 to 42 do
+              ubufferset(n,1);
+          for c:=1 to 6 do
+              begin
+              if cowner(c)=pme then
+                 begin
+                 for b:=1 to 6 do
+                     begin
+		     if not (cowner(tcontinent(cborder(c,b)))=pme) and (cborder(c,b)<>-1) then
+		        begin	
+                     	if tismine(cborder(c,b)) then grenz(cborder(c,b),1)
+                           else begin
+                                for n:=1 to 6 do
+                                    begin
+                                    if (tismine(tborder(cborder(c,b),n))) and (tcontinent(tborder(cborder(c,b),n))=c) then
+                                       begin
+                                       ubufferset(tborder(cborder(c,b),n) , 1+cbonus(c));
+                                       end;
+                                    end;
+                                end;
+                        end;
+		     end;
+                 end;
+              end;
+          end;
+
+
+
+begin
+if (ubufferget(50)<>11) or (ubufferget(49)<>11) then
+	begin
+	kontinentsicherung;
+	kontinenteroberung;
+	ubufferset(50,11);
+	end;
+max:=0;
+for t:=1 to 42 do
+    begin
+    if tisfront(t) then
+       begin
+       x:=(tpressure(t)/tarmies(t))*ubufferget(t);
+       if x>max then begin
+                     max:=x;
+                     tmax:=t;
+                     end;
+
+       end;
+    end;
+toterritory:=tmax;
+end;
+
+
+
+
+
+procedure Attack;
+var
+  T,EnemyT,EnemyA,c,pt,pa,et,ea,einsparung,bo,grenzarmeen: integer;
+  Ratio,MinRatio,kontopt: real;
+label weiter;
+
+procedure frontverkleinerung(t:integer);
+	var b,verkl:integer;
+	begin
+	verkl:=0;
+	for b:=1 to 6 do
+		begin
+		if towner(tborder(t,b))=pme then
+			begin
+			if tfrontscount(tborder(t,b))=1 then verkl:=verkl+1
+			end;
+		end;
+	einsparung:=verkl-1;
+	end;
+
+begin
+ubufferset(50,1);
+ubufferset(49,11);
+  FromTerritory:=0;
+  ToTerritory:=0;
+  for c:=1 to 6 do
+	begin
+	if cowner(c)=0 then
+		begin
+		grenzarmeen:=0;
+		for bo:=1 to 6 do
+			if tismine(cborder(c,bo)) then grenzarmeen:=grenzarmeen+tarmies(cborder(c,bo));
+		canalysis(c,pt,pa,et,ea);
+		kontopt:=1+(cbonus(c)/cborderscount(c))*((pa+grenzarmeen)/ea);
+		ubufferset(c,kontopt);
+		end else if cowner(c)=pme then ubufferset(c,1) 
+			else ubufferset(c,cbonus(c)*5);
+	end;
+    MinRatio:=3.125;
+    T:=0;
+    repeat
+      T:=T+1;	
+      if TIsFront(T) and (TArmies(T)>1) then 
+	begin  
+	EnemyT:=0;  
+	repeat
+		EnemyT:=EnemyT+1;
+		toterritory:=Tfront(T,EnemyT);
+		if toterritory<>-1 then 
+			begin
+			frontverkleinerung(toTerritory);
+			einsparung:=einsparung+2; if einsparung<1 then einsparung:=1;
+			Ratio := ( TArmies(t) / tarmies(toterritory) ) * ubufferget(tcontinent(toterritory)) * (einsparung+1)/2;
+        		if Ratio>MinRatio then FromTerritory:=T
+				else toterritory:=0;
+          		end else toterritory:=0;
+        until (EnemyT=6) or (Toterritory<>0);
+      	end;
+    until (T=42) or (Toterritory<>0);
+end;
+
+
+
+procedure Occupation;
+var
+  FromIsFront, ToIsFront: boolean;
+begin
+ { // very simple but effective routine  }
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+ { // if both territories are 'front'   }
+  if  FromIsFront and ToIsFront then begin
+  {  // balance armies   }
+    Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2;
+
+{  // if "From" territory is front    }
+  end else if FromisFront then begin
+ {   // all armies stay in From territory, so there's nothing to do   }
+
+ { // in the other cases}
+  end else begin
+  {  // all armies in the conquered territory (except one which must stay) }
+    Armies:=TArmies(FromTerritory)-1;
+  end;
+end;
+
+procedure Fortification;
+var
+  T,B,MaxArmy,toterr: integer; grenznah:boolean;
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+
+  {// look for the greatest nuber of armies which is not on a front territory}
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin 
+      
+	grenznah:=false;
+      	for b:=1 to tborderscount(t) do
+		begin
+	  	if tisfront(tborder(t,b)) then 
+			begin
+			grenznah:=true;
+			toterr:=tborder(t,b);
+			end;
+		end;
+
+	if (TArmies(T)>MaxArmy) and (grenznah)=true then begin
+        	MaxArmy := TArmies(T);
+        	FromTerritory := T;
+		toterritory:=toterr;
+      		end;
+
+    end;
+  end;
+
+armies:=tarmies(fromterritory)-1;
+
+end;
+
+

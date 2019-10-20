@@ -1,0 +1,157 @@
+PIRANHA - This TurboRisk program is still stupid but very aggressive against human players only. Try to play alone against 5 piranhas...
+
+
+
+procedure Assignment;
+var
+  T: integer;
+begin
+  // find first free territory (a very stupid way to start the game!)
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+procedure Placement;
+var
+  T,T2,F,A: integer;
+  Ratio,MaxRatio: double;
+begin
+  // reinforce territory with greatest ratio between total (human) enemy armies
+  // and own armies
+  ToTerritory:=0;
+  MaxRatio:=0;
+  for T:=1 to 42 do begin
+    if TIsFront(T) then begin  // territory is mine and front
+      // check if territory face human enemies
+      A:=0;
+      for F:=1 to TFrontsCount(T) do begin
+        T2:=TFront(T,F);
+        if PHuman(TOwner(T2)) then
+          A:=A+TArmies(T2)*3         // overcharge ratio if enemy is human
+        else 
+          A:=A+TArmies(T2);
+      end;
+      Ratio := A / TArmies(T);
+      if Ratio>MaxRatio then begin
+        ToTerritory:=T;
+        MaxRatio:=Ratio;
+      end;
+    end;
+  end;
+end;
+
+procedure Attack;
+var
+  T,T2,F,FCount: integer;
+  Human: boolean;
+  Ratio,MaxRatio: double;
+begin
+  // perform all attacks with force ratio>=1.5
+  FromTerritory:=0;
+  ToTerritory:=0;
+  MaxRatio:=0;
+  // scan all territories
+  for T:=1 to 42 do begin
+    if TIsFront(T)                      // territory is mine and front
+    and (TArmies(T)>1) then begin       // and attack is possible
+      // scan all possible fronts
+      FCount:=TFrontsCount(T);
+      for F:=1 to FCount do begin
+        T2:=TFront(T,F);
+        Ratio := TArmies(T) / TArmies(T2);
+        if PHuman(TOwner(T2)) then
+          Ratio:=Ratio*3;               // overcharge ratio if enemy is human
+        if Ratio>MaxRatio then begin
+          FromTerritory:=T;
+          ToTerritory:=T2;
+          MaxRatio:=Ratio;
+          Human:=PHuman(TOwner(T2));
+        end;
+      end;
+    end;
+  end;
+  if not Human            // suspend attacks if enemy is computer
+  and SConquest then      // and one territory already conquered
+    FromTerritory:=0;
+  if MaxRatio<1.5 then    // suspend attacks when ratio too low
+    FromTerritory:=0;
+end;
+
+procedure Occupation;
+var
+  FromIsFront, ToIsFront: boolean;
+begin
+  // very simple but effective routine
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+  // if both territories are 'front'
+  if  FromIsFront and ToIsFront then begin
+    // balance armies
+    Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2;
+
+  // if "From" territory is front
+  end else if FromisFront then begin
+    // all armies stay in From territory, so there's nothing to do
+
+  // in the other cases
+  end else begin
+    // all armies in the conquered territory (except one which must stay)
+    Armies:=TArmies(FromTerritory)-1;
+  end;
+end;
+
+procedure Fortification;
+var
+  T,B,MaxArmy: integer;
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+
+  // look for the greatest nuber of armies which is not on a front territory
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin  // territory is mine and not "front"
+      if TArmies(T)>MaxArmy then begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+  // if there are armies to move...
+  if FromTerritory>0 then begin
+    // check if can move armies to front...
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then begin
+          ToTerritory:=T;
+        end;
+      end;
+    end;
+    // otherwise move armies in the first bordering territory
+    if ToTerritory=0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+    // Move all armies to destination (except the one which must stay)
+    if ToTerritory>0 then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+end;
+

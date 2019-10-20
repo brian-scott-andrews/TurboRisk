@@ -1,0 +1,139 @@
+SIMPLE - A very simple TurboRisk program
+
+Purpose of this program is to demonstrate how to code a computer-player in
+TurboRisk. As simplicity was the main goal, the resulting strategy is very
+weak.
+
+
+procedure Assignment;
+var
+  T: integer;
+begin
+  // find first free territory (a very stupid way to start the game!)
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+procedure Placement;
+var
+  T: integer;
+  Ratio,MaxRatio: double;
+begin
+  // reinforce territory with greatest ratio between total enemy armies and
+  // own armies
+  ToTerritory:=0;
+  MaxRatio:=0;
+  for T:=1 to 42 do begin
+    if TIsFront(T) then begin  // territory is mine and front
+      Ratio := TPressure(T) / TArmies(T);
+      if Ratio>MaxRatio then begin
+        ToTerritory:=T;
+        MaxRatio:=Ratio;
+      end;
+    end;
+  end;
+end;
+
+procedure Attack;
+var
+  T,EnemyT,EnemyA: integer;
+  Ratio,MaxRatio: double;
+begin
+  // perform attack with best chances; stop after 1 conquest;
+  FromTerritory:=0;
+  ToTerritory:=0;
+  if not SConquest then begin  // still no conquest
+    MaxRatio:=0;
+    for T:=1 to 42 do begin
+      if TIsFront(T)                      // territory is mine and front
+      and (TArmies(T)>1) then begin       // attack is possible
+        TWeakestFront(T,EnemyT,EnemyA);
+        Ratio := TArmies(T) / EnemyA;
+        if Ratio>MaxRatio then begin
+          FromTerritory:=T;
+          ToTerritory:=EnemyT;
+          MaxRatio:=Ratio;
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure Occupation;
+var
+  FromIsFront, ToIsFront: boolean;
+begin
+  // very simple but effective routine
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+  // if both territories are 'front'
+  if  FromIsFront and ToIsFront then begin
+    // balance armies
+    Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2;
+
+  // if "From" territory is front
+  end else if FromisFront then begin
+    // all armies stay in From territory, so there's nothing to do
+
+  // in the other cases
+  end else begin
+    // all armies in the conquered territory (except one which must stay)
+    Armies:=TArmies(FromTerritory)-1;
+  end;
+end;
+
+procedure Fortification;
+var
+  T,B,MaxArmy: integer;
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+
+  // look for the greatest nuber of armies which is not on a front territory
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin  // territory is mine and not "front"
+      if TArmies(T)>MaxArmy then begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+  // if there are armies to move...
+  if FromTerritory>0 then begin
+    // check if can move armies to front...
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then begin
+          ToTerritory:=T;
+        end;
+      end;
+    end;
+    // otherwise move armies in the first bordering territory
+    if ToTerritory=0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+    // Move all armies to destination (except the one which must stay)
+    if ToTerritory>0 then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+end;
+

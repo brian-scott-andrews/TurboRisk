@@ -1,0 +1,41 @@
+TurboRisk History
+=================
+
+Known bugs in the current release
+---------------------------------
+
+- There is a memory deallocation bug still not resolved. This cause the program to allocate more and more memory every time you start a new game. This bug is probably located inside the interpreter and not in TurboRisk itself. I will work at it.
+Workaround: close and re-open TurboRisk after a few games.
+
+- It has been reported the the FORTIFICATION routine is not always called. I coudln't reproduce this problem but I'll keep on checking.
+
+History
+-------
+
+Version 1.2 - August 1999
+
+- Due to a subtle bug TurboRisk stopped calling the ATTACK procedure of a Computer Player after the OCCUPATION routine was called the first time during a turn. Corrected.
+
+- A similar bug happened when a computer opponent defeated a player and got his cards: if it had enough to make a set and get armies, the PLACEMENT procedure was called to place them, but the attack procedure was not called afterwards. Corrected.
+
+- The first time the players dialog box was opened after having ran TR, the "computer file" entry of the first player in the .ini file was changed to simple.trp.
+
+- The log message for the OCCUPATION routine was doubled. Corrected.
+
+- The log messages now say clearly whether the troops movement are due to the OCCUPATION or the FORTIFICATION routine.
+
+
+Version 1.1 - March 1999
+
+- SPlayersCount() returned always 10 instead of the actual number of active players. Corrected.
+
+- New function PProgram that returns the program file name of computer players.
+
+- New function URandom to generate integer/real random numbers
+
+- Wrong main map scaling for screen resolution other than 800x600 corrected.
+
+
+Version 1.0 - January 1999
+
+- TurboRisk released.
