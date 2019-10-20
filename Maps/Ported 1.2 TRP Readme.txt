@@ -1,0 +1,21 @@
+Ported 14 Readme
+
+Hey Guys,
+
+Finally got them all ported. I want to thank Mario for creating this. The individual authors of these TRP's, for creating them. Nathan Scarbrough for porting many others, I was able to use Notepad++ to compare digger that comes with 2.0.5 (ported by nathan)  to other trp's also created by Martin Nehrdich. Many of the changes were copied wholesale and a few others required individual variable mods (randy12). I also want to thank Chiel for his help in getting this all started and crucial tips on doubles.
+
+Some notes. 
+
+defender14 doesn't seem to win a ton (duh). 
+constant14 does not compile.
+randy12 will occasionally try to reinforce to territory 0 and lock the game. He is also terrible. 
+slave14 does not announce who they are a slave to. Can cause the game to lock. 
+hunter14 does not announce who their goal is. He wins more than digger. 
+walker2_14 wins enough to be interesting.
+Pitbull14 does not compile
+Piranha14 I have yet to see when a game but adds a level of randomness to who will end up winning.
+Latest digger TRP included for reference.
+
+I would love to see the last two I couldn't get to compile fleshed out. I can also upload the originals if needed for comparison.
+
+Note that while two of them can lock the game, so can Descartes and Tectonic, so if you enjoy those players don't be afraid to try these out.
