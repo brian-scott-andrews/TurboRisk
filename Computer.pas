@@ -1,14 +1,18 @@
 unit Computer;
 
+{$MODE Delphi}
+
 interface
 
 // Esecuzione mossa computer
 procedure EseguiTurnoComputer;
+function strTran(ctext, cfor, cwith: string): string;
+
 
 implementation
 
-uses Windows, Forms, Controls, SysUtils, Dialogs,
-  uPSRuntime, uPSUtils, StdPas,
+uses LCLIntf, LCLType, LMessages, Forms, Controls, SysUtils, Dialogs,
+  uPSRuntime, uPSUtils, {StdPas,}
   Main, Globals, Territ, Stats, Log, TRPError, Sim;
 
 var
@@ -17,7 +21,25 @@ var
   tParamToTerritory, tParamFromTerritory, tParamArmies: PPSVariant;
   tParamList: TPSList; // The parameter list
 
-  iStartTime, iEndTime: Int64; // CPU timing for TRSim
+  iStartTime, iEndTime: QWord; // CPU timing for TRSim
+
+{ Character by Character String Replacement }
+function StrTran(ctext, cfor, cwith: string): string;
+  var
+     ntemp  : word  ;
+     nreplen: word  ;
+  begin
+     cfor    := upperCase(cfor)   ;
+     nreplen := length(cfor)      ;
+     for ntemp := 1 to length(ctext) do begin
+        if (upperCase(copy(ctext, ntemp, nreplen)) = cfor) then
+        begin
+           delete(ctext, ntemp, nreplen);
+           insert(cwith, ctext, ntemp);
+        end;
+     end;
+     result := ctext;
+end;
 
 procedure ShowError(sMsg: string);
 begin
@@ -27,11 +49,11 @@ begin
       mrYes: begin
           // dump memory if required
           sMsg := StrTran(sMsg, #13#10, '\n');
-          if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-            if not CreateDir(sG_AppPath + '\Dump') then
-              raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+          if not SysUtils.DirectoryExists(sG_AppPath + PathDelim + 'Dump') then begin
+            if not CreateDir(sG_AppPath + PathDelim + 'Dump') then
+              raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
           end;
-          SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime
+          SaveGame(sG_AppPath + 'Dump' + PathDelim + 'trdump_' + FormatDateTime
             ('yyyymmdd_hhmmss', Now) + '.trd', sMsg);
         end;
       mrAbort: begin
@@ -44,11 +66,11 @@ begin
     if fSim.chkErrorDump.Checked then begin
       // dump memory if required
       sMsg := StrTran(sMsg, #13#10, '\n');
-      if not SysUtils.DirectoryExists(sG_AppPath + '\Dump') then begin
-        if not CreateDir(sG_AppPath + '\Dump') then
-          raise Exception.Create('Cannot create ' + sG_AppPath + '\Dump');
+      if not SysUtils.DirectoryExists(sG_AppPath + PathDelim +'Dump') then begin
+        if not CreateDir(sG_AppPath + PathDelim + 'Dump') then
+          raise Exception.Create('Cannot create ' + sG_AppPath + PathDelim + 'Dump');
       end;
-      SaveGame(sG_AppPath + 'Dump\trdump_' + FormatDateTime('yyyymmdd_hhmmss',
+      SaveGame(sG_AppPath + 'Dump'+PathDelim+'trdump_' + FormatDateTime('yyyymmdd_hhmmss',
           Now) + '.trd', sMsg);
     end;
     if fSim.chkErrorAbort.Checked then begin
@@ -63,7 +85,7 @@ begin
   inc(arPlayer[iTurn].aCPU[uRoutine].iPhases);
 end;
 
-procedure CPU_Call(uRoutine: TRoutine; iTicks: Int64);
+procedure CPU_Call(uRoutine: TRoutine; iTicks: QWord);
 begin
   arPlayer[iTurn].aCPU[uRoutine].iTime := arPlayer[iTurn].aCPU[uRoutine]
   .iTime + iTicks;
@@ -90,9 +112,11 @@ begin
   // run the script
   try
     CPU_Phase(rtAssignment);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ASSIGNMENT'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := gettickcount64;
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtAssignment, iEndTime - iStartTime);
     // get back value of var parameters
     iTo := VGetInt(tParamToTerritory);
@@ -109,7 +133,7 @@ begin
   // Preparazione messaggio di errore
   sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Assignment' +
   #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-  // Verifica validit‡ richiesta
+  // Verifica validit√† richiesta
   if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> 0) then
   begin
     sMsg := sMsg + 'Invalid "To" territory';
@@ -152,9 +176,11 @@ begin
       tParamList.Clear;
       tParamList.Add(tParamToTerritory);
       // run the script
-      QueryPerformanceCounter(iStartTime); // get initial time
+      iStartTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('PLACEMENT'));
-      QueryPerformanceCounter(iEndTime); // get final time
+      iEndTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtPlacement, iEndTime - iStartTime);
       // get back value of var parameters
       iTo := VGetInt(tParamToTerritory);
@@ -170,7 +196,7 @@ begin
     // Preparazione messaggio di errore
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Placement' +
     #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> iTurn)
     then begin
       sMsg := sMsg + 'Invalid "To" territory';
@@ -216,9 +242,11 @@ begin
   try
     // run script
     CPU_Phase(rtOccupation);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('OCCUPATION'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtOccupation, iEndTime - iStartTime);
     // get back value of var parameters
     iArmies := VGetInt(tParamArmies);
@@ -239,7 +267,7 @@ begin
     'Routine: Occupation' + #13#10 + 'From territory: ' + arTerritory[iFrom]
     .Name + #13#10 + 'To territory: ' + arTerritory[iTo].Name + #13#10 +
     'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if iArmies > arTerritory[iFrom].Army - 1 then begin
       sMsg := sMsg + 'Invalid number of armies';
       ShowError(sMsg);
@@ -286,9 +314,11 @@ begin
       tParamList.Add(tParamToTerritory);
       tParamList.Add(tParamFromTerritory);
       // run the script
-      QueryPerformanceCounter(iStartTime); // get initial time
+      iStartTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ATTACK'));
-      QueryPerformanceCounter(iEndTime); // get final time
+      iEndTime := SysUtils.GetTickCount64();
+//      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtAttack, iEndTime - iStartTime);
       // get back value of var parameters
       iFrom := VGetInt(tParamFromTerritory);
@@ -310,7 +340,7 @@ begin
       #13#10 + 'From territory: ' + IntToStr(iFrom)
       + #13#10 + 'To territory: ' + IntToStr(iTo)
       + #13#10 + 'Error: ';
-      // Verifica validit‡ richiesta
+      // Verifica validit√† richiesta
       if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
       begin
         sMsg := sMsg + 'Invalid "From" territory';
@@ -386,9 +416,11 @@ begin
   try
     // run the script
     CPU_Phase(rtFortification);
-    QueryPerformanceCounter(iStartTime); // get initial time
+    iStartTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('FORTIFICATION'));
-    QueryPerformanceCounter(iEndTime); // get final time
+    iEndTime := SysUtils.GetTickCount64();
+//    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtFortification, iEndTime - iStartTime);
     // get back value of var parameters
     iFrom := VGetInt(tParamFromTerritory);
@@ -410,7 +442,7 @@ begin
     'Routine: Fortification' + #13#10 + 'From territory: ' + IntToStr(iFrom)
     + #13#10 + 'To territory: ' + IntToStr(iTo)
     + #13#10 + 'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validit‡ richiesta
+    // Verifica validit√† richiesta
     if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
     begin
       sMsg := sMsg + 'Invalid "From" territory';

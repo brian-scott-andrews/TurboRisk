@@ -1,9 +1,11 @@
 unit NewGame;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, ExtCtrls, ImgList;
 
 type
@@ -85,7 +87,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Players, Stats;
 
@@ -286,8 +288,8 @@ begin
       if Active then begin
         inc(iAttivi);
         if Computer then begin
-          if not FileExists(sG_AppPath + 'players\' + PrgFile) then begin
-            MessageDlg(Name + ':' + sG_AppPath + 'players\' + PrgFile +
+          if not FileExists(sG_AppPath + 'players' + PathDelim + PrgFile) then begin
+            MessageDlg(Name + ':' + sG_AppPath + 'players' +PathDelim + PrgFile +
                 ' not found.', mtError, [mbOK], 0);
             ModalResult := mrNone;
           end;
@@ -300,7 +302,7 @@ begin
     ModalResult := mrNone;
     MessageDlg('At least two players required.', mtError, [mbOK], 0);
   end;
-
+  ModalResult := mrOK;    //Added this line
 end;
 
 procedure TfNewGame.cmdSaveSetupClick(Sender: TObject);
@@ -403,6 +405,7 @@ end;
 procedure TfNewGame.BitBtn1Click(Sender: TObject);
 begin
   ActivePlayers;
+  ModalResult := mrCancel;    //Added this line
 end;
 
 end.

@@ -1,9 +1,11 @@
 unit Cards;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ExtCtrls, StdCtrls, Buttons, checklst;
 
 type
@@ -16,6 +18,7 @@ type
     procedure lstCardsClickCheck(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure cmdTradeClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
     bReady: boolean;
@@ -32,7 +35,7 @@ var
 // Assegna una nuova carta al giocatore di turno
 procedure PescaCarta;
 
-// Verifica la validità e il valore di una combinazione di carte
+// Verifica la validitÃ  e il valore di una combinazione di carte
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 
 // Valuta la migliore combinazione per il giocatore di turno
@@ -40,7 +43,7 @@ function CercaCombinazioneMigliore(var iInf, iCav, iArt, iJok: integer): boolean
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Stats;
 
@@ -155,7 +158,7 @@ begin
   end;
 end;
 
-// Verifica la validità e il valore di una combinazione di carte
+// Verifica la validitÃ  e il valore di una combinazione di carte
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 begin
   Result := -1;  // combinazione non possibile
@@ -232,6 +235,12 @@ begin
   Valuta(0,2,0,1);
   Valuta(0,0,2,1);
   Result := (iMaxBenefit>0);
+end;
+
+
+procedure TfCards.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel
 end;
 
 end.

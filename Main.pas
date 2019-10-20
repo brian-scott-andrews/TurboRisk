@@ -1,12 +1,14 @@
 unit Main;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
-  Menus, ExtCtrls, StdCtrls, ComCtrls, JvComponentBase, JvPropertyStore,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  Menus, ExtCtrls, StdCtrls, ComCtrls, {JvComponentBase, JvPropertyStore,
   JvProgramVersionCheck, IdAntiFreezeBase, IdAntiFreeze, IdBaseComponent,
-  IdComponent, IdTCPConnection, IdTCPClient, IdFTP, ImgList, ToolWin;
+  IdComponent, IdTCPConnection, IdTCPClient, IdFTP,} ImgList, ToolWin, LHelpControl, LazFileUtils, LResources;
 
 type
   TfMain = class(TForm)
@@ -33,7 +35,7 @@ type
     N2: TMenuItem;
     N3: TMenuItem;
     mnuHelCheckUpdates: TMenuItem;
-    IdAntiFreeze: TIdAntiFreeze;
+    {IdAntiFreeze: TIdAntiFreeze;      }
     mnuHelHomepage: TMenuItem;
     mnuFilSave: TMenuItem;
     mnuFilRestore: TMenuItem;
@@ -59,7 +61,7 @@ type
     cmdRules: TToolButton;
     cmdMap: TToolButton;
     cmdPreferences: TToolButton;
-    cmdHelp: TToolButton;
+//    cmdHelp: TToolButton;
     cmdHomePage: TToolButton;
     cmdUpdate: TToolButton;
     cmdAbout: TToolButton;
@@ -82,7 +84,7 @@ type
     procedure mnuHelAboutClick(Sender: TObject);
     procedure mnuOptMapClick(Sender: TObject);
     procedure mnuVieHistClick(Sender: TObject);
-    procedure mnuHelCheckUpdatesClick(Sender: TObject);
+{    procedure mnuHelCheckUpdatesClick(Sender: TObject);  }
     procedure mnuHelHomepageClick(Sender: TObject);
     procedure mnuFilSaveClick(Sender: TObject);
     procedure mnuFilRestoreClick(Sender: TObject);
@@ -91,6 +93,7 @@ type
       X, Y: Integer);
     procedure mnuOptPrefClick(Sender: TObject);
     procedure mnuHelGroupClick(Sender: TObject);
+    function GetLHelpFilename: string;
   private
   public
     { Public declarations }
@@ -98,35 +101,32 @@ type
 
 var
   fMain: TfMain;
+  Help: TLHelpConnection;
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
-uses ShellAPI, Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
+uses Globals, Territ, NewGame, Stats, Human, Rules, Players, Log,
   Readme,
-  About, ExpSubr, Map, History, CheckUpd, Pref, SplashScreen;
+  About, ExpSubr, Map, History, Pref, SplashScreen;
 
 procedure TfMain.FormShow(Sender: TObject);
 var
-  bUpdatesAvailable: Boolean;
+   LHelp: String;
 begin
   bG_TRSim := false;
-  bUpdatesAvailable := false;
   Setup;
   Caption := 'TurboRisk ' + sG_AppVers;
-  Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
-  // check for updates
-  if bPrefCheckUpdate then
-    bUpdatesAvailable := fCheckUpd.CheckUpdates(true);
+  LHelp := GetLHelpFilename;
+  if not FileExistsUTF8(LHelp) then
+    MessageDlg('Missing lhelp','Can not find the lhelp application "'+LHelp+'"',
+       mtError,[mbOk],0);
+  Help := TLHelpConnection.Create;
+  //Help.ProcessWhileWaiting := @Application.ProcessMessages;
   // remove splash screen
   fSplashScreen.Hide;
   fSplashScreen.Free;
-  if bUpdatesAvailable then begin
-    if MessageDlg(
-      'There are news and/or updates about TurboRisk. Would you like to start the Update Manager?', mtConfirmation, [mbYes, mbNo], 0) = mrYes then
-      fCheckUpd.ShowModal;
-  end;
 end;
 
 procedure TfMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -274,34 +274,57 @@ begin
   fMap.ShowModal;
 end;
 
+
+procedure TfMain.mnuHelReadmeClick(Sender: TObject);
+var
+  Res: TLHelpResponse;
+begin
+  try
+    if Help.ServerRunning = false then
+      Help.StartHelpServer('letters', GetLHelpFilename);
+    Res := Help.OpenFile(sG_AppPath + 'TurboRisk.chm');
+  finally
+    Screen.Cursor := crDefault;
+  end;
+  //Label1.Caption := ResponseToString(Res);
+end;
+
+
+function TfMain.GetLHelpFilename: string;
+begin
+  Result := './lhelp/lhelp';
+  {$IFDEF Windows}
+  Result := '.\lhelp\lhelp.exe';
+  {$ENDIF}
+  {$IFDEF darwin} //OS X
+  Result:=Result+'.app/Contents/MacOS/'+ExtractFilename(Result);
+  {$ENDIF}
+end;
+
+{
 procedure TfMain.mnuHelReadmeClick(Sender: TObject);
 begin
   // Application.HelpSystem.ShowTableOfContents; // doesn'twork!
   Application.HelpSystem.ShowContextHelp(100, sG_AppPath + 'TurboRisk.chm');
 end;
+}
 
 procedure TfMain.mnuHelAboutClick(Sender: TObject);
 begin
   fAbout.ShowModal;
 end;
 
-procedure TfMain.mnuHelCheckUpdatesClick(Sender: TObject);
-begin
-  fCheckUpd.ShowModal;
-end;
 
 procedure TfMain.mnuHelGroupClick(Sender: TObject);
 begin
-  ShellExecute(0, nil, pChar(
-      'http://groups.google.com/group/turborisk'), nil,
-    nil, sw_ShowNormal);
+  OpenURL(pChar(
+      'http://groups.google.com/group/turborisk')); { *Converted from ShellExecute* }
 end;
 
 procedure TfMain.mnuHelHomepageClick(Sender: TObject);
 begin
-  ShellExecute(0, nil, pChar(
-      'http://www.marioferrari.org/freeware/turborisk/turborisk.html'), nil,
-    nil, sw_ShowNormal);
+  OpenURL(pChar(
+      'http://www.marioferrari.org/freeware/turborisk/turborisk.html')); { *Converted from ShellExecute* }
 end;
 
 procedure TfMain.imgMapMouseMove(Sender: TObject; Shift: TShiftState;

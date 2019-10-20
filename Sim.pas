@@ -1,10 +1,12 @@
 unit Sim;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, ComCtrls, StdCtrls, Globals, ExtCtrls, Buttons, EdisCustom;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  Dialogs, ComCtrls, StdCtrls, Globals, ExtCtrls, Buttons{, EdisCustom};
 
 type
   TfSim = class(TForm)
@@ -33,10 +35,12 @@ type
     cboMap: TComboBox;
     Label1: TLabel;
     GroupBox2: TGroupBox;
-    txtGameLogFile: TEdisComboDialog;
     Label4: TLabel;
     Label5: TLabel;
-    txtCPULogFile: TEdisComboDialog;
+    txtGameLogFile: TEdit;
+    txtGameLogFilebtn: TButton;
+    txtCPULogFile: TEdit;
+    txtCPULogFilebtn: TButton;
     GroupBox3: TGroupBox;
     txtTurnLimit: TEdit;
     Label10: TLabel;
@@ -46,8 +50,10 @@ type
     dlgOpenLogFile: TOpenDialog;
     Label13: TLabel;
     Label14: TLabel;
-    txtGameLogFile2: TEdisComboDialog;
-    txtCPULogFile2: TEdisComboDialog;
+    txtGameLogFile2: TEdit;
+    txtGameLogFile2btn: TButton;
+    txtCPULogFile2: TEdit;
+    txtCPULogFile2btn: TButton;
     cmdAnalyseGameLog: TBitBtn;
     cmdAnalyseCPULog: TBitBtn;
     procedure FormShow(Sender: TObject);
@@ -76,9 +82,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses IniFiles, StrUtils, DateUtils, StdPas, SimRun, SimMap, Stats, Territ,
+uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
   SimCPULog, SimGameLog;
 
 procedure TfSim.FormShow(Sender: TObject);
@@ -120,22 +126,42 @@ end;
 procedure TfSim.txtGameLogFileCustomDlg(Sender: TObject);
 begin
   dlgOpenLogFile.InitialDir := sG_AppPath;
-  dlgOpenLogFile.DefaultExt := 'sgl';
+  dlgOpenLogFile.DefaultExt := '.sgl';
   dlgOpenLogFile.FileName := '*.sgl';
-  dlgOpenLogFile.Filter := 'TRSim Game Log|sgl';
-  if dlgOpenLogFile.Execute then begin (Sender as TEdisComboDialog)
-    .Text := ExtractFileName(dlgOpenLogFile.FileName);
+  dlgOpenLogFile.Filter := 'TRSim Game Log (*.sgl)|*.sgl';
+  if dlgOpenLogFile.Execute then begin
+    if Sender is TEdit then begin
+      TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
+    end;
+    if Sender is TButton then begin
+      if TButton(Sender).Tag =1 then begin
+        txtGameLogFile.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end
+      else begin
+        txtGameLogFile2.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end;
+    end;
   end;
 end;
 
 procedure TfSim.txtCPULogFileCustomDlg(Sender: TObject);
 begin
   dlgOpenLogFile.InitialDir := sG_AppPath;
-  dlgOpenLogFile.DefaultExt := 'scl';
+  dlgOpenLogFile.DefaultExt := '.scl';
   dlgOpenLogFile.FileName := '*.scl';
-  dlgOpenLogFile.Filter := 'TRSim CPU Log|scl';
-  if dlgOpenLogFile.Execute then begin (Sender as TEdisComboDialog)
-    .Text := ExtractFileName(dlgOpenLogFile.FileName);
+  dlgOpenLogFile.Filter := 'TRSim CPU Log (*.scl)|*.scl';
+  if dlgOpenLogFile.Execute then begin
+    if Sender is TEdit then begin
+      TEdit(Sender).Text := ExtractFileName(dlgOpenLogFile.FileName);
+    end;
+    if Sender is TButton then begin
+      if TButton(Sender).Tag =1 then begin
+        txtCPULogFile.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end
+      else begin
+        txtCPULogFile2.Text := ExtractFileName(dlgOpenLogFile.FileName);
+      end;
+    end;
   end;
 end;
 
@@ -175,8 +201,7 @@ begin
       txtMinPlayers.Text := IntToStr(ReadInteger('Params', 'MinPlayers', 2));
       txtMaxPlayers.Text := IntToStr(ReadInteger('Params', 'MaxPlayers', 10));
       chkShowMap.Checked := ReadBool('Params', 'ShowMap', true);
-      cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map',
-          'std_map_small.trm'));
+      cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map', 'std_map_small.trm'));
       chkShowStats.Checked := ReadBool('Params', 'ShowStats', true);
       chkErrorDump.Checked := ReadBool('Params', 'ErrorDump', true);
       chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
@@ -254,7 +279,7 @@ var
   sTRP: string;
 begin
   // load program list
-  if FindFirst(sG_AppPath + 'players\*.trp', faAnyFile, rFileDesc) = 0 then
+  if FindFirst(sG_AppPath + 'players' + PathDelim + '*.trp', faAnyFile, rFileDesc) = 0 then
   begin
     repeat
       // get TRP name from file system
@@ -277,7 +302,7 @@ var
 begin
   cboMap.Items.Clear;
   // load map list
-  if FindFirst(sG_AppPath + 'maps\*.trm', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath + 'maps'+ PathDelim + '*.trm', faAnyFile, rFileDesc) = 0 then begin
     repeat
       // get TRP name from file system
       sMap := lowercase(rFileDesc.Name);
@@ -331,23 +356,23 @@ begin
   sSimCPULogFile := txtCPULogFile.Text;
   // validity check
   if iSimGames <= 0 then begin
-    MsgErr('Invalid number of games.');
+    ShowMessage('Invalid number of games.');
     txtGames.SetFocus;
     exit;
   end;
   if (iSimMinPl < 2) or (iSimMaxPl > 10) or (iSimMaxPl < iSimMinPl) then begin
-    MsgErr('Invalid number of players. Min=2, max=10');
+    ShowMessage('Invalid number of players. Min=2, max=10');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count > iSimMinPl then begin
-    MsgErr(
+    ShowMessage(
       'The number of TRPs in the "always" list is greater then the minimum number of players per game.');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count + lstRandom.Count < iSimMaxPl then begin
-    MsgErr(
+    ShowMessage(
       'The total number of TRPs in the "always" and "random" lists is not large enough to reach the maximum number of players per game.');
     txtMaxPlayers.SetFocus;
     exit;

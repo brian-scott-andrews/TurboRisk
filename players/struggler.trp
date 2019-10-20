@@ -1,0 +1,309 @@
+{
+Program: Struggler
+
+Author: Mario Ferrari, March 2 1999
+
+Description: My first attempt to a strong TurboRisk program
+
+History: Bugs in AssignEval and PlaceEval fixed by Nathan Scarbrough.
+}
+
+
+
+function AssignEval(T: integer): double;
+  var
+    FreeT,            // free territories on the continent  #*# changed to double
+    Points: double;   // value assigned to the FROM/TO pair
+    C,CT,             // continent, territories on the continent
+    AF,AT,            // armies on FROM and TO teritories
+    PT,PA,            // my territories and armies on FROM continent
+    ET,EA,            // enemy territories and armies on FROM continent
+    LP,               // leader player on FROM continent
+    LT,LA: integer;   // leader's territories and armies on FROM continent
+
+begin
+    Points:=0;
+    C:=TContinent(T);
+    CT:=CTerritoriesCount(C);
+    CAnalysis(C,PT,PA,ET,EA);
+    CLeader(C,LP,LT,LA);
+    FreeT:=CT-PT-ET;
+    // the leader of the continent it's not me and owns all territories less one
+    if LP>0 then begin
+      if (LP<>PMe) and (LT>=CT-1) then begin
+        Points:=Points+100.0;    // I must avoid enemy conquers the continent
+      end;
+    end;
+    // evaluate my chances to conquer the continent
+    // needed to change freeT to double to get this line to not truncate freeT/splayerscount
+    Points:=Points+1.0*(PT+1+FreeT/SPlayersCount)/(ET+FreeT*SPlayersCount/(SplayersCount-1));
+    result:=Points;
+end;
+
+
+function PlaceEval(TF,TT: integer): double;
+  var
+    Points,temp: double;   // value assigned to the FROM/TO pair
+    CF,CT,            // FROM and TO continents
+    AF,AT,            // armies on FROM and TO teritories
+    PT,PA,            // my territories and armies on FROM continent
+    ET,EA,            // enemy territories and armies on FROM continent
+    LP,               // leader player on FROM continent
+    LT,LA: integer;   // leader's territories and armies on FROM continent
+begin
+    Points:=0;
+    CF:=TContinent(TF);
+    CT:=TContinent(TT);
+    AF:=TArmies(TF);
+    AT:=TArmies(TT);
+    // FROM and TO territories are on different continents
+    if CF<>CT then begin
+      // enemy owns the TO continent
+      if COwner(CT)>0 then begin
+        Points:=Points+2.0;
+      end;
+      // I own the FROM continent and is not well defended
+      temp := (double(TPressure(TF))) / (double(AF)); 
+      if (COwner(CF)>0) and (temp>1.0) then begin
+        Points:=Points+3.0;
+      end;
+    end else begin
+    // FROM and TO territories are on the same continent
+      CAnalysis(CF,PT,PA,ET,EA);
+      CLeader(CF,LP,LT,LA);
+      // the leader of the continent it's not me and owns all territories less one
+      temp := (double(TPressure(TF))) / (double(AF));
+      if (LP<>PMe) and (LT=ET) and (temp>0.2) then begin
+        Points:=Points+10.0;    // I must resist!
+      end;
+      // evaluate my chances to conquer the continent
+      Points:=Points+1.0*(PA+1)/(EA+ET);
+    end;
+    // if enemy owns just one territory, I try to kill him to get his cards
+    if PTerritoriesCount(TOwner(TF))<2 then begin
+      Points:=Points+20.0;
+    end;
+    // Generic evaluations about strength ratio
+    Points:=Points+0.5*(double(TPressure(TF))/AF)  // #*#
+ result:=Points;
+end;
+
+
+function AttackEval(TF,TT: integer): double;
+  var
+    Points: double;   // value assigned to the FROM/TO pair
+    CF,CT,            // FROM and TO continents
+    AF,AT,            // armies on FROM and TO teritories
+    PT,PA,            // my territories and armies on FROM continent
+    ET,EA,            // enemy territories and armies on FROM continent
+    LP,               // leader player on FROM continent
+    LT,LA: integer;   // leader's territories and armies on FROM continent
+begin
+    Points:=0;
+    CF:=TContinent(TF);
+    CT:=TContinent(TT);
+    AF:=TArmies(TF);
+    AT:=TArmies(TT);
+    // FROM and TO territories are on different continents
+    if CF<>CT then begin
+      // enemy owns the TO continent
+      if COwner(CT)>0 then begin
+        Points:=Points+2.0;
+      end;
+    end
+    // FROM and TO territories are on the same continent
+    else begin
+      CAnalysis(CF,PT,PA,ET,EA);
+      CLeader(CF,LP,LT,LA);
+      // evaluate my chances to conquer the continent
+      Points:=Points+1.0*(PA+1)/(EA+ET);
+    end;
+    // if enemy owns just one territory, I try to kill him to get his cards
+    if PTerritoriesCount(TOwner(TF))<2 then begin
+      Points:=Points+20.0;
+    end;
+    // if haven't conquered a territory, add some points for
+    // a generic evaluation of the attack ratio
+    if not SConquest then begin
+      Points:=Points+1.0*AF/AT;
+    end;
+    result:=Points;
+end;
+
+
+
+procedure Assignment(var ToTerritory: integer);
+var
+  T: integer;
+  Value,MaxValue: double;
+
+  // evaluation function for the unassigned territory T
+
+begin
+  // choose unassigned territory with greatest value
+  ToTerritory:=0;
+  MaxValue:=0;
+  for T:=1 to 42 do begin
+    if TOwner(T)=0 then begin  // territory is unassigned
+      Value:=AssignEval(T);
+      if Value>MaxValue then begin
+        ToTerritory:=T;
+        MaxValue:=Value;
+      end;
+    end;
+  end;
+end;
+
+
+
+
+
+
+procedure Placement(var ToTerritory: integer);
+var
+  T,T2,F: integer;
+  Value,MaxValue: double;
+
+  // evaluation function for the pair "territory from"-"territory to" (TF-TT)
+
+begin // Placement
+  // reinforce front territory with greatest value
+  ToTerritory:=0;
+  MaxValue:=0;
+  for T:=1 to 42 do begin
+    if TIsFront(T) then begin  // territory is mine and front
+      for F:=1 to TFrontsCount(T) do begin
+        T2:=TFront(T,F);
+        Value:=PlaceEval(T,T2);
+        if Value>MaxValue then begin
+          ToTerritory:=T;
+          MaxValue:=Value;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+
+
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  T,T2,F,FCount: integer;
+  Ratio,Value,MaxValue: double;
+
+  // Evaluation function for the pair "territory from"-"territory to" (TF-TT).
+  // It return a value > 1 for strategic attacks
+
+begin
+  // perform the attack with highest point value if force ratio>=1.2
+  FromTerritory:=0;
+  ToTerritory:=0;
+  MaxValue:=0;
+  // scan all territories
+  for T:=1 to 42 do begin
+    if TIsFront(T)                      // territory is mine and front
+    and (TArmies(T)>1) then begin       // and attack is possible
+      // scan all possible fronts
+      FCount:=TFrontsCount(T);
+      for F:=1 to FCount do begin
+        T2:=TFront(T,F);
+        Ratio := TArmies(T) / TArmies(T2);
+        if Ratio>=1.2 then begin
+          Value:=AttackEval(T,T2);
+          // consider only strategic attacks
+          if Value>=1.0 then begin
+            if Value>MaxValue then begin
+              FromTerritory:=T;
+              ToTerritory:=T2;
+              MaxValue:=Value;
+            end;
+          end; 
+        end;
+      end;
+    end;
+  end;
+ 
+  UbufferSet(7, (Fromterritory + ((double(ToTerritory))/100))); //#*#
+
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  FromIsFront, ToIsFront: boolean;
+begin
+  // very simple but effective routine
+
+  FromTerritory:= trunc(UbufferGet(7));	//#*#
+  ToTerritory:= round((UbufferGet(7)-trunc(UbufferGet(7)))*100);	//#*#
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+  // if both territories are 'front'
+  if  FromIsFront and ToIsFront then begin
+    // balance armies
+    Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2;
+
+  // if "From" territory is front
+  end else if FromisFront then begin
+    // all armies stay in From territory, so there's nothing to do
+
+  // in the other cases
+  end else begin
+    // all armies in the conquered territory (except one which must stay)
+    Armies:=TArmies(FromTerritory)-1;
+  end;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  T,B,MaxArmy: integer;
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+
+  // look for the greatest nuber of armies which is not on a front territory
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin  // territory is mine and not "front"
+      if TArmies(T)>MaxArmy then begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+  // if there are armies to move...
+  if FromTerritory>0 then begin
+    // check if can move armies to front...
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then begin
+          ToTerritory:=T;
+        end;
+      end;
+    end;
+    // otherwise move armies in the first bordering territory
+    if ToTerritory=0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+    // Move all armies to destination (except the one which must stay)
+    if ToTerritory>0 then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+end;
+
+begin
+end.

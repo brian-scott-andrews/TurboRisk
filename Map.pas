@@ -1,11 +1,13 @@
 unit Map;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Buttons, JvExExtCtrls, JvImage,
-  JvBaseThumbnail, JvThumbImage;
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,   ImgList,
+  Dialogs, StdCtrls, ComCtrls, ExtCtrls, Buttons{, JvExExtCtrls, JvImage,
+  JvBaseThumbnail, JvThumbImage};
 
 type
   TfMap = class(TForm)
@@ -28,6 +30,7 @@ type
       Change: TItemChange);
     procedure lstMapSelectItem(Sender: TObject; Item: TListItem;
       Selected: Boolean);
+    procedure cmdCancel(Sender: TObject);
   private
     bLoading: boolean;
   public
@@ -39,7 +42,7 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
 uses Globals, IniFiles, Territ;
 
@@ -51,7 +54,7 @@ begin
   bLoading := true;
   // load list of map
   lstMap.Clear;
-  if FindFirst(sG_AppPath+'maps\*.trm', 0, SearchRec) = 0 then begin
+  if FindFirst(sG_AppPath+'maps'+PathDelim+'*.trm', 0, SearchRec) = 0 then begin
     repeat
       with lstMap.Items.Add do begin
         Caption := SearchRec.Name;
@@ -59,7 +62,7 @@ begin
           Checked := true;
           lstMap.ItemIndex := lstMap.Items.Count-1;
         end;
-        IniFile := TIniFile.Create(sG_AppPath+'maps\'+SearchRec.Name);
+        IniFile := TIniFile.Create(sG_AppPath+'maps'+PathDelim+SearchRec.Name);
         try
           SubItems.Add(IniFile.ReadString('Map','Desc',''));
           SubItems.Add(IniFile.ReadString('Map','Author',''));
@@ -117,14 +120,14 @@ var
 begin
   if bLoading then exit;
   if lstMap.ItemIndex<0 then exit;
-  sBmpFile := ChangeFileExt(sG_AppPath+'maps\'+Item.Caption,'.bmp');
+  sBmpFile := ChangeFileExt(sG_AppPath+'maps'+PathDelim+Item.Caption,'.bmp');
   if FileExists(sBmpFile) then begin
     bmp := TBitmap.Create;
     try
       // load bitmap and compute ratio
       bmp.LoadFromFile(sBmpFile);
       // stretch it into preview
-      SetStretchBltMode(imgMapPreview.Canvas.Handle, Stretch_Halftone);  // improve strech quality
+      SetStretchBltMode(imgMapPreview.Canvas.Handle, HALFTONE);  // improve strech quality
       StretchBlt(imgMapPreview.Canvas.Handle, 0, 0, imgMapPreview.Width, imgMapPreview.Height, bmp.Canvas.Handle, 0, 0, bmp.Width, bmp.Height, SrcCopy);
       imgMapPreview.Refresh;
       // update controls
@@ -142,6 +145,11 @@ begin
     txtMapSize.Text := '';
     panMapPreview.Caption := 'Cannot find bitmap file';
   end;
+end;
+
+procedure TfMap.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;    //Added this line
 end;
 
 end.

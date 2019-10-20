@@ -1,9 +1,11 @@
 unit Rules;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   ComCtrls, StdCtrls, Buttons, ExtCtrls;
 
 type
@@ -73,6 +75,7 @@ type
     procedure optUsoCarteClick(Sender: TObject);
     procedure txtNumOnlyKeyPress(Sender: TObject; var Key: Char);
     procedure cmdResetRulesClick(Sender: TObject);
+    procedure cmdCancel(Sender: TObject);
   private
     { Private declarations }
   public
@@ -84,7 +87,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals;
 
@@ -275,6 +278,11 @@ begin
   txtMaxCardsHeld.Text := '5';
   chkTradeCaptured.Checked := true;
   chkTrasfFinale.Checked := true;
+end;
+
+procedure TfRules.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
 end;
 
 end.

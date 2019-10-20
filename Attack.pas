@@ -1,12 +1,17 @@
 unit Attack;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Classes, Graphics, Controls, Forms, Dialogs,
   StdCtrls, Buttons, ExtCtrls;
 
 type
+
+  { TfAttack }
+
   TfAttack = class(TForm)
     panFromTerr: TPanel;
     Label1: TLabel;
@@ -39,6 +44,7 @@ type
     procedure cmdAttackUntil2Click(Sender: TObject);
     procedure cboUntilKeyPress(Sender: TObject; var Key: Char);
     procedure FormKeyPress(Sender: TObject; var Key: Char);
+    procedure cmdCancel(Sender: TObject);
   private
     procedure UpdateDisplay;
   public
@@ -50,7 +56,7 @@ var
 
 implementation
 
-{$R *.DFM}
+{$R *.lfm}
 
 uses Globals, Main, Territ, Stats;
 
@@ -220,5 +226,11 @@ begin
     ModalResult := mrCancel;
   end;
 end;
+
+procedure TfAttack.cmdCancel(Sender: TObject);
+begin
+  ModalResult := mrCancel;
+end;
+
 
 end.

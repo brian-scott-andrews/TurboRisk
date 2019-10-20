@@ -1,9 +1,11 @@
 unit SimCPULog;
 
+{$MODE Delphi}
+
 interface
 
 uses
-  Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
+  LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
   Dialogs, StdCtrls, ComCtrls, ExtCtrls, Globals;
 
 type
@@ -42,9 +44,9 @@ var
 
 implementation
 
-{$R *.dfm}
+{$R *.lfm}
 
-uses IniFiles, StrUtils, StdPas;
+uses IniFiles, StrUtils{, StdPas};
 
 procedure TfSimCPULog.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -72,7 +74,7 @@ var
 
 begin
   if not FileExists(sG_AppPath + sLogFileName) then begin
-    MsgErr('Log file "' + sLogFileName + '" not found.');
+    ShowMessage('Log file "' + sLogFileName + '" not found.');
     exit;
   end;
   // open log file

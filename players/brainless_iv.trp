@@ -1,0 +1,231 @@
+{
+Program: brainless IV
+
+Author: Mattias Beimers
+
+Email: matheiusb+tr@gmail.com - If you can find a bug, please send a snapshot (dumpfile) to this emailadres
+
+Description: This AI looks very stupid, hence the name ;-)
+He can be very annoying, and has a surprisingly large desire of power and a lot of patience to get what he wants!
+He's made for a 10 player game with cards based on progression, and is not good anymore (but still anoying) when you take other rules.
+
+Special thanks to Mario Ferrari and his wonderfull program, I really enjoy it,
+and to my friend, Chiel ten Brinke, who created brainless (the first) and inspired
+me to make brainless the fourth
+
+History: First version, brainless, was made by Chiel ten Brinke,
+this one just walked around getting strong, but had no world-conqueror algoritm.
+Attempts at brainless 2 and 3 were made, but they never became strong.
+This brainless version is a complete new AI, but with the same thought behind it.
+Later adds were made for TR 2.0 (mostly path and card functions)
+}
+
+
+{
+POSSIBLE IMPROVEMENTS:
+
+- Better kill player function
+  (current one kills players with up to 3 territories (must boder eachother) and then only if he is beside them by chance)
+- Smarter territory hopping - go to territories where the most other weak territories are bordering
+- Cooperation when there are two brainless IV's
+  (this will simply mean that one runs himself death as soon as they have enough armies together)
+- A hybrid with an AI who knows how to play with cards based on combination (im working on one at the moment)
+}
+
+
+function GetAttT: integer;
+var
+  T,A,MaxA: integer;
+begin
+  // Determine which T is your strongest front to attack with
+  MaxA:=0;
+  for T:=1 to 42 do begin
+    A:=TArmies(T);
+    if (TIsFront(T)) and ( (A>MaxA) or ((A>=MaxA) and (T<39)) ) then begin
+      MaxA:=A;
+      result:=T;
+    end;
+  end;
+end;
+
+
+function KillP(T: integer; var ET: integer): boolean;
+var
+  T1,T2,T3,P,PT,N,H: integer;
+begin
+  // Provides T from a player who can easily be killed (max 3 T's) from one Territory
+  ET:=0;
+  result:=false;
+  T2:=0;
+  T3:=0;
+  for N:=1 to TFrontsCount(T) do begin
+    T1:=TFront(T,N);
+    P:=TOwner(T1);
+    PT:=PTerritoriesCount(P);
+    if (PT<4)
+    and (  ( (TArmies(T)>10*PArmiesCount(P)) and (SCardsBasedOnCombo) and (PCardCount(P)>2) )
+    or ( (TArmies(T)>5*PArmiesCount(P)) and (not(SCardsBasedOnCombo)) and (PCardCount(P)>1) )  )
+    then begin
+      if PT=1 then T2:=-1;
+      if PT<3 then T3:=-1;
+      for H:=1 to 42 do begin
+        if TOwner(H)=P then begin
+          if (T2>0) and (T3=0) and (TIsBordering(H,T2)) then T3:=H;
+          if (T2=0) and (TIsBordering(H,T1)) then begin
+            T2:=H;
+            H:=0;
+          end;
+        end;
+      end;
+      if (T2<>0) and (T3<>0) then begin
+        ET:=T1;
+        result:=true;
+      end;
+    end;
+  end;
+end;
+
+
+procedure Assignment(var TT: integer);
+var
+  T: integer;
+begin
+  // Prefers Asia so he can walk around freely
+  T:=0;
+  repeat
+    T:=T+1;
+    if TOwner(T)=0 then
+      TT:=T;
+  until ( (TT>0) and (T=38) ) or (T=42);
+end;
+
+
+procedure Placement(var TT: integer);
+begin
+  TT:=GetAttT;
+end;
+
+
+procedure Attack(var T, TT: integer);
+var
+  A,N,ET,EA,F,MinF,P,TPA: integer;
+begin
+  TT:=0;
+  T:=GetAttT;
+  A:=TArmies(T);
+
+  // Card-Attack
+  if (not SConquest) and (TIsFront(T)) then begin
+    TWeakestFront(T,ET,EA);
+    if ( (A>3*EA) and (EA<99) and (not(SCardsBasedOnCombo)) )
+    or ( (A>4*EA) and ( (EA<4) or ( (EA<5) and (A>99) ) ) and (SCardsBasedOnCombo) ) then TT:=ET;
+  end;
+
+  // Kill a player
+  if KillP(T,ET) then TT:=ET;
+
+  // Number of armies of all my enemies
+  TPA:=0;
+  for P:=1 to 10 do begin
+    if (PActive(P)) and (P<>PMe) then
+      TPA:=TPA+PArmiesCount(P);
+  end;
+
+  // Attack the whole world in one turn (if possible)
+  MinF:=11;
+  if (TIsFront(T)) and ( (A>TPA) or (SAlivePlayersCount=2) ) then begin
+    for N:=1 to TFrontsCount(T) do begin
+      ET:=TFront(T,N);
+      F:=TFrontsCount(ET);
+      if (MinF<>0) then begin
+        if (ET=31) then F:=-1;  // To Siam
+        if (T=31) and (ET=39) then F:=-1;  // From Siam to Indonesia
+        if (COwner(3)=PMe) and (COwner(5)=PMe) and (ET=16) then F:=-1;  // To E-Afrika
+        if (COwner(3)=PMe) and (COwner(4)=PMe) and (ET=29) then F:=-1;  // To Kazakhstan
+        if (COwner(1)=PMe) and (T=14) and (ET=12) then F:=-1;  // To Brazil
+      end;
+      if ( (F<MinF) or (F=0) or ( (F=MinF) and (not TIsEntry(ET)) ) ) and (A>TArmies(ET)) then begin
+        MinF:=F;
+        TT:=ET;
+      end;
+    end;
+  end;
+  if (TT=0) then T:=0;
+end;
+
+
+procedure Occupation(FT, TT: integer; var A: integer);
+var
+  C,PT,PA,ET,EA,RA: integer;
+begin
+  A:=0;
+  if (TIsFront(TT)) or (not TIsFront(FT)) then
+    A:=TArmies(FT)-1;
+  if (FT=31) and (TT=39) then begin  // Australia
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+  if (COwner(1)=PMe) and ((COwner(4)<>PMe) or (COwner(3)<>PMe)) and (FT=14) and (TT=12) then begin  // S-America
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+end;
+
+
+procedure Fortification(var FT, TT, Armies: integer);
+var
+  T,AT,A,T1,PL,F,MaxF: integer;
+begin
+  FT:=0;
+  TT:=0;
+  Armies:=0;
+  AT:=GetAttT;
+
+  A:=1;
+  for T:=1 to 42 do begin
+    TShortestPath(T,AT,T1,PL);
+    if (PL=0) or (not TIsMine(T1)) then PL:=99;
+    if (TIsMine(T)) and ( (not TIsFront(T)) or (PL<5) ) then begin
+      if (TArmies(T)>A) then   // Strongest army
+      begin
+        A:=TArmies(T);
+        FT:=T;
+        TT:=TPathToFront(T);                     // Move to front
+        if (PL<5) and (TIsMine(T1)) then TT:=T1; // Or even better, move to attack territory
+        Armies:=TArmies(T)-1;
+      end;
+    end;
+  end;
+
+  if not (SConquest) then begin // Move attack territory if it couldnt get cards
+    MaxF:=0;
+    PL:=0;
+    for A:=1 to TBordersCount(AT) do begin
+      T:=TBorder(AT,A);
+      F:=TFrontsCount(T);
+      if (TIsMine(T)) and ( (F>MaxF) or ((F>=MaxF) and (TBordersCount(T)>PL)) ) then begin
+        MaxF:=F;
+        PL:=TBordersCount(T);
+        FT:=AT;
+        TT:=T;
+        Armies:=TArmies(FT)-1;
+      end;
+    end;
+  end;
+end;
+
+
+begin
+end.
