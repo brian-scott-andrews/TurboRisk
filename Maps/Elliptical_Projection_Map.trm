@@ -1,9 +1,11 @@
 [Map]
-Desc=An elliptical (Mollweide) projection map - similar to the standard map
+Desc=An elliptical (Mollweide) projection map    
 Author=Nathan Scarbrough - Orignal by Orthuberra found at http://commons.wikimedia.org/wiki/File:Risk_game_map.png
-Revision=1.1
+Revision=2.0
 FontName=Courier New
 FontSize=12
+TextFG=0
+TextBG=16777215
 [Territory_1]
 Color=32896
 Tx=76
@@ -78,21 +80,21 @@ FF2y=159
 Color=8454143
 Tx=126
 Ty=249
-FFCount=8
+FFCount=7
 FF1x=112
 FF1y=228
 FF2x=204
 FF2y=316
-FF3x=348
-FF3y=95
-FF4x=217
-FF4y=259
-FF5x=256
-FF5y=274
-FF6x=233
+FF3x=217
+FF3y=259
+FF4x=256
+FF4y=274
+FF5x=233
+FF5y=279
+FF6x=279
 FF6y=279
-FF7x=279
-FF7y=279
+FF7x=160
+FF7y=247
 FF8x=160
 FF8y=247
 [Territory_10]
