@@ -1,0 +1,1942 @@
+{
+Program: Zotob
+
+Author: Nathan Scarbrough
+Credit to Anthony Covey-Crump for Descartes and
+Chrys Wurmse for Wyrm
+
+Description: This is a Wyrm + Descartes hybrid
+Zotob plays as Wyrm until he only has two territories left in which case Descartes takes over.
+He switches back to Wyrm when he owns at least 2 continents and more than 15 territories.
+He will also start out as Descartes if there are 5 or more players
+He is named after the computer worm Zotob.
+
+History: I made this TRP because Wyrm often gets defeated early on in games with many players and I thought that using Descartes code could help him survive longer.
+
+June 2009
+
+}
+
+function TargetCplacement(Small: integer): integer;
+var
+  T, C, BestC, Diff, BestDiff: integer;
+  PT, PA, ET, EA, X : integer;
+
+begin
+  // LOCAL FUNCTION TARGETCplacement:  determines the target continent to attack
+  // best ratio of armies in the continent and its borders
+
+  BestDiff:=SMALL;
+  for C:=1 to 6 do
+    begin
+      PT:=0;
+      PA:=0;
+      ET:=0;
+      EA:=0;
+      CAnalysis(C, PT, PA, ET, EA);
+      if (ET>0) then
+        begin
+          // sub CBORDERANALYSIS:  adjust PT, PA, ET, and EA to reflect
+          // territories that border the given continent
+          for X:=1 to CBordersCount(C) do
+            begin
+              T:=Cborder(C,X);
+              if TIsMine(T) then
+                begin
+                  PT:=PT+1;
+                  PA:=PA+TArmies(T);
+                end
+              else
+                begin
+                  ET:=ET+1;
+                  EA:=EA+TArmies(T);
+                end;
+            end;
+        end;
+      Diff:=PA-ET-EA;
+      if (ET>0) and (PT>0) and (Diff>BestDiff) then
+        begin
+          BestDiff:=Diff;
+          BestC:=C;
+        end;
+    end;
+  result:=BestC;
+end;
+
+function MyTPressure(T, MaxFronts: integer): integer;
+var
+  Pressure, MyB, MyT: integer;
+begin
+  // LOCAL FUNCTION MYTPressure:  returns available armies bordering on [enemy?] territory T
+  // my territories must have at most MaxFronts fronts in order to count its armies
+  
+  Pressure:=0;
+
+  for MyB:=1 to TBordersCount(T) do
+    begin
+      MyT:=TBorder(T,MyB);
+      if TIsMine(MyT) and (TFrontsCount(MyT)<=MaxFronts) then
+        Pressure:=Pressure+TArmies(MyT);
+    end;
+  result:=Pressure;
+end;
+
+function TargetTplacement(EnemyC, Small, Allfronts, onefronts: integer; force: double): integer;
+var
+  T, T2, BestT, Diff, BestDiff: integer;
+  ET, EA, X, Y : integer;
+
+begin
+  // LOCAL FUNCTION TARGETTplacement:  determines the target territory to attack
+  // will return a territory on another continent if no attacks are available
+  // on the desired continent {can also return 0 if no feasible attack is available at all}
+  // uses local global ENEMYC
+  
+  BestDiff:=SMALL;
+  BestT:=0;
+  for X:=1 to CTerritoriesCount(EnemyC) do
+    begin
+      T:=CTerritory(EnemyC,X);
+//      UMessage('Checking out territory #',X,' of target continent ',ENEMYC);
+      Y:=MyTPressure(T,ALLFRONTS);
+//      UMessage('Looking at territory ',T,' which you have ',Y,' total pressure on');
+      if (Y>0) and (trunc(FORCE*TArmies(T))<(PNewArmies(PMe)+Y)) and (not TIsMine(T)) then
+        begin
+          // if its an enemy territory that can be conquered, then compute
+          // your 1-front armies (+) less attacked armies (-) less new exposure to enemies (-)
+          Diff:=MyTPressure(T,ONEFRONTS)-TArmies(T);
+//          UMessage('Initial Diff (1-front armies less attacked) is ',Diff);
+          for Y:=1 to TBordersCount(T) do
+            begin
+              T2:=TBorder(T,Y);
+//              UMessage('Secondary loop, looking at territory #',Y,' (namely ',T2,') with my pressure of ',MyTPressure(T2,ALLFRONTS),' and armies ',TArmies(T2));
+              if (MyTPressure(T2,ALLFRONTS)=0) and (not(TIsMine(T2))) then
+                Diff:=Diff-TArmies(T2);
+              // new exposure when territory is conquered
+            end;
+//          UMessage('A conquerable territory on target continent ',EnemyC,' is ',T);
+//          UMessage('my [wasted] 1-front armies less attacked armies less new exposures is ',Diff);
+          if (Diff>BestDiff) then
+            begin
+               BestDiff:=Diff;
+               BestT:=T;
+            end;
+        end;
+    end;
+  if (BestT=0) then
+    begin
+      // look for easiest territory that can be taken [may be on another continent]
+      for T:=1 to 42 do
+        begin
+          if TIsMine(T) then
+            begin
+              TWeakestFront(T,ET,EA);
+              Diff:=TArmies(T)-EA;
+              if (Diff>BestDiff) then
+                begin
+                  BestDiff:=Diff;
+                  BestT:=ET;
+                end;
+            end;
+        end;
+//      TWeakestFront(BestT,ET,EA);  // this code has not been converted to ver 1.3
+//      Diff:=PNewArmies(PMe)*NEWRATIO; // allow only a %-age of new armies to go for this attack
+//      Diff:=Diff+TArmies(BestT)-EA*FORCE;
+//      if Diff<1 then BestT:=0;
+    end;
+  result:=BestT;
+end;
+
+function TargetCattack(small: integer): integer;
+var
+  T, C, BestC, Diff, BestDiff: integer;
+  PT, PA, ET, EA, X, Y: integer;
+  
+
+begin
+  // LOCAL FUNCTION TARGETCattack:  determines the target continent to attack
+  // best ratio of armies in the continent and its borders
+
+  
+  BestDiff:=0; // will hold maximum number of armies controlled by leading player Y
+  for X:=1 to 10 do
+    if (PActive(X)) and (X<>PMe) then
+      if (PArmiesCount(X)>BestDiff) then
+        begin
+          BestDiff:=PArmiesCount(X);
+          Y:=X; // Y holds the leading player's number
+        end;
+
+  BestDiff:=SMALL;
+  for C:=1 to 6 do
+    begin
+      PT:=0;
+      PA:=0;
+      ET:=0;
+      EA:=0;
+      CAnalysis(C, PT, PA, ET, EA);
+      if (ET>0) then
+        begin
+          // sub CBORDERANALYSIS:  adjust PT, PA, ET, and EA to reflect
+          // territories that border the given continent
+          for X:=1 to CBordersCount(C) do
+            begin
+              T:=Cborder(C,X);
+              if TIsMine(T) then
+                begin
+                  PT:=PT+1;
+                  PA:=PA+TArmies(T);
+                end
+              else
+                begin
+                  ET:=ET+1;
+                  EA:=EA+TArmies(T);
+                end;
+            end;
+        end;
+      Diff:=PA-ET-EA;
+
+      if (COwner(C)=Y) and SConquest and (PT>0) then // attack the leading player's continents
+        begin
+          Diff:=Diff+500;
+//          UMessage(PName(PMe),' is favoring an extra attack on ',PName(Y),', in continent # ',C,', because they are the leader');
+        end;
+
+      if (COwner(C)>0) and (COwner(C)<>PMe) and SConquest and (PT>0) then
+//        if (PArmiesCount(COwner(C))>PArmiesCount(PMe)) then
+          Diff:=Diff+500;
+// actually, just attack that other continent anyway, no matter what
+      // also attack an opponent's continent if they are about to run over you themselves
+
+      if (ET>0) and (PT>0) and (Diff>BestDiff) then
+        begin
+          BestDiff:=Diff;
+          BestC:=C;
+        end;
+//        UMessage('best continent = ',BestC,' with my armies less his armies of ',BestDiff);
+    end;
+  result:=BestC;
+end;
+
+function TargetTattack(enemyc, small, allfronts, onefronts: integer; force: double): integer;
+var
+  T, T2, BestT, Diff, BestDiff: integer;
+  ET, EA, X, Y: integer;
+
+begin
+  // LOCAL FUNCTION TARGETTattack:  determines the target territory to attack
+  // will return a territory on another continent if no attacks are available
+  // on the desired continent {can also return 0 if no feasible attack is available at all}
+  // uses local global ENEMYC
+
+
+  BestDiff:=SMALL*5;
+  BestT:=0;
+  for X:=1 to CTerritoriesCount(EnemyC) do
+    begin
+      T:=CTerritory(EnemyC,X);
+//      UMessage('Checking out territory #',X,' of target continent ',ENEMYC);
+      Y:=MyTPressure(T,ALLFRONTS);
+//      if SConquest then
+//        UMessage('Looking at territory ',T,' which you have ',Y,' total pressure on');
+      if (Y>0) and (trunc(FORCE*TArmies(T))<(PNewArmies(PMe)+Y)) and (not TIsMine(T)) then
+        begin
+          // if its an enemy territory that can be conquered, then compute
+          // your 1-front armies (+) less attacked armies (-) less new exposure to enemies (-)
+          Diff:=MyTPressure(T,ONEFRONTS)-TArmies(T);
+//          UMessage('Initial Diff (1-front armies less attacked) is ',Diff);
+          for Y:=1 to TBordersCount(T) do
+            begin
+              T2:=TBorder(T,Y);
+//              UMessage('Secondary loop, looking at territory #',Y,' (namely ',T2,') with my pressure of ',MyTPressure(T2,ALLFRONTS),' and armies ',TArmies(T2));
+              if (MyTPressure(T2,ALLFRONTS)=0) and (not(TIsMine(T2))) then
+                Diff:=Diff-TArmies(T2);
+              // new exposure when territory is conquered
+            end;
+//          if SConquest then
+//            UMessage('A conquerable territory on target continent ',EnemyC,' is ',T);
+//          UMessage('my [wasted] 1-front armies less attacked armies less new exposures is ',Diff);
+          if (Diff>BestDiff) then
+            begin
+               BestDiff:=Diff;
+               BestT:=T;
+            end;
+        end;
+    end;
+  if (BestT=0) and (not SConquest) then
+    begin
+      // look for easiest territory that can be taken [may be on another continent]
+      for T:=1 to 42 do
+        begin
+          if TIsMine(T) then
+            begin
+              TWeakestFront(T,ET,EA);
+              Diff:=TArmies(T)-EA;
+              if (Diff>BestDiff) then
+                begin
+                  BestDiff:=Diff;
+                  BestT:=ET;
+                end;
+            end;
+        end;
+    end;
+  result:=BestT;
+end;
+
+//***********************************************************************
+//***********************************************************************
+
+procedure Assignment(var ToTerritory: integer);
+var
+  T: integer;
+begin
+
+  // find first free territory (a very stupid way to start the game!)
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+
+
+//procP
+procedure Placement(var ToTerritory: integer);
+var
+  EnemyC, EnemyT, T, B, C, Diff, BestDiff: integer;
+  PT, PA, ET, EA, AnyAttack: integer;
+  
+  SMALL, ALLFRONTS, ONEFRONTS, TargetCBONUS, MINARMIES: integer;
+  FORCE, NEWRATIO: double;
+
+  X,Y,T2,D,D2,Z,TA,KillPlayer: integer;
+  Score: double;
+  MaxTerritoryValue,TerritoryValue,TerritoryTo: integer;
+  TerritoryArmies: integer;
+  
+  TotalArmies,PlayerArmies,P,A:Integer;
+  testa: double;
+  testb: integer;
+
+  count: integer;
+  Label Descartes;
+  Label GotoEnd;
+
+begin
+  If (ubufferget(46) <> 1) and (splayerscount > 4) then begin 
+    ubufferset(48, 1);	// goto descartes
+    ubufferset(46, 1);  // don't run this code again
+  end;
+
+  If (UBufferGet(48) = 0) and (PTerritoriesCount(PMe) < 3) then ubufferset(48, 1);
+
+  Count:=0;
+  For C:= 1 to 6 do if COwner(C) = PMe then Count:=Count + 1;
+  If (UBufferGet(48) = 1) and (( (count > 1) and (PTerritoriesCount(PMe) > 15) )
+  or (Count > 2)) then ubufferset(48, 0);
+  Count:=0;
+
+
+  If UBufferGet(48) = 1 then goto Descartes;
+
+//Wyrm
+  // PLACEMENT:  defines ToTerritory (where 1 army will be placed)
+  // 1) make sure ANY attack is possible
+  // 2) reinforce existing continents
+  // 3) make sure desired attack is possible
+  // 4) beef up the target continent
+  // 5) take care of the rest of your territories
+  
+
+  SMALL:=-9999;       // CONSTANTS SECTION
+  FORCE:=1.2;
+  MINARMIES:=5;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  TargetCBONUS:=12;          // bonus for reinforcing territories in current target continent
+  NEWRATIO:=0.5;      // %-age of new armies that can go towards an out-of-continent attack
+
+  ToTerritory:=0;
+  AnyAttack:=0;
+  
+  for T:=1 to 42 do begin
+    if TIsMine(T) then begin
+      TWeakestFront(T,ET,EA);
+      if (TArmies(T)>trunc(MINARMIES+EA*FORCE)) then AnyAttack:=1;
+    end;
+  end;
+
+  for C:=1 to 6 do begin    // reinforce existing continents if necessary - to defend against STRONGEST front first
+    if (COwner(C)=PMe) and (ToTerritory=0) and (AnyAttack=1) then begin
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          TStrongestFront(T,ET,EA);
+          if (double(TArmies(T))<MINARMIES+EA*FORCE) then      // shortfall in my territory T
+            if (ToTerritory=0) then ToTerritory:=T
+          else 
+            if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+        end;
+      end;
+    end;
+  end;
+
+  EnemyC:=TargetCplacement(small);
+  EnemyT:=TargetTplacement(EnemyC, Small, Allfronts, onefronts, force);
+
+
+  if (EnemyT<>0) and (double(MyTPressure(EnemyT,ALLFRONTS))<MINARMIES+TArmies(EnemyT)*FORCE) then begin
+//  continue to reinforce until attack is possible - put them all in strongest country
+    BestDiff:=SMALL;
+    for B:=1 to TBordersCount(EnemyT) do begin
+      T:=TBorder(EnemyT,B);
+      Diff:=TArmies(T);
+      if TIsFront(T) and (Diff>BestDiff) then begin
+        BestDiff:=Diff;
+        ToTerritory:=T;
+      end;
+    end;      
+  end;
+
+  if (ToTerritory=0) then begin         // attack is already guaranteed.  beef up the target continent
+    PT:=0;
+    PA:=0;
+    ET:=0;
+    EA:=0;
+    BestDiff:=SMALL;
+
+    CAnalysis(EnemyC, PT, PA, ET, EA);
+
+    if (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
+      for B:=1 to CTerritoriesCount(EnemyC) do begin
+        T:=CTerritory(EnemyC,B);
+        Diff:=TArmies(T); // put in strongest
+        if (PNewArmies(PMe)>5) then Diff:=-TArmies(T);       // but put in weakest front until 5 armies left
+        if TIsFront(T) and (Diff>BestDiff) then begin
+          ToTerritory:=T;
+          BestDiff:=Diff;
+        end;
+      end;
+    end;
+  end;
+      
+  for C:=1 to 6 do begin                                     // reinforce existing continents if necessary - WEAKEST front first
+    if (COwner(C)=PMe) and (ToTerritory=0) then begin      // if you own the continent and already have an attack
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          TStrongestFront(T,ET,EA);
+          if (double(TArmies(T))<(EA*FORCE)) then begin
+            if (ToTerritory=0) then ToTerritory:=T 
+              else if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  TWeakestFront(EnemyT,ET,EA);
+
+  if (EnemyT<>0) and (ToTerritory=0) and (double(MyTPressure(EnemyT,ALLFRONTS))<(EA+MINARMIES+TArmies(EnemyT)*FORCE)) then begin
+//  continue to reinforce until attack is possible - put them all in strongest country
+    BestDiff:=SMALL;
+   
+    for B:=1 to TBordersCount(EnemyT) do begin
+      T:=TBorder(EnemyT,B);
+      if TIsMine(T) and (TArmies(T)>BestDiff) then begin
+        BestDiff:=TArmies(T);
+        ToTerritory:=T;
+      end;
+    end;      
+  end;
+
+  for C:=1 to 6 do begin                                 // reinforce existing continents if necessary
+    if (COwner(C)=PMe) and (ToTerritory=0) then begin    // if you own the continent and already have an attack
+      for B:=1 to CTerritoriesCount(C) do begin
+        T:=CTerritory(C,B);
+        if TIsFront(T) then begin
+          if (double(TArmies(T))<(TPressure(T)*FORCE)) then
+            if (ToTerritory=0) then ToTerritory:=T
+              else if (TArmies(T)>TArmies(ToTerritory)) then ToTerritory:=T;
+        end;
+      end;
+    end;
+  end;
+
+  if ToTerritory=0 then begin                            // attack is already guaranteed
+    BestDiff:=SMALL;
+    for T:=1 to 42 do begin
+      TWeakestFront(T,ET,EA);
+      Diff:=TArmies(T)+PNewArmies(PMe)-EA;               // worthwhile to fortify this one?
+      if (TContinent(T)=EnemyC) then Diff:=1;            // but always worthwhile fortifying your target continent
+      if TIsFront(T) and (Diff>0) then begin             // territory is mine and front and can be made stronger than the weakest front
+
+        Diff:= (TPressure(T)-TArmies(T));
+        if TIsBordering(T,EnemyT) then Diff:=(TPressure(T)+(TArmies(T) div 8));  // avoid fortifying around a country you're about to take
+
+        if (TContinent(T)=EnemyC) then Diff:=(Diff+TargetCBONUS);
+//      UMessage('Territory ',T,' is worthy of fortification with Pressure - Armies + Bonus of ',Diff);
+        if (Diff>BestDiff) then begin
+          ToTerritory:=T;
+          BestDiff:=Diff;
+        end;
+      end;
+    end;
+  end;
+
+
+
+  If trunc(ubufferget(48)) = 0 then goto gotoend;
+
+Descartes:
+  TerritoryTo:=0;
+  UBufferSet(49,0); 
+  if ((PArmiesCount(PMe) < 10) and (not ((trunc(UBufferGet(50)))=2))) then begin
+    UBufferSet(50,1);
+  end;
+  if ((PArmiesCount(PMe) > 25) and ((trunc(UBufferGet(50)))=1)) then begin
+    UBufferSet(50,2);
+  end;
+
+  if ((trunc(UBufferGet(50)))=1) then begin  //probably have less than 10 armies
+    MaxTerritoryValue:=0;
+    for T:=1 to 42 do begin
+      if (TIsMine(T) and TIsFront(T)) then begin
+        TWeakestFront(T,ET,EA);
+        Score:=1000-EA;
+        Score:=Score-((double(TPressure(T))/TFrontsCount(T))*2);
+        Score:=Score+(TArmies(T) div 3);
+        if (T>38) then Score:=Score-100;
+        if ((T>9) and (T<14)) then Score:=Score-50;
+        if (Score> MaxTerritoryValue) then begin
+          MaxTerritoryValue:=trunc(Score);
+          TerritoryTo:=T;
+        end;
+      end;
+    end;
+  end
+  else begin
+   
+    CAnalysis(6,PT,PA,ET,EA);
+
+    UBufferSet(39,EA);
+    UBufferSet(40,EA-1);
+    UBufferSet(41,EA-2);
+    UBufferSet(42,EA-1);
+    if (PA>EA+4) then begin	    //if i have more than 4 armies more than the enemy
+      UBufferSet(39,EA-25);
+      UBufferSet(40,EA-26);
+      UBufferSet(41,EA-27);
+      UBufferSet(40,EA-26);
+    end;
+
+    CAnalysis(2,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+4;  //if i don't own australia, make more of an effort to get SA
+    UBufferSet(10,EA+6);
+    UBufferSet(12,EA+6);
+    UBufferSet(13,EA+4);
+    UBufferSet(11,EA+5);
+    if (PA>(EA+4)) then begin
+      UBufferSet(10,EA-20);
+      UBufferSet(12,EA-20);
+      UBufferSet(13,EA-22);
+      UBufferSet(11,EA-21);
+    end;  
+    
+    CAnalysis(4,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+4;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    UBufferSet(14,EA+6);
+    UBufferSet(15,EA+6);
+    UBufferSet(16,EA+6);
+    UBufferSet(17,EA+6);
+    UBufferSet(18,EA+6);
+    UBufferSet(19,EA+6);
+    if ((PA>(EA+9)) and (COwner(2)=PMe)) then begin
+      UBufferSet(14,EA-20);
+      UBufferSet(15,EA-19);
+      UBufferSet(16,EA-20);
+      UBufferSet(17,EA-21);
+      UBufferSet(18,EA-22);
+      UBufferSet(19,EA-23);
+    end;
+    CAnalysis(1,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+5;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    UBufferSet(1,EA+6);
+    UBufferSet(2,EA+6);
+    UBufferSet(3,EA+6);
+    UBufferSet(4,EA+6);
+    UBufferSet(5,EA+6);
+    UBufferSet(6,EA+6);
+    UBufferSet(7,EA+6);
+    UBufferSet(8,EA+6);
+    UBufferSet(9,EA+6);
+    CAnalysis(3,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+15;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    if (not (COwner(4)=PMe)) then EA:=EA+15;
+    UBufferSet(20,EA+6);
+    UBufferSet(21,EA+6);
+    UBufferSet(22,EA+6);
+    UBufferSet(23,EA+6);
+    UBufferSet(24,EA+6);
+    UBufferSet(25,EA+6);
+    UBufferSet(26,EA+6);
+
+    CAnalysis(5,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+15;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    if (not (COwner(4)=PMe)) then EA:=EA+15;
+    if (not (COwner(1)=PMe)) then EA:=EA+15;
+    if (not (COwner(3)=PMe)) then EA:=EA+15;
+    UBufferSet(27,EA+6);
+    UBufferSet(28,EA+6);
+    UBufferSet(29,EA+6);
+    UBufferSet(30,EA+6);
+    UBufferSet(31,EA+6);
+    UBufferSet(32,EA+6);
+    UBufferSet(33,EA+6);
+    UBufferSet(34,EA+6);
+    UBufferSet(35,EA+6);
+    UBufferSet(36,EA+6);
+    UBufferSet(37,EA+6);
+    UBufferSet(38,EA+6);
+//	-----
+//  we understand up to here
+    
+    TotalArmies:=0;
+    KillPlayer:=0;
+    UBufferSet(49,0);
+    for T:=1 to 10 do begin
+      TotalArmies:=TotalArmies+PArmiesCount(T);
+    end;
+
+//  testa:= 1.45;
+//  umessage('double is ' + floattostr(testa));
+
+{  testb:=4;
+  t:=30;
+  testb:=t div testb;
+  ulog('testb is ' + inttostr(testb));
+  testb:=4;
+  t:=30;
+  testb:=t/testb;
+  ulog('testb is ' + inttostr(testb));
+ }
+//  umessage('int is ' + inttostr(testb));
+{
+  testa:=testb * testa;
+  umessage('int times float is ' + floattostr(testa));
+
+  testb:=testb * testa;
+  umessage('int times float into int is ' + inttostr(testb));
+ }
+    for T:=1 to 10 do 
+    begin
+		  testa:=double(TotalArmies) * 0.35;
+
+    	  if ((not (T=PMe))
+	      	and (PArmiesCount(T)>trunc(testa))) then 
+	      begin
+			        KillPlayer:=T;
+	      end;				   
+	
+//		  ulog('after first if');
+
+			testa:=double(TotalArmies-PArmiesCount(PMe))*0.41;
+//		  ulog('before second');
+
+    	  if ((not (T=PMe))
+		      and (PArmiesCount(T)>trunc(testa))) then 
+		  begin
+		        KillPlayer:=T;
+	      end;
+			
+//			ulog('after second');
+
+	      if (KillPlayer=T) then 
+	      begin
+    		    KillPlayer:=0;
+
+		        Y:=0;
+	    	    Z:=0;
+	        	for T2:=1 to 6 do 
+	        	begin
+			          if (COwner(T2)=T) then Y:=Y+CBonus(T2);
+			          if (COwner(T2)=PMe) then Z:=Z+CBonus(T2);
+	        	end;
+
+//				ulog('before first div');
+
+	          if (PTerritoriesCount(T)>11) then 
+	          begin
+	          		Y:=Y+((PTerritoriesCount(T) div 3)-3);
+		      end;
+
+//	   		  ulog('after first div');
+		      if (PTerritoriesCount(PMe)>11) then 
+		      begin
+			        Z:=Z+((PTerritoriesCount(PMe) div 3)-3);
+		      end;
+	    	  if (Y>Z+3) then 
+	    	  begin
+	          	  KillPlayer:=T;
+			      UBufferSet(49,T);
+		      end;
+      	  end;   
+    end;
+    
+    if (not (KillPlayer=0)) then begin
+      for T:=1 to 42 do begin
+        if TOwner(T)=KillPlayer then begin
+          UBufferSet(T,TArmies(T));
+        end;
+        if ((COwner(TContinent(T)))=KillPlayer) then begin
+          UBufferSet(T,-15-(CBonus(TContinent(T))*2)+TArmies(T));
+        end;
+      end;
+    end;
+    
+    if (PArmiesCount(PMe)>TotalArmies+50) then begin
+      for T:=1 to 42 do begin
+        if (not (TIsMine(T))) then begin
+          UBufferSet(T,TArmies(T));
+          if ((COwner(TContinent(T)))>0) then begin
+            UBufferSet(T,-30+TArmies(T));
+          end;
+        end;
+      end;
+    end;
+
+  //	ulog('right before x is 1 to 8');
+	    
+    for X:=1 to 8 do 
+    begin
+      for T:=1 to 42 do  //check each territory 
+      begin
+        if (not TIsMine(T)) then  //if i don't own this territory
+        begin
+          Y:=TBordersCount(T);		   //count the borders
+          for Z:=1 to Y do 	//cycle thru the borders of this territory
+          begin
+            T2:=TBorder(T,Z);  //check each territory bordering T
+            if (not TIsMine(T2)) then  //if i don't own a border of T
+            begin
+              D:=trunc(UBufferGet(T));  //set D to be  whatever score is for this territory
+              D2:=trunc(UBufferGet(T2));  //set D2 to be score for this particular border
+              if (D>(D2+TArmies(T))) then //if score for this T is more than score for border + armies in that border
+              begin
+                D:=D2+TArmies(T)+1; //set score for this T to be border armies + border score + 1
+                UBufferSet(T,D);
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+//	ulog('right after monster nested for loop');
+    
+    for T:=1 to 42 do begin
+      if (TIsMine(T)) then begin
+        UBufferSet(T,0);
+      end;
+    end;
+
+    if (KillPlayer=0) then begin
+      CAnalysis(6,PT,PA,ET,EA);
+      if (COwner(6)=PMe) then 
+      begin
+        if TIsFront(39) then 
+        begin
+          TA:=25;
+          if (TArmies(38)>TA-5) then TA:=TArmies(38)+5;
+          CLeader(5,P,T,A);          
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(39,TA);
+        end
+        else
+        begin
+          TA:=25;
+          if (TPressure(31)>TA) then TA:=TPressure(31);
+          CLeader(5,P,T,A);
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(31,TA);
+        end;
+      end
+      else begin
+        if ((PA > (EA * 2)) or (PA>(EA+5))) then begin
+{          if (TIsMine(41)) then begin
+            TerritoryTo:=40;
+          end;
+          if (TIsMine(42)) then begin
+            TerritoryTo:=40;
+          end;
+          if (TIsMine(39)) then begin
+            TerritoryTo:=40;
+          end;
+          if (TIsMine(40)) then begin
+            TerritoryTo:=40;
+          end;
+		  }
+		  if (TIsMine(41)) then begin
+            TerritoryTo:=41;
+          end;
+          if (TIsMine(42)) then begin
+            TerritoryTo:=42;
+          end;
+          if (TIsMine(39)) then begin
+            TerritoryTo:=39;
+          end;
+          if (TIsMine(40)) then begin
+            TerritoryTo:=40;
+          end;
+        end;
+      end;
+     		  //after determining if he owns australia
+      CAnalysis(2,PT,PA,ET,EA);
+      if (TerritoryTo=0) then begin
+        if (COwner(2)=PMe) then begin
+          if (not (TIsMine(14))) then begin
+            TA:=20;
+            if (TArmies(14)>TA-12) then TA:=TArmies(14)+12;
+            if (TPressure(14)>TA) then TA:=TPressure(14);
+            UBufferSet(12,TA);
+          end
+          else begin
+            TA:=20;
+            if (TPressure(14)>TA) then TA:=TPressure(14);
+            UBufferSet(14,TA);
+          end;
+          if (not (TIsMine(9))) then begin
+            TA:=20;
+            if (TArmies(9)>TA-12) then TA:=TArmies(9)+12;
+            if (TPressure(9)>TA) then TA:=TPressure(9);
+            CLeader(1,P,T,A);
+            if ((A>TA) and (not (P=PMe))) then TA:=A;
+            UBufferSet(10,TA);
+          end
+          else begin
+            TA:=20;
+            if (TPressure(9)>TA-12) then TA:=TPressure(9)+12;
+            CLeader(1,P,T,A);
+            if ((A>TA) and (not (P=PMe))) then TA:=A;
+            UBufferSet(9,TA);
+          end;
+        end
+        else begin
+           if (((PA div 2)>EA) or (PA>(EA+6))) then begin
+            if ((TArmies(10)<20) and TIsMine(10)) then TerritoryTo:=10;
+            if ((TArmies(12)<20) and TIsMine(12)) then TerritoryTo:=12;
+          end;
+        end;
+      end;
+      CAnalysis(1,PT,PA,ET,EA);
+      if ((TerritoryTo=0)
+      and (COwner(2)=PMe)) then begin
+        if (((PA div 2)>EA) or (PA>(EA+10))) then begin
+          if ((TArmies(1)<20) and TIsMine(1)) then TerritoryTo:=1;
+          if ((TArmies(3)<20) and TIsMine(3)) then TerritoryTo:=3;
+ 
+        end;
+      end;
+      CAnalysis(4,PT,PA,ET,EA);
+      if ((TerritoryTo=0) 
+      and (COwner(2)=PMe)) then begin
+        if (((PA div 2)>EA)or (PA>(EA+10))) then begin
+          if ((TArmies(14)<20) and TIsMine(14)) then TerritoryTo:=14;
+          if ((TArmies(15)<20) and TIsMine(15)) then TerritoryTo:=15;
+          if ((TArmies(16)<20) and TIsMine(16)) then TerritoryTo:=16;
+  
+        end;
+      end; 
+      if ((COwner(4)=PMe)) then begin
+        UBufferSet(14,20);
+        UBufferSet(15,20);
+        UBufferSet(16,20);
+      end;
+    end;
+ 
+// ulog('after checking for ownership on each C');
+    if (TerritoryTo=0) then begin  
+      MaxTerritoryValue:=0;
+      for T:=1 to 42 do begin
+        if TIsMine(T) then begin
+          Y:=TBordersCount(T);
+          D:=1000;
+          for Z:=1 to Y do begin
+            T2:=TBorder(T,Z);
+            if not(TIsMine(T2)) then begin
+              D2:=trunc(UBufferGet(T2));
+              if (D2<D) then begin
+                D:=D2;
+                TA:=T2;
+              end;
+            end;
+          end;
+		  
+          if ((TArmies(T)-((trunc(UBufferGet(T)))+D))>MaxTerritoryValue) then begin
+            MaxTerritoryValue:=TArmies(T)-(trunc(UBufferGet(T))+D);
+            TerritoryTo:=T;
+          end;
+          if (KillPlayer=0) then begin
+            if (TArmies(T)<(trunc(UBufferGet(T)))) then begin
+              if ((1000+(trunc(UBufferGet(T)))-TArmies(T))>MaxTerritoryValue) then begin
+                MaxTerritoryValue:=1000+(trunc(UBufferGet(T)))-TArmies(T);
+                TerritoryTo:=T;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+//	ulog('after checking ubuffer');
+
+    if (TerritoryTo=0) then begin
+      MaxTerritoryValue:=0;
+      for T:=1 to 42 do begin
+        if TIsFront(T) then begin 
+          TerritoryValue:=1;
+          TWeakestFront(T,ET,EA);
+          TerritoryArmies:=TArmies(T);
+          if EA<3 then begin
+            TerritoryValue:=TerritoryValue+((3-EA)*200);
+            if (TerritoryArmies>9) then begin
+              TerritoryArmies:=TerritoryArmies-10;
+              if (TerritoryArmies>100) then begin
+                TerritoryArmies:=100;
+              end;
+              TerritoryValue:=TerritoryValue+(100-TerritoryArmies);
+            end;
+          end;
+          if EA>2 then begin
+            if EA>100 then begin
+              EA:=100;
+            end;
+            TerritoryValue:=TerritoryValue+(100-EA);
+          end;
+          if ((TerritoryValue>=MaxTerritoryValue) 
+              and ((TArmies(T)>1) or (TerritoryTo=0)) ) then begin
+            MaxTerritoryValue:=TerritoryValue;
+            TerritoryTo:=T;
+          end;
+        end;
+      end;
+    end;
+  end;
+  ToTerritory:=TerritoryTo;
+gotoend:
+end;
+
+//procA
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  
+  EnemyC, T, B, Diff, BestDiff: integer;
+  PT, PA, ET, EA : integer;
+  SMALL, ALLFRONTS, ONEFRONTS, TargetCBONUS, MINARMIES: integer;
+  FORCE, NEWRATIO: double;
+  
+  X,Y,T2,D,D2,TA,Z,Z2,Y2,FT,FA,KillPlayer: integer;
+  EnemyT,EnemyA: integer;
+  Ratio,MaxRatio: double;
+  MaxTerritoryValue,TerritoryValue: integer;
+  TerritoryArmies: integer;
+  ET2,EA2:integer;
+
+  Label Descartes;
+  Label GotoEnd;
+
+begin
+  
+  If trunc(ubufferget(48)) = 1 then goto Descartes;
+
+  // ATTACK
+  // defines FromTerritory and ToTerritory.  No attack if FromTerritory is 0
+  // perform an attack on the next achievable continent, or the cheapest attack if
+  // no attack is available there (decided in function TargetTattack).
+  // Not Implemented yet:  If you can safely eliminate a player, do so
+  // sometimes picks a smaller front when a non-front is available???
+
+  SMALL:=-9999;       // CONSTANTS SECTION
+  FORCE:=0.95;         // smaller FORCE than in PLACEMENT procedure to encourage attacks
+  MINARMIES:=2;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  TargetCBONUS:=5;          // bonus for reinforcing territories in current target continent
+  NEWRATIO:=0.5;      // %-age of new armies that can go towards an out-of-continent attack
+
+  EnemyC:=TargetCattack(small);
+  PT:=0;
+  PA:=0;
+  ET:=0;
+  EA:=0;
+  CAnalysis(EnemyC, PT, PA, ET, EA);
+
+//  if SConquest then
+//    UMessage('Target continent = ',EnemyC,' with excess of ',PA-PT-ET-EA);
+
+//  if SConquest and (PA>EA) then
+//    UMessage('You should attack continent ',EnemyC,' since you have ',PA,' armies and he only has ',EA);
+
+  BestDiff:=0; // will hold maximum number of armies controlled by leading player B
+  for T:=1 to 10 do
+    if (PActive(T)) and (T<>PMe) then
+      if (PArmiesCount(T)>BestDiff) then
+        begin
+          BestDiff:=PArmiesCount(T);
+          B:=T;
+        end;
+
+  if ((PA-PT)>trunc((double(MINARMIES)+ET+EA)/FORCE)) or (not SConquest) or (COwner(EnemyC)>0) then
+    begin
+      ToTerritory:=TargetTattack(enemyc, small, allfronts, onefronts, force);
+//      UMessage('Target Continent = ',EnemyC,' Target Territory = ',ToTerritory);
+//      if (ToTerritory=0) and (not SConquest) then
+//        UMessage('why arent you proposing an attack, perhaps on your target continent ',EnemyC);
+//      if SConquest and (ToTerritory<>0) then
+//        UMessage('Extra attack!  You are attacking continent ',EnemyC,', territory ',ToTerritory,' since you have ',PA,' armies and he only has ',EA);
+      if (ToTerritory<>0) then
+        begin
+          // calculate the correct territory to attack from
+          // 1)  weakest 1-front if ToTerritory armies > 2, otherwise strongest 1-front
+          // 2)  highest TArmies-TPressure.  This may not be the best
+          BestDiff:=SMALL*5;
+          for B:=1 to TBordersCount(ToTerritory) do
+            begin
+              T:=TBorder(ToTerritory,B);
+              if TIsMine(T) and (TArmies(T)>1) and ((TArmies(T)>2) or (TArmies(ToTerritory)=1)) then // no attacks ever with 2 or less armies
+                begin
+                  Diff:=TArmies(T)-(TPressure(T) div 3); // stress armies more than pressure
+                  if (TArmies(T)<4) and (TArmies(ToTerritory)>1) then
+                    Diff:=Diff+SMALL*2; // discourage these attacks with less than 4 armies
+                  if (TFrontsCount(T)=1) then
+                    begin
+                      if (TArmies(ToTerritory)>2) then
+                        Diff:=Diff-SMALL-TArmies(T)*2  // weakest 1-front will be picked
+                      else
+                        Diff:=Diff-SMALL; // strongest 1-front will be picked
+                    end;
+                  if (Diff>BestDiff) then
+                    begin
+                      BestDiff:=Diff;
+                      FromTerritory:=T;
+                    end;
+                end;
+            end;
+          BestDiff:=(MyTPressure(ToTerritory,ALLFRONTS))-(TArmies(ToTerritory));
+          if (BestDiff<0) then
+            begin
+//              UMessage('About to abort an attack on target continent ',EnemyC,' from ',FromTerritory,' to ',ToTerritory,' with enemy armies ',TArmies(ToTerritory),' and MyTPressure ',MyTPressure(ToTerritory,ALLFRONTS),' for a total negative difference of ',BestDiff);
+//              UMessage('double checking - enemy armies ',TArmies(ToTerritory),' and MyTPressure ',MyTPressure(ToTerritory,ALLFRONTS),' for a total negative difference of ',BestDiff);
+              FromTerritory:=0; // abort attacks that won't work
+            end;
+        end;
+    end;
+
+If trunc(ubufferget(48)) = 0 then goto gotoend;
+
+Descartes:
+  FromTerritory:=0;
+  ToTerritory:=0;
+  MaxTerritoryValue:=0;
+  
+  KillPlayer:=trunc(UBufferGet(49));
+  CAnalysis(6,PT,PA,ET,EA);
+  if (PA>EA+5) then begin
+    if (TIsMine(40) and (TArmies(40)>3)) then begin
+      if (not (TIsMine(42))) then begin
+        FromTerritory:=40;
+        ToTerritory:=42;
+      end;
+      if (not (TIsMine(41))) then begin
+        FromTerritory:=40;
+        ToTerritory:=41;
+      end;
+    end;
+  end;
+
+  CAnalysis(2,PT,PA,ET,EA);
+  if (PA>EA+5) then begin
+    if (TIsMine(12) and TIsMine(10) and (not (COwner(2)=PMe))) then begin
+      if (TArmies(12)>3) and ( (not TIsMine(13)) or (not TIsMine(11)) ) then begin
+        FromTerritory:=12;
+        if (not (TIsMine(13))) then ToTerritory:=13;
+        if (not (TIsMine(11))) then ToTerritory:=11;
+      end;
+      if (TArmies(10)>3) then begin
+        if (not (TIsMine(11))) then begin
+          FromTerritory:=10;
+          ToTerritory:=11;
+        end;
+      end;
+    end;
+  end;
+
+  if (COwner(2)=PMe) then begin
+    if ((not TIsMine(9))
+    and (TArmies(10)>(TArmies(9)+8))
+    and (COwner(1)>0)) then begin
+      FromTerritory:=10;
+      ToTerritory:=9;
+    end;
+    if ((not TIsMine(14))
+    and (TArmies(12)>(TArmies(14)+10))
+    and (COwner(4)>0)) then begin
+      FromTerritory:=12;
+      ToTerritory:=14;
+    end;
+    if ((TIsMine(14)) and (COwner(3)>0) and (not (COwner(3)=PMe))) then begin
+      if (TArmies(25)<TArmies(26)) then begin
+        if (TArmies(14)>(TArmies(25)+5)) then begin
+          FromTerritory:=14;
+          ToTerritory:=25;
+        end;
+      end
+      else begin
+        if (TArmies(14)>(TArmies(26)+5)) then begin
+          FromTerritory:=14;
+          ToTerritory:=26;
+        end;
+      end;
+    end;
+
+    if ((TIsMine(15)) and (COwner(5)>0) and (not (COwner(5)=PMe))) then begin
+      if (TArmies(15)>(TArmies(27)+5)) then begin
+        FromTerritory:=15;
+        ToTerritory:=27;
+      end;
+    end;
+    if ((TIsMine(16)) and (COwner(5)>0) and (not (COwner(5)=PMe))) then begin
+      if (TArmies(16)>(TArmies(27)+5)) then begin
+        FromTerritory:=16;
+        ToTerritory:=27;
+      end;
+    end;
+
+  end;
+  if (COwner(6)=PMe) then begin
+    if ((not TIsMine(31))
+    and (TArmies(39)>(TArmies(31)+8))
+    and (COwner(5)>0)) then begin
+      FromTerritory:=39;
+      ToTerritory:=31;
+    end;
+  end;
+  
+  if (FromTerritory=0) then begin
+    for T:=1 to 42 do begin
+      D:=1000;
+      if TIsMine(T) then begin
+        Y:=TBordersCount(T);
+        for Z:=1 to Y do begin
+          T2:=TBorder(T,Z);
+          if not(TIsMine(T2)) then begin
+            D2:=trunc(UBufferGet(T2));
+            if (D2<D) then begin 
+              D:=D2;
+              TA:=T2;
+            end;
+          end;
+        end;
+        if (KillPlayer>0) then begin
+          if (((TArmies(T)-(25+D))>MaxTerritoryValue)
+          and (TArmies(T)>3)) then begin
+            MaxTerritoryValue:=TArmies(T)-(5+D);
+            FromTerritory:=T;
+            ToTerritory:=TA;
+          end;
+        end
+        else begin
+          if (((TArmies(T)-(25+(trunc(UBufferGet(T)))+D))>MaxTerritoryValue)
+          and (TArmies(T)>3)) then begin
+            MaxTerritoryValue:=TArmies(T) - (25+(trunc(UBufferGet(T)))+D);
+            FromTerritory:=T;
+            ToTerritory:=TA;
+            if not SConquest then begin
+              if (((TArmies(T)-(15+D))>MaxTerritoryValue)
+              and (TArmies(T)>3)) then begin
+                MaxTerritoryValue:=TArmies(T)-(15+D);
+                FromTerritory:=T;
+                ToTerritory:=TA;
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+          
+  if (FromTerritory=0) then begin
+    MaxTerritoryValue:=0;
+    if not SConquest then begin  
+      for T:=1 to 42 do begin
+        if ((TIsFront(T)) and ((trunc(UBufferGet(T)))=0)) then begin 
+          if (TArmies(T)>3) then begin
+            TerritoryValue:=0;
+            TerritoryArmies:=TArmies(T);
+            TWeakestFront(T,ET,EA);
+            if EA<3 then begin
+              TerritoryValue:=TerritoryValue+((3-EA)*200);
+              if (TerritoryArmies>100) then begin
+                TerritoryArmies:=100;
+              end;
+              TerritoryValue:=TerritoryValue+TerritoryArmies;
+          
+          
+            end;
+            if (TerritoryValue>MaxTerritoryValue) then begin
+              MaxTerritoryValue:=TerritoryValue;
+              FromTerritory:=T;
+            end;        
+          end;
+        end;
+      end;
+      if (FromTerritory>0) then begin
+        MaxTerritoryValue:=0;
+        TWeakestFront(FromTerritory,ET,EA);
+        Y:=TBordersCount(FromTerritory);
+        for Z:=1 to Y do begin
+          T2:=TBorder(FromTerritory,Z);
+          if ((TArmies(T2)=EA)and (not TIsMine(T2))) then begin
+            TWeakestFront(T2,ET2,EA2);
+            Y2:=TBordersCount(T2);
+            FA:=0;
+            FT:=0;
+            for Z2:=1 to Y2 do begin
+              if (not (TIsMine(TBorder(T2,Z2)))) then begin
+                FA:=FA+TArmies(TBorder(T2,Z2));
+                FT:=FT+1;
+              end;
+            end;
+            if (FT>0) then begin
+              TerritoryValue:=10000-(EA2*4+(FA/FT));
+            end
+            else begin 
+             TerritoryValue:=5000;
+            end;
+            if (TerritoryValue>MaxTerritoryValue) then begin
+              MaxTerritoryValue:=TerritoryValue;
+              ToTerritory:=T2;
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
+//  if ToTerritory = 0 then FromTerritory:=0; { this is just masking an infrequent bug which I believe is
+//    somewhere in the last 32 lines of code but I don't have time right now to fix it. }
+
+gotoend:
+end;
+
+//procO
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  FromIsFront, ToIsFront: boolean;
+  EA, ET, Buffer : integer;
+
+  T,C:integer;
+  X,Y,T2,D,D2,Z,TA,KillPlayer: integer;
+  Ratio,MaxRatio,Score: double;
+  MaxTerritoryValue,TerritoryValue: integer;
+  TerritoryArmies,TerritoryTo: integer;
+  PT,PA :integer;
+  value1d, value2d: double;
+  value1i, value2i: integer;
+  TotalArmies,PlayerArmies,P,A:Integer;
+   
+
+  //count : integer;
+  Label Descartes;
+  Label GotoEnd;
+
+begin
+ 
+  {count:=0
+  for T:= 1 to 42 do begin
+    if TIsMine(T) then count:=count+1;
+  end;
+  //If count < 5 then goto Descartes}
+
+  If trunc(ubufferget(48)) = 1 then goto Descartes;
+
+  // very simple but effective routine
+  // moves ARMIES from FROMTERRITORY to TOTERRITORY (which was just conquered)
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+
+  if  FromIsFront and ToIsFront then  // if both territories are 'front'
+      begin
+        TStrongestFront(FromTerritory,ET,EA); // idea is to leave behind only what you need
+	Buffer:=TArmies(FromTerritory) div 8;
+        if (Buffer<3) then
+          Buffer:=3;
+        EA:=EA+Buffer; // leave some extra
+        ET:=(1+TArmies(FromTerritory)-TArmies(ToTerritory)) div 2; // balancing move
+        if (EA>TArmies(FromTerritory)-ET) then
+          Armies:=ET // will always move at least armies to balance territories
+        else Armies:=TArmies(FromTerritory)-EA; // but maybe more
+      end 
+    else if FromisFront then // only "From" territory is front
+      begin 
+        // all armies stay in From territory, so there's nothing to do
+      end
+    else
+      begin
+        // all armies in the conquered territory (except one which must stay)
+        Armies:=TArmies(FromTerritory)-1;
+      end;
+
+  If trunc(ubufferget(48)) = 0 then goto gotoend;
+
+Descartes:
+
+  FromIsFront := TIsFront(FromTerritory);
+  ToIsFront := TIsFront(ToTerritory);
+  Armies:=0;
+   
+  //copied from placement routine start    
+    CAnalysis(6,PT,PA,ET,EA);
+    UBufferSet(39,EA);
+    UBufferSet(40,EA-1);
+    UBufferSet(41,EA-2);
+    UBufferSet(42,EA-1);
+    if (PA>EA+4) then begin
+      UBufferSet(39,EA-25);
+      UBufferSet(40,EA-26);
+      UBufferSet(41,EA-27);
+      UBufferSet(40,EA-26);
+    end;
+    CAnalysis(2,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+4;
+    UBufferSet(10,EA+6);
+    UBufferSet(12,EA+6);
+    UBufferSet(13,EA+4);
+    UBufferSet(11,EA+5);
+    if (PA>(EA+4)) then begin
+      UBufferSet(10,EA-20);
+      UBufferSet(12,EA-20);
+      UBufferSet(13,EA-22);
+      UBufferSet(11,EA-21);
+    end;  
+    CAnalysis(4,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+4;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    UBufferSet(14,EA+6);
+    UBufferSet(15,EA+6);
+    UBufferSet(16,EA+6);
+    UBufferSet(17,EA+6);
+    UBufferSet(18,EA+6);
+    UBufferSet(19,EA+6);
+    if ((PA>(EA+9)) and (COwner(2)=PMe)) then begin
+      UBufferSet(14,EA-20);
+      UBufferSet(15,EA-19);
+      UBufferSet(16,EA-20);
+      UBufferSet(17,EA-21);
+      UBufferSet(18,EA-22);
+      UBufferSet(19,EA-23);
+    end;
+    CAnalysis(1,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+5;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    UBufferSet(1,EA+6);
+    UBufferSet(2,EA+6);
+    UBufferSet(3,EA+6);
+    UBufferSet(4,EA+6);
+    UBufferSet(5,EA+6);
+    UBufferSet(6,EA+6);
+    UBufferSet(7,EA+6);
+    UBufferSet(8,EA+6);
+    UBufferSet(9,EA+6);
+
+    CAnalysis(3,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+15;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    if (not (COwner(4)=PMe)) then EA:=EA+15;
+    UBufferSet(20,EA+6);
+    UBufferSet(21,EA+6);
+    UBufferSet(22,EA+6);
+    UBufferSet(23,EA+6);
+    UBufferSet(24,EA+6);
+    UBufferSet(25,EA+6);
+    UBufferSet(26,EA+6);
+    
+    CAnalysis(5,PT,PA,ET,EA);
+    if (not (COwner(6)=PMe)) then EA:=EA+15;
+    if (not (COwner(2)=PMe)) then EA:=EA+15;
+    if (not (COwner(4)=PMe)) then EA:=EA+15;
+    if (not (COwner(1)=PMe)) then EA:=EA+15;
+    if (not (COwner(3)=PMe)) then EA:=EA+15;
+    UBufferSet(27,EA+6);
+    UBufferSet(28,EA+6);
+    UBufferSet(29,EA+6);
+    UBufferSet(30,EA+6);
+    UBufferSet(31,EA+6);
+    UBufferSet(32,EA+6);
+    UBufferSet(33,EA+6);
+    UBufferSet(34,EA+6);
+    UBufferSet(35,EA+6);
+    UBufferSet(36,EA+6);
+    UBufferSet(37,EA+6);
+    UBufferSet(38,EA+6);
+    
+    TotalArmies:=0;
+    KillPlayer:=0;
+    UBufferSet(49,0);
+    for T:=1 to 10 do begin
+      TotalArmies:=TotalArmies+PArmiesCount(T);
+    end;
+    for T:=1 to 10 do 
+    begin
+		value1d:=(double(TotalArmies)) * 0.35;
+
+      if ((not (T=PMe))
+      and (PArmiesCount(T)>(trunc(value1d)))) then begin
+        KillPlayer:=T;
+      end;
+	
+	  value2d:=(double(TotalArmies-PArmiesCount(PMe)))*0.41;
+      if ((not (T=PMe))
+      and (PArmiesCount(T)>(trunc(value2d)))) then begin
+        KillPlayer:=T;
+      end;
+    
+      if (KillPlayer=T) then begin
+        KillPlayer:=0;
+    
+        Y:=0;
+        Z:=0;
+        for T2:=1 to 6 do begin
+          if (COwner(T2)=T) then Y:=Y+CBonus(T2);
+          if (COwner(T2)=PMe) then Z:=Z+CBonus(T2);
+        end;
+        if (PTerritoriesCount(T)>11) then begin
+          Y:=Y+((PTerritoriesCount(T) div 3)-3);
+        end;
+        if (PTerritoriesCount(PMe)>11) then begin
+          Z:=Z+((PTerritoriesCount(PMe) div 3)-3);
+        end;
+        if (Y>Z+3) then begin
+          KillPlayer:=T;
+          UBufferSet(49,T);
+
+        end;
+      end;   
+    end;
+    
+    if (not (KillPlayer=0)) then begin
+      for T:=1 to 42 do begin
+        if TOwner(T)=KillPlayer then begin
+          UBufferSet(T,TArmies(T));
+        end;
+        if ((COwner(TContinent(T)))=KillPlayer) then begin
+          UBufferSet(T,-15-(CBonus(TContinent(T))*2)+TArmies(T));
+        end;
+      end;
+    end;
+    if (PArmiesCount(PMe)>TotalArmies+50) then begin
+      for T:=1 to 42 do begin
+        if (not (TIsMine(T))) then begin
+          UBufferSet(T,TArmies(T));
+          if ((COwner(TContinent(T)))>0) then begin
+            UBufferSet(T,-30+TArmies(T));
+          end;
+        end;
+      end;
+    end;
+
+    for X:=1 to 8 do begin
+      for T:=1 to 42 do begin
+        if (not TIsMine(T)) then begin
+          Y:=TBordersCount(T);
+          for Z:=1 to Y do begin
+            T2:=TBorder(T,Z);
+            if (not TIsMine(T2)) then begin
+              D:=trunc(UBufferGet(T));
+              D2:=trunc(UBufferGet(T2));
+              if (D>(D2+TArmies(T))) then begin
+                D:=D2+TArmies(T)+1;
+                UBufferSet(T,D);
+              end;
+            end;
+          end;
+        end;
+      end;
+    end;
+    
+    if (KillPlayer=0) then begin
+      CAnalysis(6,PT,PA,ET,EA);
+      if (COwner(6)=PMe) then begin
+        if TIsFront(39) then begin
+          TA:=25;
+          if (TArmies(38)>TA-5) then TA:=TArmies(38)+5;
+          CLeader(5,P,T,A);          
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(39,TA);
+        end
+        else begin
+          TA:=25;
+          if (TPressure(31)>TA) then TA:=TPressure(31);
+          CLeader(5,P,T,A);
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(31,TA);
+        end;
+      end;
+    end;
+    
+    for T:=1 to 42 do begin
+      if (TIsMine(T)) then begin
+        UBufferSet(T,0);
+      end;
+    end;
+    if (KillPlayer=0) then begin
+      CAnalysis(6,PT,PA,ET,EA);
+      if (COwner(6)=PMe) then begin
+        if TIsFront(39) then begin
+          TA:=25;
+          if (TArmies(38)>TA-5) then TA:=TArmies(38)+5;
+          CLeader(5,P,T,A);          
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(39,TA);
+        end
+        else begin
+          TA:=25;
+          if (TPressure(31)>TA) then TA:=TPressure(31);
+          CLeader(5,P,T,A);
+          if ((A>TA) and (not (P=PMe))) then TA:=A;
+          UBufferSet(31,TA);
+        end;
+      end
+      else begin
+        if ((PA > (EA div 2)) or (PA>(EA+5))) then begin
+          if (TIsMine(40)) then begin
+            TerritoryTo:=40;
+          end
+          else begin
+            TerritoryTo:=39;
+          end;
+        end;
+      end;
+     
+      CAnalysis(2,PT,PA,ET,EA);
+      if (TerritoryTo=0) then begin
+        if (COwner(2)=PMe) then begin
+          if (not (TIsMine(14))) then begin
+            TA:=20;
+            if (TArmies(14)>TA-12) then TA:=TArmies(14)+12;
+            if (TPressure(14)>TA) then TA:=TPressure(14);
+            UBufferSet(12,TA);
+          end
+          else begin
+            TA:=20;
+            if (TPressure(14)>TA) then TA:=TPressure(14);
+            UBufferSet(14,TA);
+          end;
+          if (not (TIsMine(9))) then begin
+            TA:=20;
+            if (TArmies(9)>TA-12) then TA:=TArmies(9)+12;
+            if (TPressure(9)>TA) then TA:=TPressure(9);
+            CLeader(1,P,T,A);
+            if ((A>TA) and (not (P=PMe))) then TA:=A;
+            UBufferSet(10,TA);
+          end
+          else begin
+            TA:=20;
+            if (TPressure(9)>TA-12) then TA:=TPressure(9)+12;
+            CLeader(1,P,T,A);
+            if ((A>TA) and (not (P=PMe))) then TA:=A;
+            UBufferSet(9,TA);
+          end;
+        end
+        else begin
+           if ((PA>(EA div 2)) or (PA>(EA+6))) then begin
+            if ((TArmies(10)<20) and TIsMine(10)) then TerritoryTo:=10;
+            if ((TArmies(12)<20) and TIsMine(12)) then TerritoryTo:=12;
+          end;
+        end;
+      end;
+      CAnalysis(1,PT,PA,ET,EA);
+      if ((TerritoryTo=0)
+      and (COwner(2)=PMe)) then begin
+        if ((PA>(EA div 2)) or (PA>(EA+10))) then begin
+          if ((TArmies(1)<20) and TIsMine(1)) then TerritoryTo:=1;
+          if ((TArmies(3)<20) and TIsMine(3)) then TerritoryTo:=3;
+ 
+        end;
+      end;
+      CAnalysis(4,PT,PA,ET,EA);
+      if ((TerritoryTo=0) 
+      and (COwner(2)=PMe)) then begin
+        if ((PA>(EA div 2))or (PA>(EA+10))) then begin
+          if ((TArmies(14)<20) and TIsMine(14)) then TerritoryTo:=14;
+          if ((TArmies(15)<20) and TIsMine(15)) then TerritoryTo:=15;
+          if ((TArmies(16)<20) and TIsMine(16)) then TerritoryTo:=16;
+  
+        end;
+      end; 
+      if ((COwner(4)=PMe)) then begin
+        UBufferSet(14,20);
+        UBufferSet(15,20);
+        UBufferSet(16,20);
+      end;
+    end; 
+
+
+  UBufferSet(ToTerritory,0);
+
+  
+  if (COwner(6)=PMe) then begin
+    if ((FromTerritory=39) and (ToTerritory=31)) then begin
+      UBufferSet(31,(trunc(UBufferGet(39))));
+      UBufferSet(39,0);
+      if ((trunc(UBufferGet(31)))<25) then UBufferSet(31,25);
+    end;
+  end;
+  if (COwner(2)=PMe) then begin
+    if ((FromTerritory=12) and (ToTerritory=14)) then begin
+      UBufferSet(14,(trunc(UBufferGet(12))));
+      UBufferSet(12,0);
+    end;
+  end;
+  if (COwner(2)=PMe) then begin
+    if ((FromTerritory=10) and (ToTerritory=9)) then begin
+      UBufferSet(9,(trunc(UBufferGet(10))));
+      UBufferSet(10,0);
+    end;
+  end;
+
+
+  if ToIsFront then begin
+    Armies:=TArmies(FromTerritory)-(1+(trunc(UBufferGet(FromTerritory))));
+    if (Armies<0) then Armies:=0;  
+  end;
+  if (ToTerritory=41) then begin
+    Armies:=0;
+  end;
+  if ((ToTerritory=40)and (FromTerritory=39)) then begin
+    Armies:=TArmies(FromTerritory)-1;
+    if (Armies > TArmies(42)+5) then Armies := TArmies(42)+5;
+    if (Armies < (TArmies(39) div 2)) then Armies:=(TArmies(39) div 2);
+  end;
+  if ((ToTerritory=42) and (FromTerritory=39)) then begin
+    Armies:=0;
+  end;
+  if (ToTerritory=39) then begin
+    Armies:=TArmies(FromTerritory)-1;
+  end;
+
+
+  if ((FromTerritory=31) and(ToTerritory=39)) then begin
+    UBufferSet(39, (trunc(UBufferGet(39)))-25);
+    UBufferSet(40, (trunc(UBufferGet(40)))-25);
+    UBufferSet(41, (trunc(UBufferGet(41)))-25);
+    UBufferSet(42, (trunc(UBufferGet(42)))-25);
+  end;
+  if (((FromTerritory=14) and(ToTerritory=12))
+   or ((FromTerritory=9) and (ToTerritory=10))) then begin
+    UBufferSet(10,(trunc(UBufferGet(10)))-29);
+    UBufferSet(12,(trunc(UBufferGet(12)))-29);
+    UBufferSet(13,(trunc(UBufferGet(13)))-29);
+    UBufferSet(11,(trunc(UBufferGet(11)))-29);
+  end;
+
+
+
+  
+  if ((FromTerritory=12) and (ToTerritory=13)) then begin
+    Armies:=0;
+  end;
+  if ((FromTerritory=12) and (ToTerritory=11)) then begin
+    Armies:=0;
+  end;
+  if ((FromTerritory=10) and (ToTerritory=11)) then begin
+    Armies:=0;
+  end;
+  if ((FromTerritory=12) and (ToTerritory=10)) then begin
+    Armies:=(TArmies(FromTerritory) div 2);
+  end;
+  if ((FromTerritory=10) and (ToTerritory=12)) then begin
+    Armies:=(TArmies(FromTerritory) div 2);
+  end;
+  if ((FromTerritory=12) and (ToTerritory=14)) then begin
+    Armies:=(TArmies(FromTerritory) -20);
+    if Armies<0 then Armies:=0;
+  end;
+  if ((FromTerritory=10) and (ToTerritory=9)) then begin
+    Armies:=(TArmies(FromTerritory) -20);
+    if Armies<0 then Armies:=0;
+  end;
+  if (COwner(2)=PMe) then begin
+    if ((FromTerritory=12) and (ToTerritory=14)) then begin
+      Armies:=(TArmies(FromTerritory) -1);
+      if Armies<0 then Armies:=0;
+    end;
+    if ((FromTerritory=10) and (ToTerritory=9)) then begin
+      Armies:=(TArmies(FromTerritory) -1);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=9) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=14) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+
+  end;   
+
+
+  if ((COwner(6)=PMe) and (COwner(2)=PMe)) then begin
+    if (FromTerritory=14) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=15) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=16) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=1) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+    if (FromTerritory=3) then begin
+      Armies:=(TArmies(FromTerritory) -20);
+      if Armies<0 then Armies:=0;
+    end;
+
+  end;
+  
+  if ((FromTerritory=14) and (ToTerritory=17)) then begin
+    Armies:=(TArmies(FromTerritory) div 2);
+  end;
+  if ((FromTerritory=20) and (ToTerritory=19)) then begin
+    Armies:=(TArmies(FromTerritory) div 2);
+  end;
+  if (COwner(4)=PMe) then begin
+    if ((FromTerritory=16) and (ToTerritory=15)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+    if ((FromTerritory=15) and (ToTerritory=16)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+    if ((FromTerritory=16) and (ToTerritory=14)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+    if ((FromTerritory=14) and (ToTerritory=16)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+    if ((FromTerritory=14) and (ToTerritory=15)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+    if ((FromTerritory=15) and (ToTerritory=14)) then begin
+      Armies:=(TArmies(FromTerritory) div 2);
+    end;
+  end;
+  if (COwner(3)=PMe) then begin
+    if ((FromTerritory=22)
+    or  (FromTerritory=26)
+    or  (FromTerritory=20)) then begin
+      Armies:=TArmies(FromTerritory)-20;
+      if Armies<0 then Armies:=0;
+    end;
+  end;
+  if (KillPlayer>0) then Armies:=TArmies(FromTerritory)-1;
+
+gotoend:
+end;
+
+//procF
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  BestFrom,BestArmies,F,T,Arm,B,MaxArmy,Diff,BestDiff,EA,ET: integer;
+  SMALL, ALLFRONTS, ONEFRONTS: integer;
+
+
+  //count: integer;
+  Label Descartes;
+  Label GotoEnd;
+
+begin
+
+  If trunc(ubufferget(48)) = 1 then goto Descartes;
+
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  ALLFRONTS:=10;
+  ONEFRONTS:=1;
+  SMALL:=-9999;
+
+  // look for front country that needs the most help.  favor continents that you
+  // already own, and countries that can be helped by 0-fronts
+  // "most help" implies difference between MyArmies and the strongest front
+
+  // for each of your fronts, determine the FromTerritory, the deficit, and the benefit able to be provided
+
+
+  BestArmies:=0;
+  BestDiff:=SMALL;
+//  UMessage('Calling procedure Fortification');
+
+  for T:=1 to 42 do
+    if TIsFront(T) then
+      begin
+        TStrongestFront(T,ET,EA);
+        Diff:=EA-TArmies(T); // your current deficit
+        BestArmies:=0;
+        for B:=1 to TBordersCount(T) do
+          begin
+            F:=TBorder(T,B);  // start looking for the best FromTerritory
+            if TIsMine(F) and (TArmies(F)>1) then
+              begin
+                TStrongestFront(F,ET,EA);
+                if (not TIsFront(F)) then
+                  Arm:=TArmies(F)-1
+                else
+                  Arm:=TArmies(F)-EA; // the absolute most you can spare
+//                  UMessage(TName(T),' has a deficit of ',Diff,' but can be helped by ',TName(F),' which can spare ',Arm,' armies');
+                if (Arm>BestArmies) then
+                  begin
+                    BestArmies:=Arm;
+                    BestFrom:=F;
+                  end;
+              end;
+          end;
+        // now you have found your best FromTerritory "BestFrom" for this ToTerritory T
+        // it can spare "BestArmies" and you had desired "Diff"
+        B:=Diff;
+        if (B>BestArmies) then
+          B:=BestArmies; // you needed more than you could can spare
+        if (B>BestDiff) and ((B+BestArmies)>1) and (BestArmies>2) then
+          begin
+            Armies:=(B+BestArmies) div 2;
+            if (not TIsFront(BestFrom)) then
+              Armies:=BestArmies;
+//            UMessage('Found a better fortification:  move ',Armies,' armies from ',TName(BestFrom),' to ',TName(T));
+            BestDiff:=B;
+            FromTerritory:=BestFrom;
+            ToTerritory:=T;
+          end;
+      end;
+//  if (Armies<>0) then 
+//    UMessage('Recommend moving ',Armies,' from ',FromTerritory,' to ',ToTerritory);
+
+  if (ToTerritory=0) then // use original fortification code -- find largest zero-front
+begin
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    if TIsMine(T) and not TIsFront(T) then begin  // territory is mine and not "front"
+      if TArmies(T)>MaxArmy then begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+  // if there are armies to move...
+  if FromTerritory>0 then begin
+    // check if can move armies to front...
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then begin
+          ToTerritory:=T;
+        end;
+      end;
+    end;
+    // otherwise move armies in the first bordering territory
+    if ToTerritory=0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+    // Move all armies to destination (except the one which must stay)
+    if ToTerritory>0 then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+end;
+
+  If trunc(ubufferget(48)) = 1 then goto gotoend;
+
+Descartes:
+
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  MaxArmy:=1;
+  if (COwner(6)=PMe)
+    then begin
+    if (TArmies(40)>1) then begin
+      Armies:=TArmies(40)-1;
+      FromTerritory:=40;
+      ToTerritory:=39;
+    end;
+    if (TArmies(42)>1) then begin
+      Armies:=TArmies(42)-1;
+      FromTerritory:=42;
+      ToTerritory:=39;
+
+    end;
+
+  end;
+  
+  if (FromTerritory=0) then begin
+    for T:=1 to 42 do begin
+      if ((TIsMine(T)) 
+      and ((trunc(UBufferGet(T)))=0) 
+      and (not TIsFront(T))) then begin  
+        if TArmies(T)>MaxArmy then begin
+          MaxArmy := TArmies(T);
+          FromTerritory := T;
+        end;
+      end; 
+    end;
+    
+    if FromTerritory>0 then begin
+      for B:=1 to TBordersCount(FromTerritory) do begin
+        if ToTerritory=0 then begin
+          T:=TBorder(FromTerritory,B);
+          if TIsMine(T) and TIsFront(T) then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+      if ToTerritory=0 then begin
+        for B:=1 to TBordersCount(FromTerritory) do begin
+          if ToTerritory=0 then begin
+            T:=TBorder(FromTerritory,B);
+            if TIsMine(T) then begin
+              ToTerritory:=T;
+            end;
+          end;
+        end;
+      end;
+      if ToTerritory>0 then begin
+        Armies:=TArmies(FromTerritory)-1;
+      end;
+    end;
+  end;
+
+gotoend:
+
+end;
+
+begin
+
+end.

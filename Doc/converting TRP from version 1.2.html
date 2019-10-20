@@ -1,0 +1,311 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+
+<html>
+	
+<head>
+	<title>
+		TurboRisk Conversion Reference
+	</title>
+	<link href="turborisk.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+	
+<h1>TurboRisk Conversion Reference</h1>
+
+<hr>
+
+<h2>Overview</h2>
+
+<p>
+Since its birth and up to version 1.2, the scripting facility of TurboRisk was
+based on the free Delphi Interpreter by S.Kurinny & S.Kostinsky (Delphin). From
+version 2.0 on, TurboRisk uses the Delphi-style
+<a href="http://www.remobjects.com/ps.aspx" target="_blank">RemObjects Pascal Script</a>
+(ROPS) runtime interpreter .
+<p>
+This documents explains some of the differences between the two script
+languages and their implementation in TurboRisk, and deals with some of the
+issues to face when converting a TRP from the older version to the current one.
+
+<hr>
+
+<h2>General program structure</h2>
+
+<p>
+
+The typical program structure of a TRP expected by the current version of
+TurboRisk is described in the document
+<a href="programs.html">programs.html.</a>
+There are few differences between this structure and the previous one.
+
+<ol>
+	<li>
+	Until TurboRisk 1.2, the five procedure
+	<I>Assignment, Placement, Attack,	Occupation</I> and <I>Fortification</I>
+	were at any effect independent programs. For this
+	reason you were not allowed to write common functions or procedures to share
+	among all of the them. Anything that was before the declaration of those
+	procedures or after their last <I>end;</I>
+	statement was treated as a comment. This is no more true: the source file is at
+	any effect a unique and complete Pascal program.
+	<br>
+	<br>
+	<li>
+	One of the effects of point 1 is that free text between the procedures is no
+	more allowed, you have to make sure it respects the standard Pascal conventions
+	for comments.
+	<br>
+	<br>
+	<li>
+	Another effect of point 1 is that now you can define your own functions or
+	procedures, and that you can call them from any other procedure. Actually you
+	have to do so, because ROPS doesn't implement the definition of procedures and
+	functions inside another procedure or function. Some of the old TRPs use this
+	nested structure: the inner procs and funcs have to be moved outside.
+	<br>
+	<br>
+	<li>
+	The source may begin with an optional
+	<code>
+		<B>Program</B>	<I>MyProgram;</I>
+	</code>
+	statement. It is allowed for clarity, but has no effect.
+	<br>
+	<br>
+	<li>
+	TurboRisk 1.2 used three implicit global variables to send parameters to the
+	routines and receive their results:
+	<I>FromTerritory, ToTerritories</I> and <I>Armies.</I>
+	These variables don't exist anymore. Values are passed and received by
+	TurboRisk using parameters:
+	<p>
+	<code>
+		<B>procedure</B> Assignment(var ToTerritory: integer);
+		<br>
+		<B>procedure</B> Placement(var ToTerritory: integer);
+		<br>
+		<B>procedure</B> Attack(var FromTerritory, ToTerritory: integer);
+		<br>
+		<B>procedure</B> Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+		<br>
+		<B>procedure</B> Fortification(var FromTerritory, ToTerritory, Armies: integer);
+		<br>
+	</code>
+	<p>
+	For those of you not very familiar with Pascal, the word <B>var</B>
+	before the declaration of a parameter means that this is passed "by reference"
+	instead of "by value". That is, if the procedure modifies its value, the calling
+	program receives the modified value.
+	<br>
+	<br>
+	<li>
+	The program MUST contain a main flow, delimited by the
+	<B>begin</B> and <B>end.</B> words. 
+	As in any good old Pascal Program, this main flow has to be placed at
+	the very end of the source, so that	<B>end.</B>
+	is the last statement in the source. This structure is required by ROPS, but
+	TurboRisk doesn't need it, so you can leave the
+	<B>begin</B> and <B>end.</B>
+	block empty. However, if you place any instruction there, that code will be
+	executed once at the beginning of a new game. This can be useful to prepare
+	some configuration and store it in the buffers.
+	<br>
+	<br>
+	<li>
+	ROPS performs much more strict controls about structure than Delphin does. For
+	this reason, some of the old TRPs, which have non matching begin-end pairs,
+	don't compile anymore.
+</ol>
+
+<hr>
+
+<h2>Types, Variables, Expressions</h2>
+
+<p>
+As in TurboRisk 1.2, all the variables you define will be LOCAL variables, no
+matter their scope. This happens because TurboRisk uses the same space to load
+and execute all of the different computer player programs,
+turn after turn. You still have to store GLOBAL values using the TurboRisk
+internal buffers, which you can have access to through the UBufferSet and
+UBufferGet functions.
+<p>
+The possibility of defining global scope variables is still a new useful
+feature, which makes possible for a procedure to share values with other called
+procedures.
+<p>
+The <B>real</B> type is no more supported. Use <B>double</B> instead.
+<p>
+ROPS uses standard PASCAL conventions about the syntax and priorities of
+operators, including the logical one. The following statement was legal in
+TurboRisk 1.2:
+<p>
+<code>
+	&nbsp;&nbsp;if TIsMine(x) and TArmies(x)=TArmies(x) then begin
+	<br>
+</code>
+<p>
+but it's no more legal in current TurboRisk. In PASCAL the <B>and</B>
+operator has a higher priority than the "equal", "greater than", "less then"
+and the other comparation operators, so the proper syntax for that statement
+shall be:
+<p>
+<code>
+	&nbsp;&nbsp;if TIsMine(x) and <B>(</B>TArmies(x)=TArmies(x)<B>)</B>	then begin
+	<br>
+</code>
+
+<p>
+ROPS is not very tolerant about <B>type mixing</B> in expression and logical
+conditions. The following code aborts execution, because it compares an integer value with
+a double value:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&gt;TotalArmies * 0.35 then
+</code>
+<P>
+The correct code fragment is the following:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&gt;trunc(TotalArmies * 0.35) then
+</code>
+
+<p>
+You need to be careful when using this method though. Consider the following example:
+<p>
+<code>
+	<b>var</b> 
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&lt;trunc(TotalArmies * 0.35) then
+</code>
+
+<p>
+Notice that the comparative operator has changed.  If PArmiesCount(T) is 17 and
+TotalArmies * 0.35 is 17.5, then 17.5 will be truncated to 17 and the statement
+will be false even though it should be true.
+<br>
+You can use type casting in this case to get the correct result:
+<p>
+<code>
+	<b>var</b> 
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if double(PArmiesCount(T))&lt;TotalArmies * 0.35 then
+</code>
+
+<p>
+There are some other reported issues about ROPS and type mixing in logical
+expressions. For example the code:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	&nbsp;&nbsp;d: double;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	&nbsp;&nbsp;if (TArmies(T) / i) &lt; d then ...
+</code>
+<p>
+stops the interpreter any time TArmies(T)/i is not a whole number. The trunc() function 
+won't work in this case, so it is necessary to use type casting instead:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	&nbsp;&nbsp;d: double;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	&nbsp;&nbsp;if (double(TArmies(T))) / (double(i)) &lt; d then ...
+	</code>
+
+
+		
+<hr>
+
+<h2>TurboRisk API</h2>
+
+<p>
+Some of the interface functions have a new syntax:
+
+<p>
+<code class=api>
+	procedure UMessage(M: string);
+</code>
+<br>
+Previously it accepted an unlimited number of parameters, of any kind:
+<br>
+<code class=api>
+	UMessage('Error: ',MyIntVar+4,... );
+</code>
+<br>
+Now you have to pass a single string value. Thus the previous example becomes:
+<br>
+<code class=api>
+	UMessage('Error: '+IntToStr(MyIntVar+4)+... );
+</code>
+<br>
+
+<p>
+<code class=api>
+	procedure ULog(M: string);
+</code>
+<br>
+Same as UMessage.
+
+<p>
+<code class=api>
+	procedure UBufferSet(B: integer; V: double);
+	<br>
+	function UBufferGet(B: integer): double;
+</code>
+Previously the value stored in the buffer was of type variant. Now it is a
+double.
+
+<p>
+<code class=api>
+	function URandom(R: integer): double;
+</code>
+<br>
+This function as well returns a double;
+
+<hr>
+
+<h2>TRComp</h2>
+
+TRComp is a TurboRisk program Compiler. It allows simple editing of your source
+file and provide an interface to the ROPS engine. Take advantage of it to
+compile your TRP and detects any problem it might have in the structure or in
+the syntax.
+	
+</body>
+	
+</html>
