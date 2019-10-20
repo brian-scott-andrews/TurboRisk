@@ -1,0 +1,312 @@
+{
+Program: brainless V
+
+Author: Chiel ten Brinke
+}
+
+
+{
+POSSIBLE IMPROVEMENTS:
+- Better kill player function
+- Smarter territory hopping - go to territories where the most other weak territories are bordering
+}
+
+type TArray = array {[1..42]} of integer;
+Function ConquerArea(ST: integer; DTArray:TArray; var TTArray: TArray; PL, EA: integer): boolean;
+Var
+  iPL, ChildArmies, T, B, iNode, iChild, iCostFromStart: integer;
+  bFound: boolean;
+
+  DT,TempT,GoalCounter,i: integer;
+
+  aNode: array [1..42] of record
+    bClosed: boolean;          // node is in the CLOSED list
+    bOpen: boolean;            // node is in the Open list
+    iParent: integer;          // previous node in the optimal path
+    iCostFromStart: integer;   // cost to arrive to this node
+    iPL: integer;              // Path length from this node to the start T
+  end;
+    //QTArmies, QTOwner: Array of Integer;
+begin
+
+  SetArrayLength(TTArray, 43);
+  //SetArrayLength(QTArmies, 43);
+
+  Result:= False;
+  PL:= 0;
+  EA:= 0;
+
+  if (ST = 0) or (Length(DTArray)=0) or
+    ((Length(DTArray)=1) and ((ST = DTArray[0]) or (TIsBordering(ST, DTArray[0]) and TIsMine(ST) and TIsMine(DTArray[0])))) then exit;
+
+  for T:=1 to 42 do begin
+    with aNode[T] do begin
+      bClosed := false;
+      bOpen:= false;
+    end;
+  end;
+
+  aNode[ST].iParent := 0;
+  aNode[ST].iCostFromStart := 0;
+  aNode[ST].iPL:= 0;
+  aNode[ST].bopen := True;
+
+  Repeat
+    T:= 0;
+    iNode:= 0;
+    repeat
+      T:= T + 1;
+      if aNode[T].bopen and not aNode[t].bClosed then begin
+        iNode:= T;
+      end;
+    until (iNode > 0) or (T = 42);
+
+    TempT := iNode;
+    GoalCounter:=0;
+    while (aNode[TempT].iParent > 0) and (aNode[TempT].iParent <> ST) do begin
+      TempT := aNode[TempT].iParent;
+      for i:=0 to Length(DTArray) do begin   //if DTArray contains TempT, increase GoalCounter by 1
+        if TempT=DTArray[i] then begin
+          GoalCounter:=GoalCounter+1;
+          break;
+        end;
+      end;
+    end;
+    if GoalCounter = Length(DTArray) then bFound:= True;  //if We've got all DT's, return true
+
+    if iNode <> 0 then begin
+      if not (iNode = DT) then begin
+        // examine connected nodes
+        for B:= 1 to TBordersCount(iNode) do begin
+          iChild:= TBorder(iNode, B);
+          // skip Ts that are mine
+          if (TOwner(iChild) <> PMe) then continue;
+
+          ChildArmies:= TArmies(iChild);
+          iCostFromStart:= aNode[iNode].iCostFromStart + ChildArmies + 1;  // add 1 to incorporate the cost of the path length into the total cost
+          iPL:= aNode[iNode].iPL + 1;
+          // assign cost to child if end node has not been reached already
+          // or if reached with higher cost
+          if ((not aNode[iChild].bOpen) and (not aNode[iChild].bClosed))
+          or (iCostFromStart < aNode[iChild].iCostFromStart) or ( (iCostFromStart = aNode[iChild].iCostFromStart) and (iPL < aNode[iChild].iPL) ) then begin
+            aNode[iChild].iParent := iNode;
+            aNode[iChild].iCostFromStart := iCostFromStart;
+            aNode[iChild].iPl:= iPL;
+            if aNode[iChild].bClosed then aNode[iChild].bClosed:= false; // if closed then remove child from CLOSED list
+            if not aNode[iChild].bOpen then aNode[iChild].bOpen:= true;  // add to open list
+          end;
+        end;
+      end;
+      aNode[iNode].bClosed := true; // node has been examined, add to CLOSED list
+    end;
+  until (iNode = 0);  // loop until there are no more open nodes
+
+  if bFound then begin
+    Result:= True;
+    EA:= aNode[DT].iCostFromStart - aNode[DT].iPL;
+    PL:= aNode[DT].iPL;
+
+    i:=0; //set indexer
+    while (aNode[DT].iParent > 0) and (aNode[DT].iParent <> ST) do begin
+      DT := aNode[DT].iParent;
+      TTArray[i]:=DT;
+      i:=i+1;
+    end;
+  end;
+end;
+
+
+
+function GetAttT: integer;
+var
+  T,A,MaxA: integer;
+begin
+  // Determine which T is your strongest front to attack with
+  MaxA:=0;
+  for T:=1 to 42 do begin
+    A:=TArmies(T);
+    if (TIsFront(T)) and ( (A>MaxA) or ((A>=MaxA) and (T<39)) ) then begin
+      MaxA:=A;
+      result:=T;
+    end;
+  end;
+end;
+
+
+procedure Assignment(var TT: integer);
+var
+  T: integer;
+begin
+  // Prefers Asia so he can walk around freely
+  T:=0;
+  repeat
+    T:=T+1;
+    if TOwner(T)=0 then
+      TT:=T;
+  until ( (TT>0) and (T=38) ) or (T=42);
+end;
+
+
+procedure Placement(var TT: integer);
+begin
+  TT:=GetAttT;
+end;
+
+
+procedure Attack(var FT, TT: integer);
+var
+  A,N,ET,EA,F,MinF,P,TPA,i,PL,T: integer;
+  DTArray,TTArray: array of integer;//Array of integer;
+begin
+  SetArrayLength(DTArray,42);
+  SetArrayLength(TTArray,42);
+  DTArray[0]:=0;
+
+  TT:=0;
+  FT:=GetAttT;
+  A:=TArmies(FT);
+
+  // Card-Attack
+  if (not SConquest) and (TIsFront(FT)) then begin
+    TWeakestFront(FT,ET,EA);
+    if ( (A>3*EA) and (EA<99) and (not(SCardsBasedOnCombo)) )
+    or ( (A>4*EA) and ( (EA<4) or ( (EA<5) and (A>99) ) ) and (SCardsBasedOnCombo) ) then TT:=ET;
+  end;
+
+  // Kill a player if possible
+  for P:=1 to 10 do begin
+    if (PActive(P)) and (P<>PMe) then begin
+      if PArmiesCount(P)<TArmies(FT) then begin
+        //get Ts from P
+        i:=0;
+        for T:=1 to 42 do begin
+          if TOwner(T)=P then begin
+            DTArray[i]:=T;
+            //????????waarom crasht ie hier?????
+            i:=i+1;
+          end;
+        end;
+
+        if ConquerArea(FT,DTArray,TTArray,PL,EA) then begin
+          if ((TArmies(FT)/EA)>1) then begin
+            ULog('HOPPA!');
+            UMessage('pause');
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  // Number of armies of all my enemies
+  TPA:=0;
+  for P:=1 to 10 do begin
+    if (PActive(P)) and (P<>PMe) then
+      TPA:=TPA+PArmiesCount(P);
+  end;
+
+  // Attack the whole world in one turn (if possible)
+  MinF:=11;
+  if (TIsFront(FT)) and ( (A>TPA) or (SAlivePlayersCount=2) ) then begin
+    for N:=1 to TFrontsCount(FT) do begin
+      ET:=TFront(FT,N);
+      F:=TFrontsCount(ET);
+      if (MinF<>0) then begin
+        if (ET=31) then F:=-1;  // To Siam
+        if (FT=31) and (ET=39) then F:=-1;  // From Siam to Indonesia
+        if (COwner(3)=PMe) and (COwner(5)=PMe) and (ET=16) then F:=-1;  // To E-Afrika
+        if (COwner(3)=PMe) and (COwner(4)=PMe) and (ET=29) then F:=-1;  // To Kazakhstan
+        if (COwner(1)=PMe) and (FT=14) and (ET=12) then F:=-1;  // To Brazil
+      end;
+      if ( (F<MinF) or (F=0) or ( (F=MinF) and (not TIsEntry(ET)) ) ) and (A>TArmies(ET)) then begin
+        MinF:=F;
+        TT:=ET;
+      end;
+    end;
+  end;
+
+
+  if (TT<=0) or (FT<=0) then begin
+    FT:=0;
+    TT:=0;
+  end;
+
+end;
+
+
+procedure Occupation(FT, TT: integer; var A: integer);
+var
+  C,PT,PA,ET,EA,RA: integer;
+begin
+  A:=0;
+  if (TIsFront(TT)) or (not TIsFront(FT)) then
+    A:=TArmies(FT)-1;
+  if (FT=31) and (TT=39) then begin  // Australia
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+  if (COwner(1)=PMe) and ((COwner(4)<>PMe) or (COwner(3)<>PMe)) and (FT=14) and (TT=12) then begin  // S-America
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+end;
+
+
+procedure Fortification(var FT, TT, Armies: integer);
+var
+  T,AT,A,T1,PL,F,MaxF: integer;
+begin
+  FT:=0;
+  TT:=0;
+  Armies:=0;
+  AT:=GetAttT;
+
+  A:=1;
+  for T:=1 to 42 do begin
+    TShortestPath(T,AT,T1,PL);
+    if (PL=0) then PL:=99;
+    if (TIsMine(T)) and ( (not TIsFront(T)) or (PL<5) ) then begin
+      if (TArmies(T)>A) then   // Strongest army
+      begin
+        A:=TArmies(T);
+        FT:=T;
+        TT:=TPathToFront(T);                     // Move to front
+        if (PL<5) and (TIsMine(T1)) then TT:=T1; // Or even better, move to attack territory
+        Armies:=TArmies(T)-1;
+      end;
+    end;
+  end;
+
+  if not (SConquest) then begin // Move attack territory if it couldnt get cards
+    MaxF:=0;
+    PL:=0;
+    for A:=1 to TBordersCount(AT) do begin
+      T:=TBorder(AT,A);
+      F:=TFrontsCount(T);
+      if (TIsMine(T)) and ( (F>MaxF) or ((F>=MaxF) and (TBordersCount(T)>PL)) ) then begin
+        MaxF:=F;
+        PL:=TBordersCount(T);
+        FT:=AT;
+        TT:=T;
+        Armies:=TArmies(FT)-1;
+      end;
+    end;
+  end;
+end;
+
+
+begin
+ULogOn;
+UMessageOn;
+end.
