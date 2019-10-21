@@ -1,0 +1,222 @@
+// Walker v2
+// =============
+
+// Very simple cooperative program
+// The purpose is to test other computer programs - the real human player easily outperforms this routine.
+
+// How to play:
+// place at least three Walkers and test it against other computer players.
+
+// To do:
+// - better fortification routine (current is based on Borg's one)
+// - continents awareness
+// - improve the attack efficiency
+
+// Rafal Smotrzyk
+// mailto:rsmotrzyk@mikroplan.com.pl
+// Ported to 2.0.5 by Brian S. Andrews
+
+procedure Assignment (var ToTerritory: integer);
+var
+  T: integer;
+begin
+  ToTerritory:=0;
+  T:=1;
+  repeat
+    if TOwner(T)=0 then
+      ToTerritory:=T;
+    T:=T+1;
+  until (ToTerritory>0) or (T>42);
+end;
+
+procedure Placement (Var ToTerritory: integer);
+var
+  T,EnemyT,EnemyA,MaxArmies,D,j,TheOwner: integer;
+  EnemyLeft,IsFriend,OnlyFriends:boolean;
+  Ratio,MaxRatio : Double;
+begin
+   EnemyLeft:=false;
+   for j:=1 to 10 do if (PProgram(j)<>PProgram(PMe)) and (PArmiesCount(j)<>0) then EnemyLeft:=true;
+   
+   ToTerritory:=0;
+   MaxArmies:=-1;
+
+   if EnemyLeft then begin
+      for T:=1 to 42 do begin
+         if (TOwner(T)=PMe) then begin
+            if ToTerritory=0 then ToTerritory:=T;
+            OnlyFriends:=true;
+            for j:=1 to TBordersCount(T) do begin
+              TheOwner:=TOwner(TBorder(T,j));
+              if (PProgram(TheOwner)<>PProgram(PMe)) then OnlyFriends:=false;
+            end;
+            if not OnlyFriends then begin
+               D:=TArmies(T);
+               if D>MaxArmies then begin
+                  ToTerritory:=T;
+                  MaxArmies:=D;
+               end;
+            end;
+         end;
+      end;
+   end else begin
+      if TOwner(23)=PMe then begin
+         for T:=1 to 42 do begin
+            if TIsFront(T) then ToTerritory:=T;
+         end;
+      end else begin
+         MaxArmies:=10000;
+         for T:=1 to 42 do begin
+            if (TOwner(T)=PMe) then begin
+               D:=TArmies(T);
+               if D<MaxArmies then begin
+                  ToTerritory:=T;
+                  MaxArmies:=D;
+               end;
+            end;
+         end;
+      end;
+   end;
+end;
+
+procedure Attack(Var FromTerritory, ToTerritory: integer);
+var
+  T,k,j,EnemyT,EnemyA,TheOwner: integer;
+  Ratio,MaxRatio,MinRatio: double;
+  EnemyLeft,IsFriend:boolean;
+begin
+   EnemyLeft:=false;
+   for k:=1 to 10 do if (PProgram(k)<>PProgram(PMe)) and (PArmiesCount(k)<>0) then EnemyLeft:=true;
+   FromTerritory:=0;
+   ToTerritory:=0;
+   if EnemyLeft then begin
+        MaxRatio:=0;
+        MinRatio:=1000;
+        for T:=1 to 42 do begin
+          if TIsFront(T) and (TArmies(T)>1) then begin
+            for k:=1 to 42 do begin
+               if TIsBordering(T,k) then begin
+                  TheOwner:=TOwner(k);
+                  IsFriend:=(PProgram(TheOwner)=PProgram(PMe));
+                  if not IsFriend then begin
+                     Ratio := TArmies(T) / TArmies(k);
+                     if Ratio>MaxRatio then begin
+                        FromTerritory:=T;
+                        ToTerritory:=k;
+                        MaxRatio:=Ratio;
+                     end;
+                     if Ratio<MinRatio then begin
+                        MinRatio:=Ratio;
+                     end;
+                  end;
+               end;
+            end;
+          end;
+        end;
+        if MaxRatio<2.2 then FromTerritory:=0;
+//        if MinRatio<0.5 then FromTerritory:=0;
+   end else begin
+      if TOwner(23)=PMe then begin
+          for T:=1 to 42 do begin
+            if TIsFront(T) and (TArmies(T)>1) then begin 
+              TWeakestFront(T,EnemyT,EnemyA);
+              if EnemyT>0 then begin
+                  FromTerritory:=T;
+                  ToTerritory:=EnemyT;
+              end;
+            end;
+          end;
+      end else begin
+          for T:=1 to 42 do begin
+            if TIsFront(T) and (TArmies(T)>1) then begin 
+               for j:=1 to TBordersCount(T) do begin
+                  EnemyT:=TBorder(T,j);
+                  if (EnemyT>0) and (TOwner(EnemyT)<>TOwner(23)) and (TOwner(EnemyT)<>PMe) then begin
+                     FromTerritory:=T;
+                     ToTerritory:=EnemyT;
+                  end;
+               end;
+            end;
+          end;
+      end;
+   end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+   j : Integer;
+   OnlyFriends: boolean;
+begin
+   OnlyFriends:=True;
+   for j:=1 to TBordersCount(ToTerritory) do begin
+     if (PProgram(TOwner(TBorder(ToTerritory,j)))<>PProgram(PMe)) then OnlyFriends:=false;
+   end;
+   Armies:=0;
+   if not OnlyFriends then Armies:=TArmies(FromTerritory)-1;
+end;
+
+
+// Slightly modified Borg's fortification - need a better routine!
+procedure Fortification (var FromTerritory, ToTerritory, Armies: integer);
+var
+  j,TheOwner,T,B,MaxArmy: integer;
+  OnlyFriends,EnemyLeft,DohK:boolean;
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  EnemyLeft:=false;
+  for j:=1 to 10 do if (PProgram(j)<>PProgram(PMe)) and (PArmiesCount(j)<>0) then EnemyLeft:=true;
+  MaxArmy := 1;
+  for T:=1 to 42 do begin
+    OnlyFriends:=true;
+    for j:=1 to TBordersCount(T) do begin
+     TheOwner:=TOwner(TBorder(T,j));
+     if (PProgram(TheOwner)<>PProgram(PMe)) then OnlyFriends:=false;
+    end;
+    if TIsMine(T) and not OnlyFriends then begin  // territory is mine and not "front"  
+      if TArmies(T)>MaxArmy then 
+      begin
+        MaxArmy := TArmies(T);
+        FromTerritory := T;
+      end;
+    end;
+  end;
+
+  if FromTerritory>0 then begin
+    for B:=1 to TBordersCount(FromTerritory) do begin
+      if ToTerritory=0 then begin
+        T:=TBorder(FromTerritory,B);
+        if TIsMine(T) and TIsFront(T) then 
+        begin       
+         OnlyFriends:=true;
+         for j:=1 to TBordersCount(T) do begin
+          TheOwner:=TOwner(TBorder(T,j));
+          if (PProgram(TheOwner)<>PProgram(PMe)) then OnlyFriends:=false;
+         end;
+         if not EnemyLeft and Not OnlyFriends then begin
+           ToTerritory:=T;
+         end;
+        end;
+      end;
+    end;
+
+    if ToTerritory=0 then begin
+      DohK:=false;
+      for B:=1 to TBordersCount(FromTerritory) do begin
+          T:=TBorder(FromTerritory,B);
+          if (TIsMine(T))  then begin
+            ToTerritory:=T;
+          end;
+        end;
+      end;
+    end;
+
+    if ToTerritory>0 then Armies:=(TArmies(FromTerritory))-1;
+    if (ToTerritory=0) or (FromTerritory=0) then begin
+      ToTerritory:=0;
+      FromTerritory:=0;
+    end;
+end;
+begin
+end.
