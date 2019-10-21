@@ -249,7 +249,10 @@ var
   T,B,TActual: integer;
   ET,EA: integer;
   Need,MaxNeed: integer;
+  MaxArmies: integer;
 begin
+  // first check if we can directly fortify a front territory then search the largest
+  // army and move it to the front
   FromTerritory:=0;
   ToTerritory:=0;
   Armies:=0;
@@ -273,6 +276,20 @@ begin
 
   if ToTerritory>0 then begin
     Armies:=TArmies(FromTerritory)-1;
+  end else begin
+    MaxArmies:=1;
+    for T:=1 to 42 do begin
+      if TIsMine(T) and (not TIsFront(T)) then begin
+        if TArmies(T)>MaxArmies then begin
+          MaxArmies:=TArmies(T);
+          FromTerritory:=T;
+        end;
+      end;
+    end;
+    if FromTerritory>0 then begin
+      ToTerritory:=TPathToFront(FromTerritory);
+      Armies:=TArmies(FromTerritory)-1;
+    end;
   end;
 end;
 
