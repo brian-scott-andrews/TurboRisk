@@ -4,6 +4,7 @@ Program: Crusader
 Author: Denahiro
 
 Description: Has a strict set of rules and follows them blindly.
+Updated to 2.0.5 Brian Andrews Removed Check command
 }
 
 {
@@ -219,6 +220,7 @@ begin
   end;
 
 //  check c
+// Above line commented out to compile
 
   if TryFindFrontClosingTerritory(C,true,ToTerritory) then begin
   end else begin
