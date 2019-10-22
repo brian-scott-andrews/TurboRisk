@@ -30,8 +30,6 @@ var
   T, A,B: integer;
   Ratio,MaxRatio: double;
 begin
-  {$DEFINE PS_DELPHIDIV}
-  ULogOn;
   // reinforce territory with greatest ratio between total enemy armies and
   // own armies
   ToTerritory:=0;
