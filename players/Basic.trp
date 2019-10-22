@@ -1,0 +1,236 @@
+{
+Program:
+Basic
+Author:
+Torkani
+Description:
+A basic player that focuses on gaining territories rather than continents
+History:
+v0.3 - Basic Attack Routine
+v0.5 - Basic occupation and fortification routine added
+v0.7 - Assignment routine added
+v1.00 - Release, fine tuning done
+
+}
+
+program New;
+
+procedure Assignment(var ToTerritory: integer);
+var
+  i: integer;
+  num_territories_unassigned: integer;
+  most_num_borders: integer;
+  // Europe taken
+  eu_taken: integer;
+  num_eu_ters_taken: integer;
+begin
+    num_territories_unassigned:=0;
+    most_num_borders:=0;
+    num_eu_ters_taken:=0;
+    eu_taken:=0;
+
+    // Get number of unassigned territories
+    for i:=1 to 42 do begin
+      if TOwner(i)=0 then begin
+        num_territories_unassigned:=num_territories_unassigned + 1;
+      end;
+    end;
+
+    // Go through all the unassigned territories
+    for i:=1 to 42 do begin
+      if TOwner(i)=0 then begin
+        // Choose the territories with the most number of borders in north
+        // america first
+        if TContinent(i)=3 then begin
+          if TBordersCount(i)>most_num_borders then begin
+            most_num_borders:=TBordersCount(i);
+            ToTerritory:=i;
+          end;
+        end;
+      end;
+    end;
+
+    if ToTerritory=0 then begin
+      for i:=1 to 42 do begin
+        if TOwner(i)=0 then begin
+          if TBordersCount(i)>most_num_borders then begin
+            most_num_borders:=TBordersCount(i);
+            ToTerritory:=i;
+          end;
+        end;
+      end;
+    end;
+
+end;
+
+procedure Placement(var ToTerritory: integer);
+var
+  enemy_territory: integer;
+  enemy_armies: integer;
+  lowest_enemy_armies: integer;
+  i: integer;
+begin
+  lowest_enemy_armies:=10000;
+
+  // Go through all the territories and see which one is easiest to use for an
+  // invasion of enemy territory
+  for i:=1 to 42 do begin
+    if TOwner(i)=PMe() then begin
+      if TIsFront(i) then begin
+        TWeakestFront(i, enemy_territory, enemy_armies);
+        // Set the lowest enemy armies and the territory for deploy variable
+        if enemy_armies<lowest_enemy_armies then begin
+          // Don't reinforce if we already have a 2 to 1 ratio of attacking to
+          // defending troops plus one extra troop (to leave behind) and 1
+          // troops extra (for beginning).
+          if (TArmies(i)-1)<=(TArmies(enemy_territory)*2)+1 then begin
+            lowest_enemy_armies:=enemy_armies;
+            ToTerritory:=i;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  lowest_enemy_armies:=10000;
+
+  // If no best territory is chosen then choose the territory with the
+  // weakest front
+  if ToTerritory=0 then begin
+    // Same code as last time, just that no limit on the max ratio of our
+    // troops to enemy troops
+    for i:=1 to 42 do begin
+    if TOwner(i)=PMe() then begin
+      if TIsFront(i) then begin
+        TWeakestFront(i, enemy_territory, enemy_armies);
+        // Set the lowest enemy armies and the territory for deploy variable
+        if enemy_armies<lowest_enemy_armies then begin
+          lowest_enemy_armies:=enemy_armies;
+          ToTerritory:=i;
+        end;
+      end;
+    end;
+    end;
+
+  end;
+
+
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  enemy_territory: integer;
+  enemy_armies: integer;
+  current_ratio: integer;
+  highest_ratio: integer;
+  i: integer;
+begin
+
+  highest_ratio:=0
+  current_ratio:=0
+
+  // For every territory check whether it is a feasible candidate for attacking
+  // and choose which one is the best
+  // repeat this until all good candidates for attacking have been finished
+  for i:=1 to 42 do begin
+    if TOwner(i)=PMe() then begin
+      if TIsFront(i) then begin
+        TWeakestFront(i, enemy_territory, enemy_armies);
+
+        if (TArmies(i)-1)>(TArmies(enemy_territory)*2) then begin
+          current_ratio:=(TArmies(i)-1)/enemy_armies
+          if current_ratio>highest_ratio then begin
+            FromTerritory:=i;
+            ToTerritory:=enemy_territory;
+            highest_ratio:=current_ratio;
+          end;
+
+        end;
+      end;
+    end;
+  end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var
+  enemy_territory: integer;
+  enemy_armies: integer;
+begin
+
+  // If attacking and defending territories are both fronts, leave as many
+  // armies in the attacking territories as troops on it's strongest front
+  if TIsFront(FromTerritory) then begin
+    if TIsFront(ToTerritory) then begin
+      TStrongestFront(FromTerritory, enemy_territory, enemy_armies)
+
+      if TArmies(FromTerritory)-enemy_armies<0 then begin
+      // Do nothing
+      end
+      else Armies:=TArmies(FromTerritory)-enemy_armies;
+    end;
+  end;
+
+  // If attacking territory is front, but defending territory is not
+  // then do not do anything
+  if TIsFront(FromTerritory) then begin
+    if not TIsFront(ToTerritory) then begin
+    // Do nothing
+    end;
+  end;
+
+  // If the defending territory is front but the attacking territory is not
+  // then move all the armies into the attacking territory
+  if not TIsFront(FromTerritory) then begin
+    if TIsFront(ToTerritory) then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+
+  // If, after the conquest, neither territories are fronts, then move all the
+  // units into the defending territory
+  if not TIsFront(FromTerritory) then begin
+    if not TIsFront(ToTerritory) then begin
+      Armies:=TArmies(FromTerritory)-1;
+    end;
+  end;
+
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  i: integer;
+  // Most troops not on front
+  most_troops_nof: integer;
+  // Territory most troops not on front
+  ter_most_troops_nof: integer;
+begin
+  most_troops_nof:=1;
+  ter_most_troops_nof:=0;
+  UMessageOn()
+
+  // Find all behind front territories that do not have 1 army
+  for i:=1 to 42 do begin
+    if TOwner(i)=PMe() then begin
+      if not TIsFront(i) then begin
+
+        // If this territory has more troops than any other territory that is
+        // not on front
+        if TArmies(i)>most_troops_nof then begin
+          most_troops_nof:=TArmies(i);
+          ter_most_troops_nof:=i;
+        end;
+
+      end;
+    end;
+  end;
+
+  if ter_most_troops_nof>0 then begin
+    FromTerritory:=ter_most_troops_nof;
+    ToTerritory:=TPathToFront(ter_most_troops_nof);
+    Armies:=TArmies(ter_most_troops_nof)-1;
+  end;
+
+end;
+
+begin
+end.

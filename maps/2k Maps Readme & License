@@ -1,0 +1,13 @@
+** These maps are released to the public domain **
+Garnett W
+
+These are new maps for TurboRisk, in a size of 1850x900. This size was selected because TurboRisk doesn't allow resizing or maximizing the window, so margins were left to easily place the window and still fit in 2k resolution (1920x1080). Different Windows themes could give different results.
+
+There are three maps:
+* Simplified: eliptical projection, simplified; based on PD work by Tom-b and found on Wikicommons.
+* Realistic Mercator: mercator projection, following frontiers where available, or divisions from the standard map when not.
+* Simplified Mercator: mercator projection, and simplified in large irregular polygons.
+
+Thanks to Nathan for the colours, borrowed from his modification of the standard map.
+
+TurboRisk was made by Mario Ferrari - https://www.marioferrari.org/freeware/turborisk/turborisk.html

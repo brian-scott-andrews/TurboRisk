@@ -1,0 +1,253 @@
+{randy.trp  - a computer program for the Turborisk game by Mario Ferrari
+ written by Martin Nehrdich
+ Ported to V. 2.0.5 by Brian S. Andrews
+
+This program has a big random influence.
+Programmed to test computerenemies, hoping that it
+can stand human enemies as well.
+
+Assignment: Assign a random (free) territory.
+Placement: If only one territory left, place army there, else set on territory with
+           worst ratio TPressure/TArmies divided by TFrontsCount/2 and multiplied by
+           a random number between 1 and 6.
+Attack: First conquest needed, following ones only if forceratio >1.5.
+        Chooses a random territory to attack.
+        Attacks the territory with best forceratio own/enemy forces, Ratio is tripled
+        if the attacked territory is the randomly chosen territory to attack.
+Occupation:  if both territories are 'front' balance armies, except if both armies border the same
+ (copied     enemy territory as only front. In this case all armies will be moved.
+  from       if "To" is front move all armies in the conquered territory except the one which must
+  digger)    stay
+             if none of them is front, do not move armies
+Fortification:  search weakest front and fortify it with the biggest army standing on a
+ (copied        bordering, non-front territory.
+  from          If there are several weakest fronts, fortify the one with the biggest
+  digger)       fortifying army
+                If it is not possible to fortify a front, search the biggest army on a
+                non-front territory and move it to any (random) other bordering territory
+
+Usage of UBuffer:
+01 : TRandyAttacks (0..42) : The territory Randy wishes to attack, 0 stands for none.}
+
+procedure Assignment(var ToTerritory: integer);
+VAR
+  FreeTerritories, Randy, T : Integer;
+BEGIN
+  ToTerritory:=0;
+  FreeTerritories := 0;
+  FOR T:=1 TO 42 DO
+   IF TOwner(T)=0 THEN FreeTerritories:=FreeTerritories+1;
+  Randy := trunc(URandom(FreeTerritories) +1);
+  T:=0;
+  REPEAT
+    T:=T+1;
+    IF TOwner(T)=0 THEN
+    BEGIN
+      Randy:=Randy-1;
+      IF Randy = 0 THEN ToTerritory:=T
+    END;
+  UNTIL (ToTerritory<>0) OR (T=42)
+END; //PROCEDURE Assignment
+
+
+
+procedure Placement(var ToTerritory: integer);
+VAR
+  T : Integer;
+  Ratio, MaxRatio : Double;
+
+BEGIN
+  ToTerritory:=0;
+  MaxRatio:=0;
+
+  IF PNewArmies(PMe)>0 THEN UBufferSet(1,0);
+
+  IF PTerritoriesCount(PMe)=1 THEN       // For some reason or another, this
+  BEGIN                                  // program will crash occasionaly if
+    FOR T:= 1 TO 42 DO                   // these lines until the ELSE
+     IF TIsMine(T) THEN ToTerritory:=T;  // (including) will removed
+  END                                    // (Error:/ Player: {PName} / Routine: Placement /
+   ELSE                                  //  to territory: ä:E)
+   FOR T:=1 TO 42 DO
+  BEGIN
+    IF TIsFront(T) THEN         // territory is mine and front
+    BEGIN
+      Ratio := TPressure(T) / TArmies(T);
+      Ratio:=Ratio/(TFrontsCount(T)/2);
+      Ratio:=Ratio*(URandom(6)+1);  // random placement part
+      IF Ratio>MaxRatio THEN
+      BEGIN
+        ToTerritory:=T;
+        MaxRatio:=Ratio
+      END;
+    END;
+  END
+END;  //PROCEDURE Placement
+
+
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+VAR
+  T, B, EnemyT, EnemyA, TRandyAttacks, Counter : Integer;
+  Ratio, MaxRatio : Double;
+  RandyOKay : Boolean;
+
+BEGIN
+  FromTerritory:=0;
+  ToTerritory:=0;
+  IF SConquest THEN
+    MaxRatio:=1.5
+  ELSE MaxRatio:=0;
+
+  TRandyAttacks:=trunc(UBufferGet(1));
+  IF TIsMine(TRandyAttacks) OR (TRandyAttacks=0)
+   THEN RandyOKay:=False
+  ELSE BEGIN
+    RandyOKay:=False;
+    FOR T:=1 TO TBordersCount(TRandyAttacks) DO
+    BEGIN
+      B:= TBorder(TRandyAttacks, T);
+      IF TIsMine(B) THEN
+       IF TArmies(B)>1 THEN RandyOKay:=True
+    END
+  END;
+
+  Counter := 0;
+  IF NOT RandyOKay THEN
+  REPEAT
+    TRandyAttacks:=trunc(URandom(42) +1);
+    IF NOT TIsMine(TRandyAttacks) THEN
+    BEGIN
+      Counter:=Counter+1;
+      IF Counter>2500 THEN  // apparently no attackable territory found,
+      BEGIN                 // (happens if all of my fronts have just one army)
+        TRandyAttacks:=0;   // needed to jump out of this endlessloop
+        RandyOKay:=True
+      END;
+      FOR T:=1 TO TBordersCount(TRandyAttacks) DO
+      BEGIN
+        B:= TBorder(TRandyAttacks, T);
+        IF TIsMine(B) AND (TArmies(B)>1) THEN
+        BEGIN
+          RandyOKay:=True;
+          UBufferSet(1,TRandyAttacks)
+        END;
+      END
+    END;
+  UNTIL RandyOKay;
+
+  FOR T:=1 TO 42 DO
+  BEGIN
+    IF TIsFront(T) AND (TArmies(T)>1) THEN   // territory is mine, front and attack is possible
+    BEGIN
+      FOR B:=1 TO TBordersCount(T) DO
+      BEGIN
+        EnemyT := TBorder(T,B);
+        IF NOT TIsMine(EnemyT) THEN
+        BEGIN
+          Ratio:=(TArmies(T)-1)/TArmies(EnemyT);   // an extra of 1 army needed (the defending one)
+          IF EnemyT=TRandyAttacks THEN Ratio:=Ratio*10;
+          IF Ratio>=MaxRatio THEN
+          BEGIN
+            FromTerritory:=T;
+            ToTerritory:=EnemyT;
+            MaxRatio:=Ratio
+          END;
+        END;
+      END
+    END;
+  END;
+END;  //PROCEDURE Attack
+
+
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+BEGIN
+  // if both territories are 'front' balance armies, except if both armies border the same
+  //  enemy territory as only front. In this case all armies will be moved (to increase attackpossibility).
+  // if "To" is front move all armies in the conquered territory except the one which must stay
+  // if none of them is front, do not move armies
+
+  Armies:=0;
+  IF TIsFront(FromTerritory) AND TIsFront(ToTerritory) THEN
+  BEGIN
+    IF TArmies(FromTerritory)>TArmies(ToTerritory) THEN
+    BEGIN
+      IF (TFrontsCount(FromTerritory)=1) AND (TFrontsCount(ToTerritory)=1) THEN
+      BEGIN      // It makes a following attack easier if the troops stay together, therefore move all
+        IF (TFront(FromTerritory,1)=TFront(ToTerritory,1)) AND ((TArmies(FromTerritory)+2)/(TArmies(TFront(ToTerritory,1)))>1.2) THEN Armies:=TArmies(FromTerritory)-1;
+      END
+      ELSE Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2
+    END;
+  END
+  ELSE IF TIsFront(ToTerritory) THEN
+   Armies:=TArmies(FromTerritory)-1;
+END;  //PROCEDURE Occupation
+
+
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+VAR T, FromT, BiggestArmy, B, MinArmy, MaxArmy  :Integer;
+BEGIN
+  //Search weakest front and fortify it with the biggest army
+  //standing on a bordering, non-front territory.
+  //If there are several weakest fronts,
+  //fortify the one with the biggest fortifying army
+  //If it is not possible to fortify a front, search the biggest army on a non-front
+  //territory and move it to any other bordering territory
+
+  MinArmy:=1500;    //smallest frontarmy must be smaller than this one (should be no problem...)
+  Armies:=0;        //Do not move armies until moveable army found
+  BiggestArmy:=1;   //Need at least 2 Armies to have one to move [TArmies(FromT) > BiggestArmy]
+  ToTerritory:=0;
+  FromTerritory:=0;
+  FromT:=0; //From Territory
+  T:=42;
+  REPEAT
+    IF TIsFront(T) AND (TArmies(T)<=MinArmy) THEN  //TIsFront(T) can only be true if TIsMine(T) is True
+    BEGIN
+      FOR B:=1 TO TBordersCount(T) DO
+      BEGIN
+        FromT:=TBorder(T,B);
+        IF (TIsMine(FromT) AND (NOT TIsFront(FromT))) AND (TArmies(FromT)>BiggestArmy) THEN
+        BEGIN
+          MinArmy:=TArmies(T);
+          FromTerritory:=FromT;
+          ToTerritory:=T;
+          Armies:=TArmies(FromTerritory)-1;
+          BiggestArmy:=Armies
+        END;
+      END
+    END;
+    T:=T-1
+  UNTIL T<1;
+
+  IF Armies = 0 THEN   //no fortification of a front possible, move the biggest other army anywhere
+  BEGIN
+    MaxArmy := 1;
+    T:=42;
+    REPEAT
+      IF TIsMine(T) AND NOT TIsFront(T) THEN    // territory is mine and not "front"
+      BEGIN
+        IF TArmies(T)>MaxArmy THEN
+        BEGIN
+          MaxArmy := TArmies(T);
+          FromTerritory := T
+        END;
+      END;
+      T:=T-1
+    UNTIL T<1;
+    // if there are armies to move...
+    // move armies to a random bordering territory
+    IF FromTerritory>0 THEN
+    BEGIN
+      B:=trunc(URandom(TBordersCount(FromTerritory))+1);
+      ToTerritory:=TBorder(FromTerritory,B);    // Random movement can be very surprising
+      // Move all armies to destination (except the one which must stay)
+      Armies:=TArmies(FromTerritory)-1
+    END;
+  END;  //IF Armies = 0
+
+END;  //PROCEDURE Fortification
+Begin
+END.

@@ -1,9 +1,11 @@
 [Map]
-Desc=Standard Map - Large - Modified
+Desc=Standard Map - Large w/ fixed great lakes
 FontName=Courier New
 FontSize=12
 Author=Nathan Scarbrough - Credit to Mario for the original
-Revision=1.0
+Revision=2.0
+TextFG=0
+TextBG=16777215
 [Territory_1]
 Color=32896
 Tx=32

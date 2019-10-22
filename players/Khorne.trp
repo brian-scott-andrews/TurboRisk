@@ -1,0 +1,81 @@
+{
+Program: Khorne
+
+Author: Denahiro
+
+Description: Adaptation of the Rambo.trp to be even more stupid
+}
+
+procedure Assignment(var ToTerritory: integer);
+var
+  T: integer;
+begin
+  // find random free territory (a very stupid way to start the game!)
+  ToTerritory:=0;
+  repeat
+    T:=round(URandom(42))+1;
+    if TOwner(T)=0 then begin
+      ToTerritory:=T;
+    end;
+  until (ToTerritory>0);
+end;
+
+procedure Placement(var ToTerritory: integer);
+var
+  T,Armies,MaxArmies: integer;
+begin
+  // reinforce front territory with the most armies if it has more than one army
+  ToTerritory:=0;
+  MaxArmies:=1;
+  for T:=1 to 42 do begin
+    if TIsFront(T) then begin  // territory is mine and front
+      Armies := TArmies(T);
+      if Armies>MaxArmies then begin
+        ToTerritory:=T;
+        MaxArmies:=Armies;
+      end;
+    end;
+  end;
+
+  while ToTerritory=0 do begin
+    T:=round(URandom(42))+1;
+    if TIsFront(T) then begin
+      ToTerritory:=T;
+    end;
+  end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  T,EnemyT,EnemyA: integer;
+begin
+  // attack weakest point until exhausted
+  FromTerritory:=0;
+  ToTerritory:=0;
+  for T:=1 to 42 do begin
+    if TIsFront(T)                      // territory is mine and front
+    and (TArmies(T)>1) then begin       // attack is possible
+      TWeakestFront(T,EnemyT,EnemyA);
+      if EnemyT>0 then begin
+        FromTerritory:=T;
+        ToTerritory:=EnemyT;
+      end;
+    end;
+  end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  //Move all
+  Armies:=TArmies(FromTerritory)-1;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+begin
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+end;
+
+begin
+end.
