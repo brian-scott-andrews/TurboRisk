@@ -67,7 +67,6 @@ begin
   if FindFirst(sG_AppPath+'players'+PathDelim+'*.trp', faAnyFile, rFileDesc) = 0 then begin
     repeat
       lstPrgFile.Items.Add(rFileDesc.Name);
-      writeln(rfileDesc.Name);
     until FindNext(rFileDesc) <> 0;
     FindClose(rFileDesc);
   end;
