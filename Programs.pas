@@ -64,7 +64,7 @@ var
 begin
   // load program list
   lstPrgFile.Items.Clear;
-  if FindFirst(sG_AppPath+'players/*.trp', faAnyFile, rFileDesc) = 0 then begin
+  if FindFirst(sG_AppPath+'players'+PathDelim+'*.trp', faAnyFile, rFileDesc) = 0 then begin
     repeat
       lstPrgFile.Items.Add(rFileDesc.Name);
       writeln(rfileDesc.Name);
@@ -102,7 +102,7 @@ var
 begin
   if lstPrgFile.ItemIndex<0 then exit;
   txtPrgDesc.Clear;
-  AssignFile(fTRP,sG_AppPath+'players/'+lstPrgFile.Items[lstPrgFile.ItemIndex]);
+  AssignFile(fTRP,sG_AppPath+'players'+PathDelim+lstPrgFile.Items[lstPrgFile.ItemIndex]);
   Reset(fTRP);
   try
     // read initial comment delimited by { and }
