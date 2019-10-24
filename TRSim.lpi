@@ -24,6 +24,7 @@
           <Version Value="11"/>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="PascalScript/Source"/>
           </SearchPaths>
           <Parsing>
             <SyntaxOptions>
@@ -56,18 +57,15 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="3">
+    <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="pascalscript"/>
+        <PackageName Value="lhelpcontrolpkg"/>
       </Item1>
       <Item2>
-        <PackageName Value="lhelpcontrolpkg"/>
-      </Item2>
-      <Item3>
         <PackageName Value="LCL"/>
-      </Item3>
+      </Item2>
     </RequiredPackages>
-    <Units Count="30">
+    <Units Count="31">
       <Unit0>
         <Filename Value="TRSim.lpr"/>
         <IsPartOfProject Value="True"/>
@@ -75,7 +73,9 @@
       <Unit1>
         <Filename Value="Sim.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="fSim"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
       </Unit1>
       <Unit2>
         <Filename Value="Globals.pas"/>
@@ -213,12 +213,17 @@
         <IsPartOfProject Value="True"/>
         <HasResources Value="True"/>
       </Unit29>
+      <Unit30>
+        <Filename Value="PascalScript/Source/pascalscript.pas"/>
+        <IsPartOfProject Value="True"/>
+      </Unit30>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="PascalScript/Source"/>
     </SearchPaths>
     <Parsing>
       <SyntaxOptions>
