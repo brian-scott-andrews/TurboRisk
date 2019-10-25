@@ -7,8 +7,8 @@ interface
 uses LCLIntf, LCLType, LMessages, Graphics, Classes, uPSRuntime, uPSPreProcessor;
 
 const
-  VERSION = '2.0.5'; // TurboRisk
-  VERSION_TRSIM = '1.0'; // TRSim
+  VERSION = '2.0.5D'; // TurboRisk
+  VERSION_TRSIM = '1.0A'; // TRSim
   MAXTERRITORIES = 42; // Number of countries in the map
   MAXBORDERS = 6; // Max number of borders per Territory
   MAXORIGINS = 20; // Max number of floodfill points per Territory (for coloring)
