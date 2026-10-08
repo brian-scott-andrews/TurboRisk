@@ -58,8 +58,6 @@ begin
   // own armies and a lof of other things
   ToTerritory:=0;
   MaxRatio:=0;
- While ToTerritory=0 do
- begin
   for T:=1 to 42 do 
   begin
      if TIsFront(T) then 
@@ -77,14 +75,16 @@ begin
        end;
       end;
       SumFriends:=0;
-      for k:=1 to 42 do
       Special:=1;
-      if TIsBordering(T,k) then
+      for k:=1 to 42 do
       begin
-       if (TContinent(k)<>TContinent(T)) then Special:=Special+0.5;
-       if (PProgram(TOwner(k))=PProgram(PMe)) and (Towner(k)<>PMe) then
+       if TIsBordering(T,k) then
        begin
-        SumFriends:=SumFriends+TArmies(k);
+        if (TContinent(k)<>TContinent(T)) then Special:=Special+0.5;
+        if (PProgram(TOwner(k))=PProgram(PMe)) and (Towner(k)<>PMe) then
+        begin
+          SumFriends:=SumFriends+TArmies(k);
+        end;
        end;
       end;
       if CAnalysis(TContinent(T),PT,PA,ET,EA) then
@@ -107,7 +107,7 @@ begin
       AHis:=AHis;
       ThemRat:=AHis /AMine;
       if (ThemRat<1) then ThemRat:=1;
-      If (k=MostIn) then Special:=Special*1.5;
+      If (T=MostIn) then Special:=Special*1.5;
       if not EnemyLeft then SumFriends:=0;
       If Special<0 then Special:=0;
       Ratio := Special+(double(TPressure(T))*ThemRat-(SumFriends)*(ThemRat-0.01)) / double(TArmies(T));
@@ -117,10 +117,16 @@ begin
       end;
     end;
   end;
-  EnemyLeft:=false;
- end;
 
-  
+  if ToTerritory=0 then begin
+    MostArmies:=0;
+    for T:=1 to 42 do
+      if TIsMine(T) and (TArmies(T)>MostArmies) then begin
+        MostArmies:=TArmies(T);
+        ToTerritory:=T;
+      end;
+  end;
+
 end;
   
 

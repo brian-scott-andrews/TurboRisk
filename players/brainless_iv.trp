@@ -38,6 +38,7 @@ var
   T,A,MaxA: integer;
 begin
   // Determine which T is your strongest front to attack with
+  result:=0;
   MaxA:=0;
   for T:=1 to 42 do begin
     A:=TArmies(T);
@@ -101,8 +102,16 @@ end;
 
 
 procedure Placement(var TT: integer);
+var
+  T: integer;
 begin
   TT:=GetAttT;
+  if TT=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        TT:=T;
+        break;
+      end;
 end;
 
 
@@ -112,6 +121,7 @@ var
 begin
   TT:=0;
   T:=GetAttT;
+  if T=0 then exit;
   A:=TArmies(T);
 
   // Card-Attack
@@ -192,6 +202,7 @@ begin
   TT:=0;
   Armies:=0;
   AT:=GetAttT;
+  if AT=0 then exit;
 
   A:=1;
   for T:=1 to 42 do begin

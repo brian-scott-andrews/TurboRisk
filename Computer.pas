@@ -13,7 +13,7 @@ implementation
 
 uses LCLIntf, LCLType, LMessages, Forms, Controls, SysUtils, Dialogs,
   uPSRuntime, uPSUtils, {StdPas,}
-  Main, Globals, Territ, Stats, Log, TRPError, Sim;
+  Main, Globals, Territ, Stats, Log, TRPError, Sim, SimRun;
 
 var
 
@@ -63,6 +63,7 @@ begin
     end;
   end
   else begin // TRSim
+    fSimRun.SimLog('TRP error: ' + sMsg);
     if fSim.chkErrorDump.Checked then begin
       // dump memory if required
       sMsg := StrTran(sMsg, #13#10, '\n');
@@ -151,7 +152,8 @@ begin
     // Update the display and statistics
     DisplayTerritory(iTo);
     UpdateStats;
-    Application.ProcessMessages;
+    if not bTRSimCLI then
+      Application.ProcessMessages;
   end;
 end;
 
@@ -285,7 +287,8 @@ begin
     DisplayTerritory(iFrom);
     DisplayTerritory(iTo);
     UpdateStats;
-    Application.ProcessMessages;
+    if not bTRSimCLI then
+      Application.ProcessMessages;
   end;
 end;
 
@@ -328,7 +331,8 @@ begin
         sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 +
         'Routine: Attack' + #13#10 + 'Error: ' + e.message;
         ShowError(sMsg);
-        MessageDlg(sMsg, mtError, [mbOk], 0);
+        if not bTRSimCLI then
+          MessageDlg(sMsg, mtError, [mbOk], 0);
         exit;
       end;
     end;
@@ -367,7 +371,8 @@ begin
       bEsito := PerformAttack(iFrom, iTo);
       // Update the display
       UpdateStats;
-      Application.ProcessMessages;
+      if not bTRSimCLI then
+        Application.ProcessMessages;
       // Handle the consequences of a successful attack
       if bEsito then begin
         // Exit immediately if this attack wins the game
@@ -478,7 +483,8 @@ begin
     DisplayTerritory(iFrom);
     DisplayTerritory(iTo);
     UpdateStats;
-    Application.ProcessMessages;
+    if not bTRSimCLI then
+      Application.ProcessMessages;
   end;
 
 end;
@@ -495,8 +501,15 @@ begin
 
   // load the script
   if not ScriptExec.LoadData(arPlayer[iTurn].Code) then begin
-    MessageDlg('Player: ' + arPlayer[iTurn].Name + #13#10 +
-      'Error: script loading failed', mtError, [mbOk], 0);
+    if bTRSimCLI then begin
+      fSimRun.SimLog('Player: ' + arPlayer[iTurn].Name + #13#10 +
+        'Error: script loading failed');
+      uSimStatus := ssError;
+      bStopASAP := true;
+    end
+    else
+      MessageDlg('Player: ' + arPlayer[iTurn].Name + #13#10 +
+        'Error: script loading failed', mtError, [mbOk], 0);
     exit;
   end;
 
@@ -507,7 +520,13 @@ begin
   tParamArmies := CreateHeapVariant(ScriptExec.FindType2(btS32));
   if (tParamToTerritory = nil) or (tParamFromTerritory = nil) or
   (tParamArmies = nil) then begin
-    MessageDlg('Could not create script parameters.', mtError, [mbOk], 0);
+    if bTRSimCLI then begin
+      fSimRun.SimLog('Could not create script parameters.');
+      uSimStatus := ssError;
+      bStopASAP := true;
+    end
+    else
+      MessageDlg('Could not create script parameters.', mtError, [mbOk], 0);
     exit;
   end;
 

@@ -17,6 +17,7 @@ var
 begin
   // LOCAL FUNCTION TARGETCplacement:  determines the target continent to attack
   // best ratio of armies in the continent and its borders
+  BestC:=0;
   BestDiff:=SMALL;
   for C:=1 to 6 do
     begin
@@ -119,11 +120,11 @@ begin
       // look for easiest territory that can be taken [may be on another continent]
       for T:=1 to 42 do
         begin
-          if TIsMine(T) then
+          if TIsMine(T) and TIsFront(T) then
             begin
               TWeakestFront(T,ET,EA);
               Diff:=TArmies(T)-EA;
-              if (Diff>BestDiff) then
+              if (ET>=1) and (ET<=42) and (Diff>BestDiff) then
                 begin
                   BestDiff:=Diff;
                   BestT:=ET;
@@ -374,9 +375,11 @@ begin
     EA:=0;
     BestDiff:=SMALL;
 
-    CAnalysis(EnemyC, PT, PA, ET, EA);
+    if (EnemyC>=1) and (EnemyC<=6) then
+      CAnalysis(EnemyC, PT, PA, ET, EA);
 
-    if (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
+    if (EnemyC>=1) and (EnemyC<=6) and
+       (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
       for B:=1 to CTerritoriesCount(EnemyC) do begin
         T:=CTerritory(EnemyC,B);
         Diff:=TArmies(T); // put in strongest
@@ -403,7 +406,8 @@ begin
       end;
     end;
   end;
-  TWeakestFront(EnemyT,ET,EA);
+  if EnemyT<>0 then
+    TWeakestFront(EnemyT,ET,EA);
 
   if (EnemyT<>0) and (ToTerritory=0) and (double(MyTPressure(EnemyT,ALLFRONTS))<(EA+MINARMIES+TArmies(EnemyT)*FORCE)) then begin
 //  continue to reinforce until attack is possible - put them all in strongest country
@@ -463,6 +467,15 @@ begin
         if Diff < MinDiff then begin    // Place on the T with the greatest chance to win an attack
           MinDiff:= Diff;
           ToTerritory:= T;
+        end;
+      end;
+      if (ToTerritory < 1) or (ToTerritory > 42) then ToTerritory:=0;
+      if ToTerritory > 0 then begin
+        if not TIsMine(ToTerritory) then ToTerritory:=0;
+      end;
+      if ToTerritory = 0 then begin
+        for T:=1 to 42 do begin
+          if (ToTerritory = 0) and TIsMine(T) then ToTerritory:=T;
         end;
       end;
     end;

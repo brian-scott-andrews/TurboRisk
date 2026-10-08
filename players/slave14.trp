@@ -264,6 +264,13 @@ BEGIN
     END;
     T:=T-1
   UNTIL T<1
+  IF ToTerritory=0 THEN
+    FOR T:=1 TO 42 DO
+      IF TIsMine(T) THEN
+      BEGIN
+        ToTerritory:=T;
+        BREAK;
+      END;
 END;  //PROCEDURE Placement
 
 
@@ -448,12 +455,12 @@ BEGIN
   FromT:=0; //From Territory
   T:=42;
   REPEAT
-    {IF SlaveTIsFront(T) AND (TArmies(T)<=MinArmy) THEN } //SlaveTIsFront(T) can only be true if TIsMine(T) is True
+    IF TIsFront(T) AND (TArmies(T)<=MinArmy) THEN
     BEGIN
       FOR B:=1 TO TBordersCount(T) DO
       BEGIN
         FromT:=TBorder(T,B);
-        IF (TIsMine(FromT) {AND (NOT SlaveTIsFront(FromT))}) AND (TArmies(FromT)>BiggestArmy) THEN
+        IF (TIsMine(FromT) AND (NOT TIsFront(FromT))) AND (TArmies(FromT)>BiggestArmy) THEN
         BEGIN
           MinArmy:=TArmies(T);
           FromTerritory:=FromT;
@@ -485,10 +492,26 @@ BEGIN
     // move armies to a random bordering territory
     IF FromTerritory>0 THEN
     BEGIN
-      B:=trunc(URandom(TBordersCount(FromTerritory)))+1;
-      ToTerritory:=TBorder(FromTerritory,B);    // Random movement can be very surprising
-      // Move all armies to destination (except the one which must stay)
-      Armies:=TArmies(FromTerritory)-1
+      B:=0;
+      FOR T:=1 TO TBordersCount(FromTerritory) DO
+        IF TIsMine(TBorder(FromTerritory,T)) THEN B:=B+1;
+      IF B>0 THEN
+      BEGIN
+        B:=trunc(URandom(B))+1;
+        FOR T:=1 TO TBordersCount(FromTerritory) DO
+          IF TIsMine(TBorder(FromTerritory,T)) THEN
+          BEGIN
+            B:=B-1;
+            IF B=0 THEN
+            BEGIN
+              ToTerritory:=TBorder(FromTerritory,T);
+              BREAK;
+            END;
+          END;
+        Armies:=TArmies(FromTerritory)-1
+      END
+      ELSE
+        FromTerritory:=0
     END;
   END;  //IF Armies = 0
 

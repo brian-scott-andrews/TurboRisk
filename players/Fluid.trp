@@ -72,6 +72,8 @@ procedure Placement(var ToTerritory: integer);
 var
   T,Armies,MinArmies: integer;
 begin
+  ToTerritory:=0;
+  MinArmies:=0;
   // balance all fronts
   for T:=1 to 42 do begin
     if TIsFront(T) then begin
@@ -81,6 +83,14 @@ begin
         ToTerritory:=T;
       end
     end;
+  end;
+  if ToTerritory=0 then begin
+    MinArmies:=10000;
+    for T:=1 to 42 do
+      if TIsMine(T) and (TArmies(T)<MinArmies) then begin
+        MinArmies:=TArmies(T);
+        ToTerritory:=T;
+      end;
   end;
 end;
 

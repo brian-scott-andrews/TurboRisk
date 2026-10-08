@@ -26,6 +26,7 @@ begin
   // LOCAL FUNCTION TARGETCplacement:  determines the target continent to attack
   // best ratio of armies in the continent and its borders
 
+  BestC:=0;
   BestDiff:=SMALL;
   for C:=1 to 6 do
     begin
@@ -94,9 +95,10 @@ begin
   
   BestDiff:=SMALL;
   BestT:=0;
-  for X:=1 to CTerritoriesCount(EnemyC) do
-    begin
-      T:=CTerritory(EnemyC,X);
+  if (EnemyC>=1) and (EnemyC<=6) then
+    for X:=1 to CTerritoriesCount(EnemyC) do
+      begin
+        T:=CTerritory(EnemyC,X);
 //      UMessage('Checking out territory #',X,' of target continent ',ENEMYC);
       Y:=MyTPressure(T,ALLFRONTS);
 //      UMessage('Looking at territory ',T,' which you have ',Y,' total pressure on');
@@ -113,7 +115,7 @@ begin
               if (MyTPressure(T2,ALLFRONTS)=0) and (not(TIsMine(T2))) then
                 Diff:=Diff-TArmies(T2);
               // new exposure when territory is conquered
-            end;
+              end;
 //          UMessage('A conquerable territory on target continent ',EnemyC,' is ',T);
 //          UMessage('my [wasted] 1-front armies less attacked armies less new exposures is ',Diff);
           if (Diff>BestDiff) then
@@ -326,6 +328,8 @@ var
   Label GotoEnd;
 
 begin
+  ToTerritory:=0;
+
   If (ubufferget(46) <> 1) and (splayerscount > 4) then begin 
     ubufferset(48, 1);	// goto descartes
     ubufferset(46, 1);  // don't run this code again
@@ -408,9 +412,11 @@ begin
     EA:=0;
     BestDiff:=SMALL;
 
-    CAnalysis(EnemyC, PT, PA, ET, EA);
+    if (EnemyC>=1) and (EnemyC<=6) then
+      CAnalysis(EnemyC, PT, PA, ET, EA);
 
-    if (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
+    if (EnemyC>=1) and (EnemyC<=6) and
+       (double(PA-PT)<MINARMIES+ET+EA*FORCE) then begin     // place more armies in the continent so that you can capture the whole thing
       for B:=1 to CTerritoriesCount(EnemyC) do begin
         T:=CTerritory(EnemyC,B);
         Diff:=TArmies(T); // put in strongest
@@ -438,7 +444,8 @@ begin
     end;
   end;
 
-  TWeakestFront(EnemyT,ET,EA);
+  if EnemyT<>0 then
+    TWeakestFront(EnemyT,ET,EA);
 
   if (EnemyT<>0) and (ToTerritory=0) and (double(MyTPressure(EnemyT,ALLFRONTS))<(EA+MINARMIES+TArmies(EnemyT)*FORCE)) then begin
 //  continue to reinforce until attack is possible - put them all in strongest country
@@ -929,6 +936,12 @@ Descartes:
   end;
   ToTerritory:=TerritoryTo;
 gotoend:
+  if ToTerritory=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        ToTerritory:=T;
+        break;
+      end;
 end;
 
 //procA

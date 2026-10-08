@@ -68,6 +68,8 @@ type
     procedure cmdAnalyseCPULogClick(Sender: TObject);
     procedure cmdAnalyseGameLogClick(Sender: TObject);
   private
+    fPlayerSchedule: TStringList;
+    fCliErrorOccurred: Boolean;
     procedure SimSetup;
     procedure SimCleanup;
     procedure PopulateTRPList;
@@ -75,6 +77,7 @@ type
     procedure LogCPU;
   public
     { Public declarations }
+    function RunCLI: Integer;
   end;
 
 var
@@ -97,6 +100,235 @@ begin
   Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
   PopulateTRPList;
   pgcSim.ActivePage := tbsSim;
+end;
+
+function TfSim.RunCLI: Integer;
+var
+  iArg, iValue, iGame, iPlayer, iMinPlayers, iMaxPlayers: Integer;
+  sArg, sScheduleFile, sMapName, sGameLogFile, sCPULogFile: string;
+  sLine, sPlayer, sNormalizedLine: string;
+  Schedule, NormalizedSchedule, GamePlayers, UniquePlayers: TStringList;
+  bErrorDump: Boolean;
+  bSeedSpecified: Boolean;
+  iSeed: Integer;
+
+  function NextArgument(const sOption: string): string;
+  begin
+    Inc(iArg);
+    if iArg > ParamCount then
+      raise Exception.Create('Missing value for ' + sOption);
+    Result := ParamStr(iArg);
+  end;
+
+  function ReadNonNegativeInteger(const sOption: string): Integer;
+  begin
+    if not TryStrToInt(NextArgument(sOption), Result) or (Result < 0) then
+      raise Exception.Create('Invalid non-negative integer for ' + sOption);
+  end;
+
+  procedure PrintUsage;
+  begin
+    WriteLn('TRSimCLI --schedule <file> [options]');
+    WriteLn('Run scheduled TRP games without showing the simulator GUI.');
+    WriteLn('Each non-empty, non-comment schedule line is one comma-separated roster.');
+    WriteLn('Player names may include or omit .trp; each roster needs 2-10 distinct files.');
+    WriteLn('Blank lines and lines beginning with # are ignored.');
+    WriteLn('Paths for schedules and logs are relative to the current directory.');
+    WriteLn('Map files are loaded from the maps directory beside TRSimCLI.');
+    WriteLn('Example: TRSimCLI --schedule pairings.csv --map std_map_small.trm --turn-limit 20');
+    WriteLn('Options:');
+    WriteLn('  --schedule <file>      Required roster schedule (one game per line)');
+    WriteLn('  --map <file.trm>       Map in maps (default: std_map_small.trm)');
+    WriteLn('  --game-log <file>      Game log (default: TRSimCLI.sgl)');
+    WriteLn('  --cpu-log <file>       CPU usage log (default: TRSimCLI.scl)');
+    WriteLn('  --turn-limit <number>  Maximum turns per game (0: unlimited)');
+    WriteLn('  --time-limit <seconds> Maximum seconds per game (0: unlimited)');
+    WriteLn('  --seed <number>        Random-number-generator seed');
+    WriteLn('  --error-dump           Write a game dump when a TRP errors');
+    WriteLn('  --help, -h             Show this help');
+    WriteLn('Exit codes: 0 success; 1 one or more TRP errors; 2 input or setup error.');
+    WriteLn('Turn- and time-limited games are logged separately from TRP errors.');
+    WriteLn('Concurrent runs must use different game-log and CPU-log paths.');
+  end;
+
+begin
+  Result := 2;
+  bErrorDump := False;
+  sScheduleFile := '';
+  sMapName := 'std_map_small.trm';
+  sGameLogFile := '';
+  sCPULogFile := '';
+  bSeedSpecified := False;
+  iSeed := 0;
+  iSimTurnLimit := 0;
+  iSimTimeLimit := 0;
+  iArg := 1;
+
+  try
+    while iArg <= ParamCount do begin
+      sArg := LowerCase(ParamStr(iArg));
+      if (sArg = '--help') or (sArg = '-h') then begin
+        PrintUsage;
+        Exit(0);
+      end
+      else if sArg = '--schedule' then
+        sScheduleFile := NextArgument(sArg)
+      else if sArg = '--map' then
+        sMapName := NextArgument(sArg)
+      else if sArg = '--game-log' then
+        sGameLogFile := NextArgument(sArg)
+      else if sArg = '--cpu-log' then
+        sCPULogFile := NextArgument(sArg)
+      else if sArg = '--turn-limit' then
+        iSimTurnLimit := ReadNonNegativeInteger(sArg)
+      else if sArg = '--time-limit' then
+        iSimTimeLimit := ReadNonNegativeInteger(sArg)
+      else if sArg = '--seed' then
+        begin
+          iSeed := ReadNonNegativeInteger(sArg);
+          bSeedSpecified := True;
+        end
+      else if sArg = '--error-dump' then
+        bErrorDump := True
+      else
+        raise Exception.Create('Unknown option: ' + ParamStr(iArg));
+      Inc(iArg);
+    end;
+    if sScheduleFile = '' then
+      raise Exception.Create('A --schedule file is required');
+
+    sMapName := ExtractFileName(sMapName);
+    if (sMapName = '') or not SameText(ExtractFileExt(sMapName), '.trm') or
+       not FileExists(IncludeTrailingPathDelimiter(
+         ExtractFilePath(Application.ExeName)) + 'maps' + PathDelim + sMapName) then
+      raise Exception.Create('Map file not found under maps: ' + sMapName);
+    sMapFile := sMapName;
+    bTRSimCLI := True;
+    FormShow(Self);
+    if bSeedSpecified then
+      RandSeed := iSeed;
+
+    iValue := cboMap.Items.IndexOf(LowerCase(sMapName));
+    if iValue < 0 then
+      raise Exception.Create('Map is not available in TRSim: ' + sMapName);
+    cboMap.ItemIndex := iValue;
+    if not SameText(sMapFile, sMapName) then begin
+      sMapFile := sMapName;
+      LoadMap;
+    end;
+
+    sScheduleFile := ExpandFileName(sScheduleFile);
+    if not FileExists(sScheduleFile) then
+      raise Exception.Create('Schedule file not found: ' + sScheduleFile);
+
+    Schedule := TStringList.Create;
+    NormalizedSchedule := TStringList.Create;
+    GamePlayers := TStringList.Create;
+    UniquePlayers := TStringList.Create;
+    try
+      Schedule.LoadFromFile(sScheduleFile);
+      iMinPlayers := MAXPLAYERS + 1;
+      iMaxPlayers := 0;
+      for iGame := 0 to Schedule.Count - 1 do begin
+        sLine := Trim(Schedule[iGame]);
+        if sLine = '' then
+          continue;
+        if sLine[1] = #$FEFF then
+          Delete(sLine, 1, 1);
+        sLine := Trim(sLine);
+        if (sLine = '') or (sLine[1] = '#') then
+          continue;
+        GamePlayers.Clear;
+        GamePlayers.StrictDelimiter := True;
+        GamePlayers.Delimiter := ',';
+        GamePlayers.DelimitedText := sLine;
+        if (GamePlayers.Count < 2) or (GamePlayers.Count > MAXPLAYERS) then
+          raise Exception.CreateFmt('Schedule line %d has an invalid player count', [iGame + 1]);
+        sNormalizedLine := '';
+        for iPlayer := 0 to GamePlayers.Count - 1 do begin
+          sPlayer := Trim(GamePlayers[iPlayer]);
+          if ExtractFileExt(sPlayer) = '' then
+            sPlayer := sPlayer + '.trp';
+          if not SameText(ExtractFileExt(sPlayer), '.trp') or
+             (ExtractFileName(sPlayer) <> sPlayer) then
+            raise Exception.CreateFmt('Invalid player filename on schedule line %d: %s',
+              [iGame + 1, sPlayer]);
+          if not FileExists(sG_AppPath + 'players' + PathDelim + sPlayer) then
+            raise Exception.CreateFmt('Player file not found on schedule line %d: %s',
+              [iGame + 1, sPlayer]);
+          for iValue := 0 to iPlayer - 1 do
+            if SameText(sPlayer, GamePlayers[iValue]) then
+              raise Exception.CreateFmt('Duplicate player on schedule line %d: %s',
+                [iGame + 1, sPlayer]);
+          GamePlayers[iPlayer] := sPlayer;
+          if sNormalizedLine <> '' then
+            sNormalizedLine := sNormalizedLine + ',';
+          sNormalizedLine := sNormalizedLine + sPlayer;
+          if UniquePlayers.IndexOf(LowerCase(sPlayer)) < 0 then
+            UniquePlayers.Add(LowerCase(sPlayer));
+        end;
+        NormalizedSchedule.Add(sNormalizedLine);
+        if GamePlayers.Count < iMinPlayers then
+          iMinPlayers := GamePlayers.Count;
+        if GamePlayers.Count > iMaxPlayers then
+          iMaxPlayers := GamePlayers.Count;
+      end;
+      if NormalizedSchedule.Count = 0 then
+        raise Exception.Create('Schedule contains no game rosters');
+      fPlayerSchedule := NormalizedSchedule;
+      NormalizedSchedule := nil;
+      lstAlways.Items.Clear;
+      lstRandom.Items.Assign(UniquePlayers);
+      lstNever.Items.Clear;
+    finally
+      Schedule.Free;
+      NormalizedSchedule.Free;
+      GamePlayers.Free;
+      UniquePlayers.Free;
+    end;
+
+    txtGames.Text := IntToStr(fPlayerSchedule.Count);
+    txtMinPlayers.Text := IntToStr(iMinPlayers);
+    txtMaxPlayers.Text := IntToStr(iMaxPlayers);
+    txtTurnLimit.Text := IntToStr(iSimTurnLimit);
+    txtTimeLimit.Text := IntToStr(iSimTimeLimit);
+    chkShowMap.Checked := False;
+    chkShowStats.Checked := False;
+    chkErrorAbort.Checked := True;
+    chkErrorDump.Checked := bErrorDump;
+    if sGameLogFile = '' then
+      sGameLogFile := ResolveSimPath('TRSimCLI.sgl')
+    else
+      sGameLogFile := ExpandFileName(sGameLogFile);
+    if sCPULogFile = '' then
+      sCPULogFile := ResolveSimPath('TRSimCLI.scl')
+    else
+      sCPULogFile := ExpandFileName(sCPULogFile);
+    if not DirectoryExists(ExtractFileDir(sGameLogFile)) then
+      raise Exception.Create('Game log directory does not exist: ' +
+        ExtractFileDir(sGameLogFile));
+    if not DirectoryExists(ExtractFileDir(sCPULogFile)) then
+      raise Exception.Create('CPU log directory does not exist: ' +
+        ExtractFileDir(sCPULogFile));
+    txtGameLogFile.Text := sGameLogFile;
+    txtCPULogFile.Text := sCPULogFile;
+    fCliErrorOccurred := False;
+    WriteLn(Format('TRSimCLI: validated %d games, %d unique TRPs (%d-%d per game)',
+      [fPlayerSchedule.Count, lstRandom.Count, iMinPlayers, iMaxPlayers]));
+    cmdStartClick(nil);
+    if fCliErrorOccurred then
+      Result := 1
+    else
+      Result := 0;
+  except
+    on E: Exception do begin
+      WriteLn(ErrOutput, 'TRSimCLI: ' + E.Message);
+      PrintUsage;
+      Result := 2;
+    end;
+  end;
+  FreeAndNil(fPlayerSchedule);
+  bTRSimCLI := False;
 end;
 
 procedure TfSim.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -345,6 +577,7 @@ end;
 procedure TfSim.cmdStartClick(Sender: TObject);
 var
   i, iP: Integer;
+  GameRoster: TStringList;
 begin
   // prepare global variables
   iSimGames := StrToIntDef(txtGames.Text, 0);
@@ -356,22 +589,32 @@ begin
   sSimCPULogFile := txtCPULogFile.Text;
   // validity check
   if iSimGames <= 0 then begin
+    if bTRSimCLI then
+      raise Exception.Create('Invalid number of games.');
     ShowMessage('Invalid number of games.');
     txtGames.SetFocus;
     exit;
   end;
   if (iSimMinPl < 2) or (iSimMaxPl > 10) or (iSimMaxPl < iSimMinPl) then begin
+    if bTRSimCLI then
+      raise Exception.Create('Invalid number of players. Min=2, max=10');
     ShowMessage('Invalid number of players. Min=2, max=10');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count > iSimMinPl then begin
+    if bTRSimCLI then
+      raise Exception.Create(
+        'The number of TRPs in the "always" list is greater than the minimum number of players per game.');
     ShowMessage(
       'The number of TRPs in the "always" list is greater then the minimum number of players per game.');
     txtMinPlayers.SetFocus;
     exit;
   end;
   if lstAlways.Count + lstRandom.Count < iSimMaxPl then begin
+    if bTRSimCLI then
+      raise Exception.Create(
+        'The total number of TRPs in the "always" and "random" lists is not large enough to reach the maximum number of players per game.');
     ShowMessage(
       'The total number of TRPs in the "always" and "random" lists is not large enough to reach the maximum number of players per game.');
     txtMaxPlayers.SetFocus;
@@ -400,7 +643,7 @@ begin
   fSimRun.BorderIcons := [];
   fSimRun.txtSimLog.Clear;
   fSimRun.SimLog('*** Simulation starts ***');
-  if not fSimRun.Visible then
+  if not bTRSimCLI and not fSimRun.Visible then
     fSimRun.Show;
   // start simulation
   Screen.Cursor := crHourGlass;
@@ -420,31 +663,53 @@ begin
       // reset players
       for iP := 1 to MAXPLAYERS do
         arPlayer[iP].Active := false;
-      // random number of players
-      iSimPlayers := iSimMinPl + random(iSimMaxPl - iSimMinPl + 1);
-      // take players from the "always" list first
-      iP := 0;
-      for i := 0 to lstAlways.Count - 1 do begin
-        if iP < iSimPlayers then begin
-          inc(iP);
-          arPlayer[iP].Active := true;
-          arPlayer[iP].PrgFile := lstAlways.Items[i];
-          arPlayer[iP].Name := ChangeFileExt(lstAlways.Items[i], '');
-        end;
-      end;
-      // then take players from the "random" list, if any
-      if lstRandom.Count > 0 then begin
-        for i := 1 to 100 do begin // "shuffle" random list
-          lstRandom.Items.Exchange(random(lstRandom.Count),
-            random(lstRandom.Count));
-        end;
-        for i := 0 to lstRandom.Count - 1 do begin
+      if fPlayerSchedule = nil then begin
+        // random number of players
+        iSimPlayers := iSimMinPl + random(iSimMaxPl - iSimMinPl + 1);
+        // take players from the "always" list first
+        iP := 0;
+        for i := 0 to lstAlways.Count - 1 do begin
           if iP < iSimPlayers then begin
             inc(iP);
             arPlayer[iP].Active := true;
-            arPlayer[iP].PrgFile := lstRandom.Items[i];
-            arPlayer[iP].Name := ChangeFileExt(lstRandom.Items[i], '');
+            arPlayer[iP].PrgFile := lstAlways.Items[i];
+            arPlayer[iP].Name := ChangeFileExt(lstAlways.Items[i], '');
           end;
+        end;
+        // then take players from the "random" list, if any
+        if lstRandom.Count > 0 then begin
+          for i := 1 to 100 do begin // "shuffle" random list
+            lstRandom.Items.Exchange(random(lstRandom.Count),
+              random(lstRandom.Count));
+          end;
+          for i := 0 to lstRandom.Count - 1 do begin
+            if iP < iSimPlayers then begin
+              inc(iP);
+              arPlayer[iP].Active := true;
+              arPlayer[iP].PrgFile := lstRandom.Items[i];
+              arPlayer[iP].Name := ChangeFileExt(lstRandom.Items[i], '');
+            end;
+          end;
+        end;
+      end
+      else begin
+        GameRoster := TStringList.Create;
+        try
+          GameRoster.StrictDelimiter := True;
+          GameRoster.Delimiter := ',';
+          GameRoster.DelimitedText := fPlayerSchedule[iSimCurr - 1];
+          iSimPlayers := GameRoster.Count;
+          if (iSimPlayers < iSimMinPl) or (iSimPlayers > iSimMaxPl) or
+             (iSimPlayers > MAXPLAYERS) then
+            raise Exception.CreateFmt('Invalid scheduled roster for game %d',
+              [iSimCurr]);
+          for iP := 1 to iSimPlayers do begin
+            arPlayer[iP].Active := true;
+            arPlayer[iP].PrgFile := GameRoster[iP - 1];
+            arPlayer[iP].Name := ChangeFileExt(GameRoster[iP - 1], '');
+          end;
+        finally
+          GameRoster.Free;
         end;
       end;
       // new game
@@ -461,8 +726,11 @@ begin
               Now - dtSimGameTime) + ', ' + IntToStr(iTurnCounter)
             + ' turns, winner is ' + arPlayer[iSimWinner].Name);
         ssError:
-          fSimRun.SimLog('Game #' + IntToStr(iSimCurr)
-            + ' aborted for TRP error');
+          begin
+            fCliErrorOccurred := True;
+            fSimRun.SimLog('Game #' + IntToStr(iSimCurr)
+              + ' aborted for TRP error');
+          end;
         ssTurnLimit:
           fSimRun.SimLog('Game #' + IntToStr(iSimCurr) +
             ' aborted, turn limit reached');
@@ -508,7 +776,7 @@ var
   sRoutine: string;
 begin
   // open log file
-  LogFile := TIniFile.Create(sG_AppPath + sSimCPULogFile);
+  LogFile := TIniFile.Create(ResolveSimPath(sSimCPULogFile));
   // update log file
   try
     with LogFile do begin

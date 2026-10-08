@@ -37,11 +37,16 @@ begin
     end;
   end;
 
-  while ToTerritory=0 do begin
-    T:=round(URandom(42))+1;
-    if TIsFront(T) then begin
-      ToTerritory:=T;
-    end;
+  if ToTerritory=0 then begin
+    MaxArmies:=0;
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        Armies:=TArmies(T);
+        if Armies>MaxArmies then begin
+          ToTerritory:=T;
+          MaxArmies:=Armies;
+        end;
+      end;
   end;
 end;
 

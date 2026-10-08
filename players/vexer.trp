@@ -3312,6 +3312,16 @@ begin
     //umessage('first turn');
   end;
 
+  if (ToTerritory < 1) or (ToTerritory > 42) then ToTerritory:=0;
+  if ToTerritory > 0 then begin
+    if not TIsMine(ToTerritory) then ToTerritory:=0;
+  end;
+  if ToTerritory = 0 then begin
+    for T:=1 to 42 do begin
+      if (ToTerritory = 0) and TIsMine(T) then ToTerritory:=T;
+    end;
+  end;
+
   if PNewArmies(PMe) = 1 then begin
     bs(52, 0);
     bs(54, 0); // reset to 0 means cards haven't been turned in this turn

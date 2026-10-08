@@ -76,6 +76,9 @@ Var
  
  Begin
  
+  ToTerritory:=0;
+  continent:=0;
+  territoire:=0;
   score:=0;
   Tscore:=0;
 
@@ -157,6 +160,7 @@ Var
  Score := -10000;
  Maxratio:= -10000;
  
+ if continent>0 then
  for T:= x to y do begin
 
 	if TisFront(t) then begin
@@ -185,6 +189,14 @@ Var
 	 end; 
  end;
     ToTerritory:=territoire;
+  if ToTerritory=0 then begin
+    Maxratio:=0;
+    for T:=1 to 42 do
+      if TIsMine(T) and (TArmies(T)>Maxratio) then begin
+        Maxratio:=TArmies(T);
+        ToTerritory:=T;
+      end;
+  end;
 end;
 
 procedure Attack(var FromTerritory, ToTerritory: integer);

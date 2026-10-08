@@ -196,6 +196,13 @@ BEGIN
     END;
     T:=T-1
   UNTIL T<1
+  IF ToTerritory=0 THEN
+  FOR T:=1 TO 42 DO
+    IF TIsMine(T) THEN
+    BEGIN
+      ToTerritory:=T;
+      BREAK;
+    END;
 END;  //PROCEDURE Placement
 
 
@@ -387,10 +394,26 @@ BEGIN
     // move armies to a random bordering territory
     IF FromTerritory>0 THEN
     BEGIN
-      B:=trunc(URandom(TBordersCount(FromTerritory)))+1;
-      ToTerritory:=TBorder(FromTerritory,B);    // Random movement can be very surprising
-      // Move all armies to destination (except the one which must stay)
-      Armies:=TArmies(FromTerritory)-1
+      B:=0;
+      for T:=1 to TBordersCount(FromTerritory) do
+        if TIsMine(TBorder(FromTerritory,T)) then B:=B+1;
+      if B>0 then
+      begin
+        B:=trunc(URandom(B))+1;
+        for T:=1 to TBordersCount(FromTerritory) do
+          if TIsMine(TBorder(FromTerritory,T)) then
+          begin
+            B:=B-1;
+            if B=0 then
+            begin
+              ToTerritory:=TBorder(FromTerritory,T);
+              break;
+            end;
+          end;
+        Armies:=TArmies(FromTerritory)-1
+      end
+      else
+        FromTerritory:=0
     END;
   END;  //IF Armies = 0
 
