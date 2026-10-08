@@ -93,10 +93,10 @@ begin
 end;
 
 // ************************************************************
-// * ROUTINES DI ASSEGNAZIONE INIZIALE TERRITORI - ASSIGNMENT *
+// * INITIAL TERRITORY ASSIGNMENT ROUTINES *
 // ************************************************************
 
-// Scelta territorio per assegnazione iniziale
+// Choose a territory for initial assignment
 procedure CmpAssegnazione;
 var
   iTo: integer;
@@ -130,10 +130,10 @@ begin
     end;
   end;
 
-  // Preparazione messaggio di errore
+  // Prepare the error message
   sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Assignment' +
   #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-  // Verifica validità richiesta
+  // Validate the request
   if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> 0) then
   begin
     sMsg := sMsg + 'Invalid "To" territory';
@@ -141,14 +141,14 @@ begin
     iTo := 0;
   end;
   if iTo > 0 then begin
-    // Assegnazione
+    // Assign the territory
     AssegnaTerritorio(iTo, iTurn);
     inc(arTerritory[iTo].Army);
     dec(arPlayer[iTurn].NewArmy);
     // Log
     if arPlayer[iTurn].KeepLog then
       ScriviLog(arTerritory[iTo].Name + ' assigned.');
-    // Aggiornamento display e statistiche
+    // Update the display and statistics
     DisplayTerritory(iTo);
     UpdateStats;
     Application.ProcessMessages;
@@ -156,10 +156,10 @@ begin
 end;
 
 // ***********************************************
-// * ROUTINES DI COLLOCAZIONE ARMATE - PLACEMENT *
+// * ARMY PLACEMENT ROUTINES *
 // ***********************************************
 
-// Scelta collocazione nuova armata sui propri territori
+// Choose a territory for placing a new army
 procedure CmpCollocaArmate(iDaCollocare: integer);
 var
   iTo: integer;
@@ -193,10 +193,10 @@ begin
       end;
     end;
 
-    // Preparazione messaggio di errore
+    // Prepare the error message
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Placement' +
     #13#10 + 'To territory: ' + IntToStr(iTo) + #13#10 + 'Error: ';
-    // Verifica validità richiesta
+    // Validate the request
     if (iTo < 1) or (iTo > MAXTERRITORIES) or (arTerritory[iTo].Owner <> iTurn)
     then begin
       sMsg := sMsg + 'Invalid "To" territory';
@@ -207,12 +207,12 @@ begin
       // Log
       if arPlayer[iTurn].KeepLog then
         ScriviLog('Army placement in ' + arTerritory[iTo].Name);
-      // Collocazione
+      // Place the army
       CollocaArmata(iTo, iTurn, 1);
     end
     else begin
       arPlayer[iTurn].NewArmy := 0; // force 0 new army to place
-      break; // interruzione ciclo per errori
+      break; // Stop the loop after an error
     end;
 
     dec(iDaCollocare);
@@ -221,7 +221,7 @@ begin
 end;
 
 // ***************************************************************
-// * ROUTINES DI OCCUPAZIONE TERRITORIO CONQUISTATO - OCCUPATION *
+// * CONQUERED TERRITORY OCCUPATION ROUTINES *
 // ***************************************************************
 
 procedure CmpOccupa(iFrom, iTo: integer);
@@ -260,14 +260,14 @@ begin
     end;
   end;
 
-  // Se richiesto spostamento...
+  // If a troop movement was requested...
   if iArmies > 0 then begin
-    // Preparazione messaggio di errore
+    // Prepare the error message
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 +
     'Routine: Occupation' + #13#10 + 'From territory: ' + arTerritory[iFrom]
     .Name + #13#10 + 'To territory: ' + arTerritory[iTo].Name + #13#10 +
     'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validità richiesta
+    // Validate the request
     if iArmies > arTerritory[iFrom].Army - 1 then begin
       sMsg := sMsg + 'Invalid number of armies';
       ShowError(sMsg);
@@ -278,10 +278,10 @@ begin
       ScriviLog('Occupation: troops move (' + IntToStr(iArmies)
         + ') from ' + arTerritory[iFrom].Name + ' to ' + arTerritory[iTo]
         .Name);
-    // Spostamento
+    // Move the troops
     inc(arTerritory[iTo].Army, iArmies);
     dec(arTerritory[iFrom].Army, iArmies);
-    // Aggiornamento video
+    // Update the display
     DisplayTerritory(iFrom);
     DisplayTerritory(iTo);
     UpdateStats;
@@ -290,7 +290,7 @@ begin
 end;
 
 // ********************************
-// * ROUTINES DI ATTACCO - ATTACK *
+// * ATTACK ROUTINES *
 // ********************************
 
 procedure CmpAttacco;
@@ -333,14 +333,14 @@ begin
       end;
     end;
 
-    // Se richiesto attacco...
+    // If an attack was requested...
     if iFrom > 0 then begin
-      // Preparazione messaggio di errore
+      // Prepare the error message
       sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 + 'Routine: Attack' +
       #13#10 + 'From territory: ' + IntToStr(iFrom)
       + #13#10 + 'To territory: ' + IntToStr(iTo)
       + #13#10 + 'Error: ';
-      // Verifica validità richiesta
+      // Validate the request
       if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
       begin
         sMsg := sMsg + 'Invalid "From" territory';
@@ -363,21 +363,21 @@ begin
         ShowError(sMsg);
         exit;
       end;
-      // Attacco
+      // Attack
       bEsito := PerformAttack(iFrom, iTo);
-      // Aggiornamento display
+      // Update the display
       UpdateStats;
       Application.ProcessMessages;
-      // Conseguenze dellattacco riuscito
+      // Handle the consequences of a successful attack
       if bEsito then begin
-        // uscita immediata se vittoria
+        // Exit immediately if this attack wins the game
         if iNPlayers < 2 then
           exit;
-        // territorio conquistato, spostamento conseguente
+        // Move troops into the conquered territory
         if arTerritory[iFrom].Army > 1 then begin
           CmpOccupa(iFrom, iTo);
         end;
-        // collocazione eventuali armate conquistate
+        // Place any armies gained from eliminating a player
         if bEliminatedPlayer then begin
           if RImmediateTrade then
             AssignNewArmies(true);
@@ -392,7 +392,7 @@ begin
 end;
 
 // *********************************************
-// * ROUTINES DI TRASFERIMENTO - FORTIFICATION *
+// * FORTIFICATION ROUTINES *
 // *********************************************
 
 procedure CmpTrasferimento;
@@ -400,7 +400,7 @@ var
   iFrom, iTo, iArmies: integer;
   sMsg: string;
 begin
-  // protezione contro trasferimenti multipli
+  // Prevent multiple fortification moves
   if arPlayer[iTurn].FlMove then
     exit;
 
@@ -435,14 +435,14 @@ begin
     end;
   end;
 
-  // Se richiesto spostamento...
+  // If a troop movement was requested...
   if iFrom > 0 then begin
-    // Preparazione messaggio di errore
+    // Prepare the error message
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 +
     'Routine: Fortification' + #13#10 + 'From territory: ' + IntToStr(iFrom)
     + #13#10 + 'To territory: ' + IntToStr(iTo)
     + #13#10 + 'Armies: ' + IntToStr(iArmies) + #13#10 + 'Error: ';
-    // Verifica validità richiesta
+    // Validate the request
     if (iFrom > MAXTERRITORIES) or (arTerritory[iFrom].Owner <> iTurn) then
     begin
       sMsg := sMsg + 'Invalid "From" territory';
@@ -470,11 +470,11 @@ begin
       ScriviLog('Fortification: troops move (' + IntToStr(iArmies)
         + ') from ' + arTerritory[iFrom].Name + ' to ' + arTerritory[iTo]
         .Name);
-    // Spostamento
+    // Move the troops
     inc(arTerritory[iTo].Army, iArmies);
     dec(arTerritory[iFrom].Army, iArmies);
     arPlayer[iTurn].FlMove := true;
-    // Aggiornamento video
+    // Update the display
     DisplayTerritory(iFrom);
     DisplayTerritory(iTo);
     UpdateStats;

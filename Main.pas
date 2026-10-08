@@ -353,7 +353,7 @@ begin
     exit;
   iT := TrovaTerritorio(X, Y);
   cmdEndTurn.Enabled := false; // disable "end turn" button
-  // Puntamento su territorio
+  // Pointing to a territory
   if iT > 0 then begin
     case GameState of
       gsAssigning: begin
@@ -364,7 +364,7 @@ begin
             DisplayTerritory(iT);
             if arPlayer[iTurn].KeepLog then
               ScriviLog(arTerritory[iT].Name + ' assigned.');
-            // fine turno
+            // End the turn
             Supervisor;
             exit;
           end;
@@ -373,7 +373,7 @@ begin
           if (arTerritory[iT].Owner = iTurn) and (arPlayer[iTurn].NewArmy > 0)
             then begin
             CollocaArmata(iT, iTurn, 1);
-            // fine turno
+            // End the turn
             Supervisor;
             exit;
           end;

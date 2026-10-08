@@ -357,10 +357,10 @@ PROCEDURE Attack(var FromTerritory, ToTerritory: integer);
 VAR
   T, B, EnemyT, EnemyA, I : Integer;
   Ratio, MaxRatio : Double;
-  Lost : Boolean;
+  Lost : Integer;
 
   //Function returns false if the territory to attack would become a front of me
- { FUNCTION EnemyTerritoryIsEnclosed(TT:Integer):Boolean;
+  FUNCTION EnemyTerritoryIsEnclosed(TT:Integer):Boolean;
   VAR BT, BTF : Integer;
       ETIE : Boolean;
   BEGIN
@@ -371,59 +371,24 @@ VAR
       IF TOwner(BT)<>PMe THEN ETIE:=False   //Territory would remain a front
     END;
     result:=ETIE
-  END; //function EnemyTerritoryIsEnclosed}
-  Begin
-  {Function RemainingPitbullTerritory(TT:Integer):Boolean;
+  END; //function EnemyTerritoryIsEnclosed
+
+  Function RemainingPitbullTerritory(TT:Integer):Boolean;
   VAR RT, RTB, Dummy : Integer;
       RPT : Boolean;
-
-
-
-
-
-
   BEGIN
     RPT := False;
     FOR RT:= 1 TO 42 DO
     BEGIN
-      Dummy := UBufferGet(RT);
+      Dummy := trunc(UBufferGet(RT));
       IF Dummy=1 THEN
-
-
-
-
-
-
-
-
-
-
-
-
-
        IF NOT TIsMine(RT) THEN
         FOR RTB:=1 TO TBordersCount(RT) DO
          IF TIsMine(TBorder(RT,RTB)) THEN
           IF TArmies(TBorder(RT,RTB))>1 THEN RPT:=True
     END;
     result := RPT
-  END; //function RemainingPitbullTerritory   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  END; //function RemainingPitbullTerritory
 
 BEGIN
   FromTerritory:=0;
@@ -444,7 +409,7 @@ BEGIN
           Ratio:=(TArmies(T)-1)/TArmies(EnemyT);  // an extra of 1 army needed (the defending one)
 
           // PITBULL
-          Lost:=UBufferGet(EnemyT);
+          Lost:=trunc(UBufferGet(EnemyT));
           IF Lost=1 THEN
            Ratio:=Ratio*10+10             // I want my territory back!!!  And MinAttackRatio is disabled
           ELSE
@@ -638,6 +603,5 @@ BEGIN
   END;  //IF Armies = 0
 
 END;  //PROCEDURE Fortification
-
 
 
