@@ -16,24 +16,24 @@ procedure ResizeMainWindow;
 // Setup static info about territories
 procedure SetupTerritories;
 
-// Determina indice territorio in base alle coordinate di un punto sulla mappa
+// Find a territory index from a point's map coordinates
 function TrovaTerritorio(iX, iY: integer): integer;
 
-// Visualizza un territorio
+// Display a territory
 procedure DisplayTerritory(iTerritory: integer);
 
 procedure FTFloodFill(Bitmap: TImage; InitX: Integer; InitY: Integer; FillColor: TColor);
 
-// Assegnazione territorio ad un giocatore
+// Assign a territory to a player
 procedure AssegnaTerritorio(iT, iG: integer);
 
-// Collocazione di n armate su un territorio
+// Place n armies on a territory
 procedure CollocaArmata(iT, iG, iArmies: integer);
 
-// Verifica se due territori sono confinanti
+// Check whether two territories are adjacent
 function Confinante(iFrom, iTo: integer): boolean;
 
-// Verifica se un territorio è proprio e confina con territori nemici
+// Check whether a territory is owned and borders enemy territories
 function Confine(iT: integer): boolean;
 
 implementation
@@ -475,7 +475,7 @@ begin
   arContinent[coAU].Bonus := 2;
 end;
 
-// Determina indice territorio in base alle coordinate di un punto sulla mappa
+// Find a territory index from a point's map coordinates
 function TrovaTerritorio(iX, iY: integer): integer;
 var
   ColoreBase: TColor;
@@ -491,7 +491,7 @@ begin
   Result := 0;
 end;
 
-// Visualizza un territorio
+// Display a territory
 procedure DisplayTerritory(iTerritory: integer);
 var
   iOrig: integer;
@@ -588,25 +588,25 @@ begin
         end;
 end;
 
-// Assegnazione territorio ad un giocatore
+// Assign a territory to a player
 procedure AssegnaTerritorio(iT, iG: integer);
 var
   iT2, iProp2: integer;
 begin
   with arTerritory[iT] do begin
-    // Se il territorio era vergine, riduco il numero di territori da assegnare
+    // If the territory was unassigned, reduce the number of territories left to assign
     if (Owner = 0) and (iToAssign > 0) then
       dec(iToAssign);
-    // Se apparteneva ad un altro giocatore, riduco il suo numero di territori posseduti
+    // If another player owned it, reduce that player's territory count
     if Owner > 0 then
       dec(arPlayer[Owner].Territ);
-    // Assegno la proprietà
+    // Assign ownership
     Owner := iG;
-    // Incremento il contatore di territori posseduti
+    // Increment the player's territory count
     inc(arPlayer[iG].Territ);
   end;
 
-  // Aggiorno il controllo del continente
+  // Update continent ownership
   iProp2 := iG;
   for iT2 := 1 to MAXTERRITORIES do begin
     if arTerritory[iT2].Contin = arTerritory[iT].Contin then begin
@@ -618,11 +618,11 @@ begin
   end;
   arContinent[arTerritory[iT].Contin].Owner := iProp2;
 
-  // Aggiornamento statistiche
+  // Update statistics
   UpdateStats;
 end;
 
-// Collocazione di n armate su un territorio
+// Place n armies on a territory
 // Placement of armies on a territory
 procedure CollocaArmata(iT, iG, iArmies: integer);
 begin
@@ -634,13 +634,13 @@ begin
   if arPlayer[iTurn].KeepLog then
     ScriviLog(IntToStr(iArmies) + ' army(s) placed in ' + arTerritory[iT]
       .Name + '.');
-  // Aggiornamento display e statistiche
+  // Update the display and statistics
   DisplayTerritory(iT);
   UpdateStats;
   Application.ProcessMessages;
 end;
 
-// Verifica se due territori sono confinanti
+// Check whether two territories are adjacent
 // Check if two territories are neighboring
 function Confinante(iFrom, iTo: integer): boolean;
 var
@@ -654,7 +654,7 @@ begin
   Result := false;
 end;
 
-// Verifica se un territorio è proprio e confina con territori nemici
+// Check whether a territory is owned and borders enemy territories
 // Check if a territory is proper and borders on enemy territories
 function Confine(iT: integer): boolean;
 var

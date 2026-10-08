@@ -33,8 +33,6 @@ Issues:
 This issue only seems to arise when only computer players (no humans) are present, and if no other games have 
 already occurred.  The issue doesn't seem to be present in Windows.  
 
- - The player frank+.trp causes an "Error: Script Loading Failed" whenever it is used.  The reason for this is not 
-currently known.
 
 ---------
 The original Readme follows.

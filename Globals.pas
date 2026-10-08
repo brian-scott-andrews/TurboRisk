@@ -872,7 +872,7 @@ begin
   ScriptExec.RegisterDelphiFunction(@URandom, 'URANDOM', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UTakeSnapshot, 'UTAKESNAPSHOT',
     cdRegister);
-  ScriptExec.RegisterDelphiFunction(@UDialogO, 'UDIALOGO', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@UDialogO, 'UDIALOG', cdRegister);
   ScriptExec.RegisterDelphiFunction(@UAbortGame, 'UABORTGAME', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOff, 'ULOGOFF', cdRegister);
   ScriptExec.RegisterDelphiFunction(@ULogOn, 'ULOGON', cdRegister);

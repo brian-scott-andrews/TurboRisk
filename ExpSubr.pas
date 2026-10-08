@@ -71,8 +71,11 @@ implementation
 
 uses Clipbrd, SysUtils, Classes, Dialogs, Globals, Territ, Log, Stats, UDialog;
 
+var
+  bURandomInitialized: boolean;
+
 type
-  TPrioCont = array [0 .. 5] of record // Lista priorità conquista continenti
+  TPrioCont = array [0 .. 5] of record // Continent conquest priority list
   Cont: TContId;
 Valore :
 double;
@@ -1144,9 +1147,15 @@ begin
 end;
 
 function URandom(R: integer): double;
-// if R is greater than 0, returns am integer random number X in the range
-// 0 <= X < R, otherwise a real-type random number X in the range 0 <= X < 1
+// if R is greater than 0, returns an integer random number X in the range
+// 0 <= X < R, otherwise a real-type random number X in the range 0 <= X < 1.
+// Ensure the random seed is initialized before the first call so scripts do not
+// get a deterministic sequence when they invoke URandom directly.
 begin
+  if not bURandomInitialized then begin
+    Randomize;
+    bURandomInitialized := true;
+  end;
   if R > 0 then
     result := Random(R)
   else

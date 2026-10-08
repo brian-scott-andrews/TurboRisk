@@ -32,13 +32,13 @@ type
 var
   fCards: TfCards;
 
-// Assegna una nuova carta al giocatore di turno
+// Assign a new card to the current player
 procedure PescaCarta;
 
-// Verifica la validità e il valore di una combinazione di carte
+// Check the validity and value of a card combination
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 
-// Valuta la migliore combinazione per il giocatore di turno
+// Evaluate the best combination for the current player
 function CercaCombinazioneMigliore(var iInf, iCav, iArt, iJok: integer): boolean;
 
 implementation
@@ -94,7 +94,7 @@ begin
       inc(NScambi);
       UpdateStats;
     end;
-    // se non ci sono altre combinazioni e sono in gestione semiautom.-> esco
+    // Exit when there are no more combinations in semi-automatic mode
     if not PreparaForm and (CardsHandling=chSmart) then
       ModalResult := mrOK;
   end;
@@ -107,9 +107,9 @@ var
 begin
   bReady := false;
   with arPlayer[iTurn], lstCards do begin
-    // ricerca combinazione da proporre di default
+    // Find the combination to offer by default
     Result := CercaCombinazioneMigliore(iInf, iCav, iArt, iJok);
-    // caricamento lista carte
+    // Load the card list
     Items.Clear;
     for i:=1 to Cards[caInf] do begin
       Items.Add('Infantry');
@@ -145,7 +145,7 @@ begin
   end;
 end;
 
-// Assegna una nuova carta al giocatore di turno
+// Assign a new card to the current player
 procedure PescaCarta;
 begin
   with arPlayer[iTurn] do begin
@@ -158,17 +158,17 @@ begin
   end;
 end;
 
-// Verifica la validità e il valore di una combinazione di carte
+// Check the validity and value of a card combination
 function TestCombinazione(iInf, iCav, iArt, iJok: integer): integer;
 begin
-  Result := -1;  // combinazione non possibile
+  Result := -1;  // Invalid combination
   if iInf+iCav+iArt+iJok<>3 then exit;
 
   with arPlayer[iTurn] do begin
-    // test se combinazione possibile
+    // Check whether the combination is possible
     if (iInf>Cards[caInf]) or (iCav>Cards[caCav])
     or (iArt>Cards[caArt]) or (iJok>Cards[caJok]) then exit;
-    // valore combinazione
+    // Combination value
     if ((iInf=1) and (iCav=1) and (iArt=1))
     or ((iInf=1) and (iCav=1) and (iJok=1))
     or ((iInf=1) and (iJok=1) and (iArt=1))
@@ -202,7 +202,7 @@ begin
   end;
 end;
 
-// Valuta la migliore combinazione per il giocatore di turno
+// Evaluate the best combination for the current player
 function CercaCombinazioneMigliore(var iInf, iCav, iArt, iJok: integer): boolean;
 var
   iMaxBenefit: integer;

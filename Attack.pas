@@ -48,7 +48,7 @@ type
   private
     procedure UpdateDisplay;
   public
-    iTf, iTt: integer; // Territori Da e A attacco
+    iTf, iTt: integer; // Territories to attack from and to
   end;
 
 var

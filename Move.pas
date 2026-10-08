@@ -39,7 +39,7 @@ type
     procedure UpdateDisplay;
   public
     iProv, iDest, iMinDest,
-    iTf, iTt: integer;        // Territori Da e A attacco
+    iTf, iTt: integer;        // Territories to attack from and to
   end;
 
 var
@@ -53,7 +53,7 @@ uses Globals, Main, Territ, Log;
 
 procedure TfMove.FormShow(Sender: TObject);
 begin
-  // posizionamento dinamico finestra
+  // Position the window dynamically
   if arTerritory[iTf].Coord.X > fMain.Width div 2 then
     Left := fMain.Left + 18
   else
@@ -62,7 +62,7 @@ begin
     Top := fMain.Top + 70
   else
     Top := fMain.Top + 290;
-  // inizializzazione controlli
+  // Initialize the controls
   iProv := arTerritory[iTf].Army;
   iDest := arTerritory[iTt].Army;
   iMinDest := iDest;
@@ -102,8 +102,8 @@ begin
   arTerritory[iTt].Army := iDest;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
-    ModalResult := mrCancel              // non considero lo spostamento avvenuto
+  if arTerritory[iTt].Army=iMinDest then  // If the armies are unchanged
+    ModalResult := mrCancel              // Do not treat this as a completed move
   else
     ModalResult := mrOK;
 end;
@@ -114,8 +114,8 @@ begin
   arTerritory[iTt].Army := iDest + iProv - 1;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
-    ModalResult := mrCancel              // non considero lo spostamento avvenuto
+  if arTerritory[iTt].Army=iMinDest then  // If the armies are unchanged
+    ModalResult := mrCancel              // Do not treat this as a completed move
   else
     ModalResult := mrOK;
 end;
@@ -136,8 +136,8 @@ begin
   arTerritory[iTt].Army := iDest;
   DisplayTerritory(iTf);
   DisplayTerritory(iTt);
-  if arTerritory[iTt].Army=iMinDest then  // Se la situazione è quella iniziale
-    ModalResult := mrCancel;              // non considero lo spostamento avvenuto
+  if arTerritory[iTt].Army=iMinDest then  // If the armies are unchanged
+    ModalResult := mrCancel;              // Do not treat this as a completed move
 end;
 
 procedure TfMove.cmdCancelClick(Sender: TObject);

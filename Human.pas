@@ -4,13 +4,13 @@ unit Human;
 
 interface
 
-// Mostra istruzioni per giocatore umano
+// Show instructions to the human player
 procedure MostraIstruzioni;
 
-// Attacco umano
+// Human attack
 procedure UomoAttacca(iTf, iTt: integer);
 
-// Trasferimento umano
+// Human troop movement
 procedure UomoSposta(iTf, iTt: integer; bMove: boolean);
 
 implementation
@@ -18,7 +18,7 @@ implementation
 uses SysUtils, Controls,
      Globals, Main, Attack, Move;
 
-// Mostra istruzioni per giocatore umano
+// Show instructions to the human player
 procedure MostraIstruzioni;
 var
   sMsg: string;
@@ -52,19 +52,19 @@ begin
   fMain.panStatus.Panels[2].Text := sMsg;
 end;
 
-// Attacco umano
+// Human attack
 procedure UomoAttacca(iTf, iTt: integer);
 begin
   fAttack.iTf := iTf;
   fAttack.iTt := iTt;
-  // Gestione attacco
+  // Handle the attack
   if fAttack.ShowModal=mrOK then begin
-    // test eliminati tutti gli avversari
+    // Check whether all opponents have been eliminated
     if bEliminatedPlayer and (iNPlayers<2) then exit;
-    // territorio conquistato, spostamento conseguente
+    // Move troops into the conquered territory
     if arTerritory[iTf].Army>1 then
       UomoSposta(iTf, iTt, false);
-    // test scambio carte catturate  
+    // Check whether captured cards should be traded
     if bEliminatedPlayer then begin
       if RImmediateTrade then AssignNewArmies(true);
       if arPlayer[iTurn].NewArmy>0 then HumanPhase := hpPlacement;
@@ -72,7 +72,7 @@ begin
   end;
 end;
 
-// Trasferimento umano
+// Human troop movement
 procedure UomoSposta(iTf, iTt: integer; bMove: boolean);
 begin
   fMove.iTf := iTf;
