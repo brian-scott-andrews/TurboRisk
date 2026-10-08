@@ -39,6 +39,8 @@ begin
   if (ST = 0) or (Length(DTArray)=0) or
     ((Length(DTArray)=1) and ((ST = DTArray[0]) or (TIsBordering(ST, DTArray[0]) and TIsMine(ST) and TIsMine(DTArray[0])))) then exit;
 
+  bFound:=False;
+  DT:=0;
   for T:=1 to 42 do begin
     with aNode[T] do begin
       bClosed := false;
@@ -61,11 +63,12 @@ begin
       end;
     until (iNode > 0) or (T = 42);
 
+    if iNode=0 then break;
     TempT := iNode;
     GoalCounter:=0;
     while (aNode[TempT].iParent > 0) and (aNode[TempT].iParent <> ST) do begin
       TempT := aNode[TempT].iParent;
-      for i:=0 to Length(DTArray) do begin   //if DTArray contains TempT, increase GoalCounter by 1
+      for i:=0 to Length(DTArray)-1 do begin   //if DTArray contains TempT, increase GoalCounter by 1
         if TempT=DTArray[i] then begin
           GoalCounter:=GoalCounter+1;
           break;
@@ -122,6 +125,7 @@ var
   T,A,MaxA: integer;
 begin
   // Determine which T is your strongest front to attack with
+  result:=0;
   MaxA:=0;
   for T:=1 to 42 do begin
     A:=TArmies(T);
@@ -148,74 +152,55 @@ end;
 
 
 procedure Placement(var TT: integer);
+var
+  T: integer;
 begin
   TT:=GetAttT;
+  if TT=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        TT:=T;
+        break;
+      end;
 end;
 
 
 procedure Attack(var FT, TT: integer);
 var
-  A,N,ET,EA,F,MinF,P,TPA,i,PL,T: integer;
-  DTArray,TTArray: array of integer;//Array of integer;
+  A,N,ET,EA,F,MinF,TPA,AttackTerritory: integer;
 begin
-  SetArrayLength(DTArray,42);
-  SetArrayLength(TTArray,42);
-  DTArray[0]:=0;
-
+  FT:=0;
   TT:=0;
-  FT:=GetAttT;
-  A:=TArmies(FT);
+  AttackTerritory:=GetAttT;
+  if AttackTerritory=0 then exit;
+  A:=TArmies(AttackTerritory);
 
   // Card-Attack
-  if (not SConquest) and (TIsFront(FT)) then begin
-    TWeakestFront(FT,ET,EA);
+  if (not SConquest) and (TIsFront(AttackTerritory)) then begin
+    TWeakestFront(AttackTerritory,ET,EA);
     if ( (A>3*EA) and (EA<99) and (not(SCardsBasedOnCombo)) )
     or ( (A>4*EA) and ( (EA<4) or ( (EA<5) and (A>99) ) ) and (SCardsBasedOnCombo) ) then TT:=ET;
   end;
 
-  // Kill a player if possible
-  for P:=1 to 10 do begin
-    if (PActive(P)) and (P<>PMe) then begin
-      if PArmiesCount(P)<TArmies(FT) then begin
-        //get Ts from P
-        i:=0;
-        for T:=1 to 42 do begin
-          if TOwner(T)=P then begin
-            DTArray[i]:=T;
-            //????????waarom crasht ie hier?????
-            i:=i+1;
-          end;
-        end;
-
-        if ConquerArea(FT,DTArray,TTArray,PL,EA) then begin
-          if ((TArmies(FT)/EA)>1) then begin
-            ULog('HOPPA!');
-            UMessage('pause');
-          end;
-        end;
-      end;
-    end;
-  end;
-
   // Number of armies of all my enemies
   TPA:=0;
-  for P:=1 to 10 do begin
-    if (PActive(P)) and (P<>PMe) then
-      TPA:=TPA+PArmiesCount(P);
+  for N:=1 to 10 do begin
+    if (PActive(N)) and (N<>PMe) then
+      TPA:=TPA+PArmiesCount(N);
   end;
 
   // Attack the whole world in one turn (if possible)
   MinF:=11;
-  if (TIsFront(FT)) and ( (A>TPA) or (SAlivePlayersCount=2) ) then begin
-    for N:=1 to TFrontsCount(FT) do begin
-      ET:=TFront(FT,N);
+  if (TIsFront(AttackTerritory)) and ( (A>TPA) or (SAlivePlayersCount=2) ) then begin
+    for N:=1 to TFrontsCount(AttackTerritory) do begin
+      ET:=TFront(AttackTerritory,N);
       F:=TFrontsCount(ET);
       if (MinF<>0) then begin
         if (ET=31) then F:=-1;  // To Siam
-        if (FT=31) and (ET=39) then F:=-1;  // From Siam to Indonesia
+        if (AttackTerritory=31) and (ET=39) then F:=-1;  // From Siam to Indonesia
         if (COwner(3)=PMe) and (COwner(5)=PMe) and (ET=16) then F:=-1;  // To E-Afrika
         if (COwner(3)=PMe) and (COwner(4)=PMe) and (ET=29) then F:=-1;  // To Kazakhstan
-        if (COwner(1)=PMe) and (FT=14) and (ET=12) then F:=-1;  // To Brazil
+        if (COwner(1)=PMe) and (AttackTerritory=14) and (ET=12) then F:=-1;  // To Brazil
       end;
       if ( (F<MinF) or (F=0) or ( (F=MinF) and (not TIsEntry(ET)) ) ) and (A>TArmies(ET)) then begin
         MinF:=F;
@@ -224,14 +209,13 @@ begin
     end;
   end;
 
-
-  if (TT<=0) or (FT<=0) then begin
+  if (TT>0) and (AttackTerritory>0) then
+    FT:=AttackTerritory
+  else begin
     FT:=0;
     TT:=0;
   end;
-
 end;
-
 
 procedure Occupation(FT, TT: integer; var A: integer);
 var
@@ -271,6 +255,7 @@ begin
   TT:=0;
   Armies:=0;
   AT:=GetAttT;
+  if AT=0 then exit;
 
   A:=1;
   for T:=1 to 42 do begin

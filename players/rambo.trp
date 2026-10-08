@@ -38,6 +38,12 @@ begin
       end;
     end;
   end;
+  if ToTerritory=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        ToTerritory:=T;
+        break;
+      end;
 end;
 
 procedure Attack(var FromTerritory, ToTerritory: integer);

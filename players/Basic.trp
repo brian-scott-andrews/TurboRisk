@@ -70,6 +70,7 @@ var
   lowest_enemy_armies: integer;
   i: integer;
 begin
+  ToTerritory:=0;
   lowest_enemy_armies:=10000;
 
   // Go through all the territories and see which one is easiest to use for an
@@ -77,15 +78,20 @@ begin
   for i:=1 to 42 do begin
     if TOwner(i)=PMe() then begin
       if TIsFront(i) then begin
-        TWeakestFront(i, enemy_territory, enemy_armies);
-        // Set the lowest enemy armies and the territory for deploy variable
-        if enemy_armies<lowest_enemy_armies then begin
-          // Don't reinforce if we already have a 2 to 1 ratio of attacking to
-          // defending troops plus one extra troop (to leave behind) and 1
-          // troops extra (for beginning).
-          if (TArmies(i)-1)<=(TArmies(enemy_territory)*2)+1 then begin
-            lowest_enemy_armies:=enemy_armies;
-            ToTerritory:=i;
+        enemy_territory:=0;
+        enemy_armies:=0;
+        if TWeakestFront(i, enemy_territory, enemy_armies) and
+           (enemy_territory>=1) and (enemy_territory<=42) and
+           (TOwner(enemy_territory)<>PMe()) then begin
+          // Set the lowest enemy armies and the territory for deploy variable
+          if enemy_armies<lowest_enemy_armies then begin
+            // Don't reinforce if we already have a 2 to 1 ratio of attacking to
+            // defending troops plus one extra troop (to leave behind) and 1
+            // troops extra (for beginning).
+            if (TArmies(i)-1)<=(TArmies(enemy_territory)*2)+1 then begin
+              lowest_enemy_armies:=enemy_armies;
+              ToTerritory:=i;
+            end;
           end;
         end;
       end;
@@ -102,11 +108,16 @@ begin
     for i:=1 to 42 do begin
     if TOwner(i)=PMe() then begin
       if TIsFront(i) then begin
-        TWeakestFront(i, enemy_territory, enemy_armies);
-        // Set the lowest enemy armies and the territory for deploy variable
-        if enemy_armies<lowest_enemy_armies then begin
-          lowest_enemy_armies:=enemy_armies;
-          ToTerritory:=i;
+        enemy_territory:=0;
+        enemy_armies:=0;
+        if TWeakestFront(i, enemy_territory, enemy_armies) and
+           (enemy_territory>=1) and (enemy_territory<=42) and
+           (TOwner(enemy_territory)<>PMe()) then begin
+          // Set the lowest enemy armies and the territory for deploy variable
+          if enemy_armies<lowest_enemy_armies then begin
+            lowest_enemy_armies:=enemy_armies;
+            ToTerritory:=i;
+          end;
         end;
       end;
     end;
@@ -114,6 +125,12 @@ begin
 
   end;
 
+  if ToTerritory=0 then
+    for i:=1 to 42 do
+      if TIsMine(i) then begin
+        ToTerritory:=i;
+        break;
+      end;
 
 end;
 
@@ -121,8 +138,8 @@ procedure Attack(var FromTerritory, ToTerritory: integer);
 var
   enemy_territory: integer;
   enemy_armies: integer;
-  current_ratio: integer;
-  highest_ratio: integer;
+  current_ratio: double;
+  highest_ratio: double;
   i: integer;
 begin
 

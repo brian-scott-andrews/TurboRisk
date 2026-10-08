@@ -134,6 +134,12 @@ begin
         end;
       end;
     end;
+  if tmax=0 then
+    for t:=1 to 42 do
+      if TIsMine(t) then begin
+        tmax:=t;
+        break;
+      end;
   toterritory:=tmax;
 end;
 

@@ -782,6 +782,7 @@ begin
   // LOCAL FUNCTION TARGETCplacement:  determines the target continent to attack
   // best ratio of armies in the continent and its borders
   BestDiff:=SMALL;
+  BestC:=0;
   for C:=1 to 6 do
     begin
       PT:=0;
@@ -1569,6 +1570,8 @@ UBufferSet(10,0);
 //Says the number of players and TotalArmies
 A:=0;
 B:=0;
+D:=0;
+T:=0;
     R:=False;
     PlayerStrong:=0;
     For J:=1 to 10 do
@@ -7530,9 +7533,13 @@ BEGIN
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B-1);
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B+2);
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B-2);
-      If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B);    
-      // Move all armies
-      Armies:=TArmies(FromTerritory)-1;
+      If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B);
+      if TIsMine(ToTerritory) then
+        Armies:=TArmies(FromTerritory)-1
+      else begin
+        FromTerritory:=0;
+        ToTerritory:=0;
+      end;
       
     END;
   END;  //IF Armies=0

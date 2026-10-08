@@ -168,6 +168,13 @@ begin
     end;
     UBufferSet(2,UBufferGet(2)-1);
   end;
+
+  if ToTerritory=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        ToTerritory:=T;
+        break;
+      end;
 end;
 
 procedure Attack(var FromTerritory, ToTerritory: integer);

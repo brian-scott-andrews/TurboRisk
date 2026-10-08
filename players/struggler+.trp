@@ -806,6 +806,12 @@ begin // Placement
   // check for kill player mode
   if (UBufferGet(99) = 1) or (UBufferGet(98) > 0) then begin
     KillPlayer_Placement(ToTerritory);
+    if ToTerritory=0 then
+      for T:=1 to 42 do
+        if TIsMine(T) then begin
+          ToTerritory:=T;
+          break;
+        end;
     exit;
   end;
 
@@ -823,6 +829,12 @@ begin // Placement
         end;
       end;
     end;
+    if ToTerritory=0 then
+      for T:=1 to 42 do
+        if TIsMine(T) then begin
+          ToTerritory:=T;
+          break;
+        end;
   end;
 end;
 

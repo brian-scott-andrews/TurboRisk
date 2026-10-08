@@ -345,50 +345,56 @@ BEGIN
         ToTerritory:=T;
         MaxRatio:=Ratio
       END
-
     END;
     T:=T-1
   UNTIL T<1
+  IF ToTerritory=0 THEN
+    FOR T:=1 TO 42 DO
+      IF TIsMine(T) THEN
+      BEGIN
+        ToTerritory:=T;
+        BREAK;
+      END;
 END;  //PROCEDURE Placement
 
 
+
+// Function returns false if the territory to attack would become a front of me
+FUNCTION EnemyTerritoryIsEnclosed(TT:Integer):Boolean;
+VAR BT, BTF : Integer;
+    ETIE : Boolean;
+BEGIN
+  ETIE := True;
+  FOR BTF := 1 TO TBordersCount(TT) DO
+  BEGIN
+    BT := TBorder (TT,BTF);
+    IF TOwner(BT)<>PMe THEN ETIE:=False   //Territory would remain a front
+  END;
+  result:=ETIE
+END; //function EnemyTerritoryIsEnclosed
+
+Function RemainingPitbullTerritory(TT:Integer):Boolean;
+VAR RT, RTB, Dummy : Integer;
+    RPT : Boolean;
+BEGIN
+  RPT := False;
+  FOR RT:= 1 TO 42 DO
+  BEGIN
+    Dummy := trunc(UBufferGet(RT));
+    IF Dummy=1 THEN
+     IF NOT TIsMine(RT) THEN
+      FOR RTB:=1 TO TBordersCount(RT) DO
+       IF TIsMine(TBorder(RT,RTB)) THEN
+        IF TArmies(TBorder(RT,RTB))>1 THEN RPT:=True
+  END;
+  result := RPT
+END; //function RemainingPitbullTerritory
 
 PROCEDURE Attack(var FromTerritory, ToTerritory: integer);
 VAR
   T, B, EnemyT, EnemyA, I : Integer;
   Ratio, MaxRatio : Double;
   Lost : Integer;
-
-  //Function returns false if the territory to attack would become a front of me
-  FUNCTION EnemyTerritoryIsEnclosed(TT:Integer):Boolean;
-  VAR BT, BTF : Integer;
-      ETIE : Boolean;
-  BEGIN
-    ETIE := True;
-    FOR BTF := 1 TO TBordersCount(TT) DO
-    BEGIN
-      BT := TBorder (TT,BTF);
-      IF TOwner(BT)<>PMe THEN ETIE:=False   //Territory would remain a front
-    END;
-    result:=ETIE
-  END; //function EnemyTerritoryIsEnclosed
-
-  Function RemainingPitbullTerritory(TT:Integer):Boolean;
-  VAR RT, RTB, Dummy : Integer;
-      RPT : Boolean;
-  BEGIN
-    RPT := False;
-    FOR RT:= 1 TO 42 DO
-    BEGIN
-      Dummy := trunc(UBufferGet(RT));
-      IF Dummy=1 THEN
-       IF NOT TIsMine(RT) THEN
-        FOR RTB:=1 TO TBordersCount(RT) DO
-         IF TIsMine(TBorder(RT,RTB)) THEN
-          IF TArmies(TBorder(RT,RTB))>1 THEN RPT:=True
-    END;
-    result := RPT
-  END; //function RemainingPitbullTerritory
 
 BEGIN
   FromTerritory:=0;
@@ -466,21 +472,11 @@ BEGIN
 
 
 
-  IF ToTerritory=0 THEN Armies:=0;
-
-
-
-
-
-
-
-
-
 END;  //PROCEDURE Attack
 
 
 
-PROCEDURE Occupation;
+PROCEDURE Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
 BEGIN
 
   // same as digger.trp
@@ -518,7 +514,7 @@ END;  //PROCEDURE Occupation
 
 
 
-PROCEDURE Fortification;
+PROCEDURE Fortification(var FromTerritory, ToTerritory, Armies: integer);
 VAR T, FromT, BiggestArmy, B, MinArmy, MaxArmy  :Integer;
 BEGIN
   //Search weakest front and fortify it with the biggest army 
@@ -594,14 +590,30 @@ BEGIN
     BEGIN
 
 
-      B:=URandom(TBordersCount(FromTerritory))+1;
-
-      ToTerritory:=TBorder(FromTerritory,B);    // Random movement can be very surprising
-
-      Armies:=TArmies(FromTerritory)-1
+      B:=0;
+      FOR T:=1 TO TBordersCount(FromTerritory) DO
+        IF TIsMine(TBorder(FromTerritory,T)) THEN B:=B+1;
+      IF B>0 THEN
+      BEGIN
+        B:=trunc(URandom(B))+1;
+        FOR T:=1 TO TBordersCount(FromTerritory) DO
+          IF TIsMine(TBorder(FromTerritory,T)) THEN
+          BEGIN
+            B:=B-1;
+            IF B=0 THEN
+            BEGIN
+              ToTerritory:=TBorder(FromTerritory,T);
+              BREAK;
+            END;
+          END;
+        Armies:=TArmies(FromTerritory)-1
+      END
+      ELSE
+        FromTerritory:=0
     END
   END;  //IF Armies = 0
 
 END;  //PROCEDURE Fortification
 
-
+begin
+end.

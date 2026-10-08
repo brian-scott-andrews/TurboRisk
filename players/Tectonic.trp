@@ -331,8 +331,8 @@ procedure Conventional_Warfare_Attack(var FromTerritory, ToTerritory: integer);
 var
   enemy_territory: integer;
   enemy_armies: integer;
-  current_ratio: integer;
-  highest_ratio: integer;
+  current_ratio: double;
+  highest_ratio: double;
   i: integer;
 begin
 
@@ -480,7 +480,9 @@ procedure Placement(var ToTerritory: integer);
 var
   biggest_army_ter: integer;
   most_fronts: integer;
+  T, MaxArmies: integer;
 begin
+  ToTerritory:=0;
 
   biggest_army_ter:=get_territory_biggest_army();
   most_fronts:=get_territory_most_fronts();
@@ -497,6 +499,14 @@ begin
     Conventional_Warfare_Placement(ToTerritory);
   end;
 
+  if ToTerritory=0 then begin
+    MaxArmies:=0;
+    for T:=1 to 42 do
+      if TIsMine(T) and (TArmies(T)>MaxArmies) then begin
+        ToTerritory:=T;
+        MaxArmies:=TArmies(T);
+      end;
+  end;
 end;
 
 procedure Attack(var FromTerritory, ToTerritory: integer);
@@ -512,13 +522,13 @@ var
 
   total_num_my_armies: integer;
   total_enemy_armies: integer;
-  average_enemy_armies: integer;
+  average_enemy_armies: double;
 
   total_p_armies: integer;
   total_not_p_armies: integer;
-  average_not_p_armies: integer;
+  average_not_p_armies: double;
 
-  average_num_ter: integer;
+  average_num_ter: double;
 
 begin
   cur_ter:=get_territory_biggest_army();

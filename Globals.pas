@@ -114,7 +114,8 @@ end;
 var
 
   // Generic global variabils
-  bG_TRSim: boolean; // true if the main program is TRSim
+  bG_TRSim, // true if the main program is TRSim
+  bTRSimCLI: boolean; // true when TRSim is running without the GUI
   sG_AppName, // application name
   sG_AppVers, // version
   sG_AppPath: string; // exe file name
@@ -206,6 +207,8 @@ var
   // Application Setup
 procedure Setup;
 
+function ResolveSimPath(const sFileName: string): string;
+
 // Application Cleanup
 procedure Cleanup;
 
@@ -258,6 +261,15 @@ implementation
 uses Forms, SysUtils, IniFiles, Dialogs, Math, DateUtils,
   uPSCompiler,
   Main, Territ, Computer, Stats, Human, Cards, Log, ExpSubr, History, SimRun;
+
+function ResolveSimPath(const sFileName: string): string;
+begin
+  if (ExtractFileDrive(sFileName) <> '') or
+     ((sFileName <> '') and (sFileName[1] = PathDelim)) then
+    Result := ExpandFileName(sFileName)
+  else
+    Result := IncludeTrailingPathDelimiter(sG_AppPath) + sFileName;
+end;
 
 var
   bAssignmentFound, // flags to check if the script
@@ -553,7 +565,8 @@ begin
       bPrefConfirmAbort := ReadBool('Pref', 'ConfirmAbort', True);
       bPrefCheckUpdate := ReadBool('Pref', 'CheckUpdate', False);
       // Map
-      sMapFile := ReadString('Map', 'File', 'std_map_small.trm');
+      if not bTRSimCLI then
+        sMapFile := ReadString('Map', 'File', 'std_map_small.trm');
       // Rules
       case ReadInteger('Rules', 'Assignment', 0) of
         0:
@@ -926,7 +939,13 @@ begin
   end;
   // show error messages
   if not Result then begin
-    MessageDlg(sCompErr, mtError, [mbOk], 0);
+    if bTRSimCLI then begin
+      fSimRun.SimLog(sCompErr);
+      uSimStatus := ssError;
+      bStopASAP := True;
+    end
+    else
+      MessageDlg(sCompErr, mtError, [mbOk], 0);
   end;
 end;
 
@@ -1009,9 +1028,15 @@ begin
             if FileExists(sG_AppPath + 'players'+ PathDelim + PrgFile) then
               PrgTemp.LoadFromFile(sG_AppPath + 'players' + PathDelim + PrgFile)
             else begin
-              MessageDlg
-              (sG_AppPath + 'players' + PathDelim +
-                PrgFile + ': File not found.', mtError, [mbOk], 0);
+              if bTRSimCLI then begin
+                fSimRun.SimLog(sG_AppPath + 'players' + PathDelim +
+                  PrgFile + ': File not found.');
+                uSimStatus := ssError;
+                bStopASAP := True;
+              end
+              else
+                MessageDlg(sG_AppPath + 'players' + PathDelim +
+                  PrgFile + ': File not found.', mtError, [mbOk], 0);
               PrgTemp.Clear;
               bCompErrors := True;
               continue;
@@ -1033,8 +1058,15 @@ begin
             end;
             // Exec main TRP code
             if not ScriptExec.LoadData(Code) then begin
-              MessageDlg('Player: ' + Name + #13#10 +
-                'Error: script loading failed', mtError, [mbOk], 0);
+              if bTRSimCLI then begin
+                fSimRun.SimLog('Player: ' + Name + #13#10 +
+                  'Error: script loading failed');
+                uSimStatus := ssError;
+                bStopASAP := True;
+              end
+              else
+                MessageDlg('Player: ' + Name + #13#10 +
+                  'Error: script loading failed', mtError, [mbOk], 0);
               bCompErrors := True;
               continue;
             end;
@@ -1621,7 +1653,7 @@ var
 begin
   // assign history file
   if bG_TRSim then
-    sHFName := sG_AppPath + sSimGameLogFile
+    sHFName := ResolveSimPath(sSimGameLogFile)
   else
     sHFName := sG_AppPath + 'history.txt';
   AssignFile(fHistory, sHFName);

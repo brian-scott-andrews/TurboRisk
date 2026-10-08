@@ -1192,7 +1192,7 @@ function UDialogO(M, B: string): integer;
 // the user, 0 if the user closed the window
 begin
   result := 0;
-  if arPlayer[iTurn].UDialogEnabled then begin
+  if arPlayer[iTurn].UDialogEnabled and not bTRSimCLI then begin
     if fStats.Visible then
       fStats.BringToFront;
     if fLog.Visible then

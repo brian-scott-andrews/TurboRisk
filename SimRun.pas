@@ -57,6 +57,8 @@ end;
 procedure TfSimRun.SimLog(const sMsg: string);
 begin
   txtSimLog.Lines.Add(FormatDateTime('hh:nn:ss',Now)+' '+sMsg);
+  if bTRSimCLI then
+    WriteLn(FormatDateTime('hh:nn:ss', Now) + ' ' + sMsg);
 end;
 
 procedure TfSimRun.UpdateSimStats;
@@ -66,7 +68,8 @@ begin
   panTurn.Caption := IntToStr(iTurnCounter);
   panGameTime.Caption := FormatDateTime('hh:nn:ss',Now-dtSimGameTime);
   panSimTime.Caption := FormatDateTime('hh:nn:ss',Now-dtSimStartTime);
-  Application.ProcessMessages;
+  if not bTRSimCLI then
+    Application.ProcessMessages;
 end;
 
 end.

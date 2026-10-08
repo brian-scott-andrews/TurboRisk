@@ -6745,9 +6745,13 @@ BEGIN
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B-1);
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B+2);
       If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B-2);
-      If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B);    
-      // Move all armies
-      Armies:=TArmies(FromTerritory)-1;
+      If NOT TIsFront(ToTerritory) then ToTerritory:=TBorder(FromTerritory,B);
+      if TIsMine(ToTerritory) then
+        Armies:=TArmies(FromTerritory)-1
+      else begin
+        FromTerritory:=0;
+        ToTerritory:=0;
+      end;
       
     END;
   END;  //IF Armies=0
