@@ -4,8 +4,8 @@ unit Computer;
 
 interface
 
-// Esecuzione mossa computer
-procedure EseguiTurnoComputer;
+// Execute the computer player's turn.
+procedure ExecuteComputerTurn;
 function strTran(ctext, cfor, cwith: string): string;
 
 
@@ -93,6 +93,13 @@ begin
   inc(arPlayer[iTurn].aCPU[uRoutine].iCalls);
 end;
 
+procedure LogTRPDecision(const sMessage: string);
+begin
+  if bTRSimCLI and bSimVerbose then
+    fSimRun.SimLog(Format('[verbose] turn %d player %s: %s',
+      [iTurnCounter, arPlayer[iTurn].Name, sMessage]));
+end;
+
 // ************************************************************
 // * INITIAL TERRITORY ASSIGNMENT ROUTINES *
 // ************************************************************
@@ -142,6 +149,7 @@ begin
     iTo := 0;
   end;
   if iTo > 0 then begin
+    LogTRPDecision('Assignment: ' + arTerritory[iTo].Name);
     // Assign the territory
     AssegnaTerritorio(iTo, iTurn);
     inc(arTerritory[iTo].Army);
@@ -206,6 +214,9 @@ begin
       iTo := 0;
     end;
     if iTo > 0 then begin
+      LogTRPDecision(Format('Placement: add 1 army to %s (%d -> %d)',
+        [arTerritory[iTo].Name, arTerritory[iTo].Army,
+         arTerritory[iTo].Army + 1]));
       // Log
       if arPlayer[iTurn].KeepLog then
         ScriviLog('Army placement in ' + arTerritory[iTo].Name);
@@ -264,7 +275,9 @@ begin
 
   // If a troop movement was requested...
   if iArmies > 0 then begin
-    // Prepare the error message
+  LogTRPDecision(Format('Occupation: move %d armies from %s to %s',
+    [iArmies, arTerritory[iFrom].Name, arTerritory[iTo].Name]));
+  // Prepare the error message
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 +
     'Routine: Occupation' + #13#10 + 'From territory: ' + arTerritory[iFrom]
     .Name + #13#10 + 'To territory: ' + arTerritory[iTo].Name + #13#10 +
@@ -289,7 +302,9 @@ begin
     UpdateStats;
     if not bTRSimCLI then
       Application.ProcessMessages;
-  end;
+  end
+  else
+    LogTRPDecision('Occupation: leave armies in place');
 end;
 
 // ********************************
@@ -368,7 +383,14 @@ begin
         exit;
       end;
       // Attack
+      LogTRPDecision(Format('Attack: %s (%d armies) -> %s (%d defenders)',
+        [arTerritory[iFrom].Name, arTerritory[iFrom].Army,
+         arTerritory[iTo].Name, arTerritory[iTo].Army]));
       bEsito := PerformAttack(iFrom, iTo);
+      if bEsito then
+        LogTRPDecision('Attack result: captured ' + arTerritory[iTo].Name)
+      else
+        LogTRPDecision('Attack result: repelled at ' + arTerritory[iTo].Name);
       // Update the display
       UpdateStats;
       if not bTRSimCLI then
@@ -390,7 +412,9 @@ begin
             CmpCollocaArmate(arPlayer[iTurn].NewArmy);
           end;
         end;
-      end;
+      end
+      else
+        LogTRPDecision('Attack: no target selected');
     end;
 
   until iFrom = 0;
@@ -442,6 +466,8 @@ begin
 
   // If a troop movement was requested...
   if iFrom > 0 then begin
+    LogTRPDecision(Format('Fortification: move %d armies from %s to %s',
+      [iArmies, arTerritory[iFrom].Name, arTerritory[iTo].Name]));
     // Prepare the error message
     sMsg := 'Player: ' + arPlayer[iTurn].Name + #13#10 +
     'Routine: Fortification' + #13#10 + 'From territory: ' + IntToStr(iFrom)
@@ -485,16 +511,18 @@ begin
     UpdateStats;
     if not bTRSimCLI then
       Application.ProcessMessages;
-  end;
+  end
+  else
+    LogTRPDecision('Fortification: no move selected');
 
 end;
 
 // ******************************
-// * SUPERVISORE GIOCO COMPUTER *
+// * COMPUTER GAME TURN SUPERVISOR *
 // ******************************
 
-// Esecuzione mossa computer
-procedure EseguiTurnoComputer;
+// Execute the computer player's turn.
+procedure ExecuteComputerTurn;
 begin
   // update LastTurn for TRSim statistics
   arPlayer[iTurn].LastTurn := iTurnCounter;

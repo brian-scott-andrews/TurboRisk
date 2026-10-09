@@ -55,6 +55,7 @@ procedure ULog(M: string);
 procedure UBufferSet(B: integer; V: double);
 function UBufferGet(B: integer): double;
 function URandom(R: integer): double;
+procedure SetURandomSeed(Seed: Integer);
 procedure UTakeSnapshot(M: string);
 function UDialogO(M, B: string): integer;
 procedure UAbortGame;
@@ -77,7 +78,7 @@ var
 type
   TPrioCont = array [0 .. 5] of record // Continent conquest priority list
   Cont: TContId;
-Valore :
+Value :
 double;
 end;
 
@@ -1109,17 +1110,21 @@ procedure UMessage(M: string);
 // display a modal window with message M
 begin
   if arPlayer[iTurn].UMessageEnabled then begin
-    if fStats.Visible then
-      fStats.BringToFront;
-    if fLog.Visible then
-      fLog.BringToFront;
-    // copy log to clipboard
-    Clipboard.SetTextBuf(PChar(fLog.txtLog.Text));
-    // show dialog
-    fUDialog.Caption := arPlayer[iTurn].Name;
-    fUDialog.sMsg := M;
-    fUDialog.sButtons := ';;Ok';
-    fUDialog.ShowModal;
+    if bTRCompRunning then
+      sTRCompRuntimeLog := sTRCompRuntimeLog + 'Message: ' + M + LineEnding
+    else if bTRSimCLI then
+      WriteLn(arPlayer[iTurn].Name + ' - ' + M)
+    else begin
+      if fStats.Visible then
+        fStats.BringToFront;
+      if fLog.Visible then
+        fLog.BringToFront;
+      Clipboard.SetTextBuf(PChar(fLog.txtLog.Text));
+      fUDialog.Caption := arPlayer[iTurn].Name;
+      fUDialog.sMsg := M;
+      fUDialog.sButtons := ';;Ok';
+      fUDialog.ShowModal;
+    end;
   end;
 end;
 
@@ -1127,7 +1132,10 @@ procedure ULog(M: string);
 // write message M on the log
 begin
   if arPlayer[iTurn].ULogEnabled then
-    ScriviLog(M);
+    if bTRCompRunning then
+      sTRCompRuntimeLog := sTRCompRuntimeLog + 'Log: ' + M + LineEnding
+    else
+      ScriviLog(M);
 end;
 
 procedure UBufferSet(B: integer; V: double);
@@ -1144,6 +1152,12 @@ begin
     result := arPlayer[iTurn].Buffer[B]
   else
     result := -1.0;
+end;
+
+procedure SetURandomSeed(Seed: Integer);
+begin
+  RandSeed := Seed;
+  bURandomInitialized := True;
 end;
 
 function URandom(R: integer): double;
@@ -1169,6 +1183,11 @@ procedure UTakeSnapshot(M: string);
 // message M is included in the snapshot
 begin
   if arPlayer[iTurn].USnapShotEnabled then begin
+    if bTRCompRunning then begin
+      sTRCompRuntimeLog := sTRCompRuntimeLog +
+        'Snapshot requested: ' + M + LineEnding;
+      Exit;
+    end;
     // create dump folder, if not existing
     if not SysUtils.DirectoryExists(sG_AppPath + PathDelim + 'Dump') then begin
       if not CreateDir(sG_AppPath + PathDelim+'Dump') then
@@ -1192,6 +1211,11 @@ function UDialogO(M, B: string): integer;
 // the user, 0 if the user closed the window
 begin
   result := 0;
+  if arPlayer[iTurn].UDialogEnabled and bTRCompRunning then begin
+    sTRCompRuntimeLog := sTRCompRuntimeLog +
+      'Dialog requested: ' + M + ' [' + B + ']' + LineEnding;
+    Exit;
+  end;
   if arPlayer[iTurn].UDialogEnabled and not bTRSimCLI then begin
     if fStats.Visible then
       fStats.BringToFront;
