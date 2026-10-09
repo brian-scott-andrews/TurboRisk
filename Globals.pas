@@ -105,6 +105,7 @@ type
   TTerritoryArray = array [1 .. MAXTERRITORIES] of TTerritory;
   TContInfoArray = array [TContId] of TContInfo;
   TPlayerArray = array [0 .. MAXPLAYERS] of TPlayer;
+  TTurnList = array [0 .. MAXPLAYERS] of Integer;
 
   TTRCompContext = record
     CurrentPlayer: Integer;
@@ -174,7 +175,7 @@ var
   // Global variables about players and sets of players
   arPlayer: TPlayerArray; // Players
   arPlayersSet: array [0 .. MAXPLSETS] of TPlayersSet; // Players
-  aiTurnList: array [0 .. MAXPLAYERS] of integer; // Turn sequence
+  aiTurnList: TTurnList; // Turn sequence
   iPlSet, // curent players set
   iPlSetCount: integer; // total players sets
 
@@ -301,6 +302,25 @@ begin
     Result := IncludeTrailingPathDelimiter(sG_AppPath) + sFileName;
 end;
 
+type
+  TTRCompRuntimeState = record
+    Territories: TTerritoryArray;
+    Continents: TContInfoArray;
+    Players: TPlayerArray;
+    TurnList: TTurnList;
+    TurnCounter, Turn, FirstTurn, PlayerCount, TerritoriesToAssign, Rank: Integer;
+    GameState: TGameState;
+    HumanPhase: THumanPhase;
+    CardValueType: TCardValueType;
+    HumanTurn, EliminatedPlayer, StopASAP, CloseASAP, TRCompRunning: Boolean;
+    FromTerritory, ToTerritory, HooverTerritory: Integer;
+    AssignmentFound, PlacementFound, AttackFound, OccupationFound,
+      FortificationFound: Boolean;
+    RuntimeLog: string;
+    ScriptExec: TPSExec;
+    RandomState: TURandomState;
+  end;
+
 var
   bAssignmentFound, // flags to check if the script
   bPlacementFound, // contains all the required procedures
@@ -309,6 +329,72 @@ var
   HooverTerrit, // territory hoovered with the mouse pointer
   ToTerrit, // territory choosen by curent player to attack or to move to
   FromTerrit: integer; // territory choosen by curent player to attack or to move from
+
+procedure CaptureTRCompRuntimeState(out State: TTRCompRuntimeState);
+begin
+  State.Territories := arTerritory;
+  State.Continents := arContinent;
+  State.Players := arPlayer;
+  State.TurnList := aiTurnList;
+  State.TurnCounter := iTurnCounter;
+  State.Turn := iTurn;
+  State.FirstTurn := iFirstTurn;
+  State.PlayerCount := iNPlayers;
+  State.TerritoriesToAssign := iToAssign;
+  State.Rank := iRank;
+  State.GameState := GameState;
+  State.HumanPhase := HumanPhase;
+  State.CardValueType := RCardsValueType;
+  State.HumanTurn := bHumanTurn;
+  State.EliminatedPlayer := bEliminatedPlayer;
+  State.StopASAP := bStopASAP;
+  State.CloseASAP := bCloseASAP;
+  State.TRCompRunning := bTRCompRunning;
+  State.FromTerritory := FromTerrit;
+  State.ToTerritory := ToTerrit;
+  State.HooverTerritory := HooverTerrit;
+  State.AssignmentFound := bAssignmentFound;
+  State.PlacementFound := bPlacementFound;
+  State.AttackFound := bAttackFound;
+  State.OccupationFound := bOccupationFound;
+  State.FortificationFound := bFortificationFound;
+  State.RuntimeLog := sTRCompRuntimeLog;
+  State.ScriptExec := ScriptExec;
+  State.RandomState := CaptureURandomState;
+end;
+
+procedure RestoreTRCompRuntimeState(const State: TTRCompRuntimeState);
+begin
+  arTerritory := State.Territories;
+  arContinent := State.Continents;
+  arPlayer := State.Players;
+  aiTurnList := State.TurnList;
+  iTurnCounter := State.TurnCounter;
+  iTurn := State.Turn;
+  iFirstTurn := State.FirstTurn;
+  iNPlayers := State.PlayerCount;
+  iToAssign := State.TerritoriesToAssign;
+  iRank := State.Rank;
+  GameState := State.GameState;
+  HumanPhase := State.HumanPhase;
+  RCardsValueType := State.CardValueType;
+  bHumanTurn := State.HumanTurn;
+  bEliminatedPlayer := State.EliminatedPlayer;
+  bStopASAP := State.StopASAP;
+  bCloseASAP := State.CloseASAP;
+  bTRCompRunning := State.TRCompRunning;
+  FromTerrit := State.FromTerritory;
+  ToTerrit := State.ToTerritory;
+  HooverTerrit := State.HooverTerritory;
+  bAssignmentFound := State.AssignmentFound;
+  bPlacementFound := State.PlacementFound;
+  bAttackFound := State.AttackFound;
+  bOccupationFound := State.OccupationFound;
+  bFortificationFound := State.FortificationFound;
+  sTRCompRuntimeLog := State.RuntimeLog;
+  ScriptExec := State.ScriptExec;
+  RestoreURandomState(State.RandomState);
+end;
 
 function ScriptOnUses(Sender: TPSPascalCompiler;
   const Name: ansistring): boolean;
@@ -986,18 +1072,27 @@ var
   Preprocessor: TPSPreProcessor;
   sPreprocessed: ansistring;
   iErr: Integer;
+  bSavedAssignmentFound, bSavedPlacementFound, bSavedAttackFound,
+    bSavedOccupationFound, bSavedFortificationFound: Boolean;
 begin
   Result := False;
   sDiagnostics := '';
+  bSavedAssignmentFound := bAssignmentFound;
+  bSavedPlacementFound := bPlacementFound;
+  bSavedAttackFound := bAttackFound;
+  bSavedOccupationFound := bOccupationFound;
+  bSavedFortificationFound := bFortificationFound;
   bAssignmentFound := False;
   bPlacementFound := False;
   bAttackFound := False;
   bOccupationFound := False;
   bFortificationFound := False;
 
-  Compiler := TPSPascalCompiler.Create;
-  Preprocessor := TPSPreProcessor.Create;
+  Compiler := nil;
+  Preprocessor := nil;
   try
+    Compiler := TPSPascalCompiler.Create;
+    Preprocessor := TPSPreProcessor.Create;
     Compiler.OnUses := ScriptOnUses;
     Compiler.OnExportCheck := ScriptOnExportCheck;
     Preprocessor.MainFileName := sName;
@@ -1029,8 +1124,15 @@ begin
     if sDiagnostics = '' then
       sDiagnostics := 'Compilation failed without compiler diagnostics.';
   finally
-    Preprocessor.Free;
-    Compiler.Free;
+    bAssignmentFound := bSavedAssignmentFound;
+    bPlacementFound := bSavedPlacementFound;
+    bAttackFound := bSavedAttackFound;
+    bOccupationFound := bSavedOccupationFound;
+    bFortificationFound := bSavedFortificationFound;
+    if Preprocessor <> nil then
+      Preprocessor.Free;
+    if Compiler <> nil then
+      Compiler.Free;
   end;
 end;
 
@@ -1044,17 +1146,8 @@ var
   iP, iTerritory, iOwner: Integer;
   iProc: Cardinal;
   tContinent: TContId;
-  bScriptReady: Boolean;
   bContinentSet: Boolean;
-  aSavedTerritories: TTerritoryArray;
-  aSavedContinents: TContInfoArray;
-  aSavedPlayers: TPlayerArray;
-  iSavedTurn, iSavedPlayerCount: Integer;
-  eSavedGameState: TGameState;
-  eSavedCardValueType: TCardValueType;
-  bSavedStopASAP, bSavedHumanTurn, bSavedEliminatedPlayer,
-    bSavedTRCompRunning: Boolean;
-  sSavedTRCompRuntimeLog: string;
+  SavedState: TTRCompRuntimeState;
   vReturn: Variant;
 begin
   Result := False;
@@ -1066,24 +1159,14 @@ begin
     Exit;
   end;
 
-  aSavedTerritories := arTerritory;
-  aSavedContinents := arContinent;
-  aSavedPlayers := arPlayer;
-  iSavedTurn := iTurn;
-  iSavedPlayerCount := iNPlayers;
-  eSavedGameState := GameState;
-  eSavedCardValueType := RCardsValueType;
-  bSavedStopASAP := bStopASAP;
-  bSavedHumanTurn := bHumanTurn;
-  bSavedEliminatedPlayer := bEliminatedPlayer;
-  bSavedTRCompRunning := bTRCompRunning;
-  sSavedTRCompRuntimeLog := sTRCompRuntimeLog;
+  CaptureTRCompRuntimeState(SavedState);
   sTRCompRuntimeLog := '';
-  bScriptReady := False;
-  Compiler := TPSPascalCompiler.Create;
-  Preprocessor := TPSPreProcessor.Create;
+  Compiler := nil;
+  Preprocessor := nil;
   try
     try
+      Compiler := TPSPascalCompiler.Create;
+      Preprocessor := TPSPreProcessor.Create;
       bAssignmentFound := False;
       bPlacementFound := False;
       bAttackFound := False;
@@ -1109,8 +1192,10 @@ begin
           Compiler.Msg[iP].MessageToString + LineEnding;
       Compiler.GetOutput(Code);
 
-      bScriptReady := True;
+      ScriptExec := nil;
       ScriptSetup;
+      if ScriptExec = nil then
+        raise Exception.Create('Could not initialize the PascalScript runtime.');
       if not ScriptExec.LoadData(Code) then begin
         sDiagnostics := sDiagnostics + 'Script loading failed.';
         Exit;
@@ -1199,22 +1284,19 @@ begin
   finally
     if sTRCompRuntimeLog <> '' then
       sDiagnostics := sDiagnostics + sTRCompRuntimeLog;
-    bTRCompRunning := bSavedTRCompRunning;
-    sTRCompRuntimeLog := sSavedTRCompRuntimeLog;
-    if bScriptReady then
-      ScriptCleanup;
-    Preprocessor.Free;
-    Compiler.Free;
-    arTerritory := aSavedTerritories;
-    arContinent := aSavedContinents;
-    arPlayer := aSavedPlayers;
-    iTurn := iSavedTurn;
-    iNPlayers := iSavedPlayerCount;
-    GameState := eSavedGameState;
-    RCardsValueType := eSavedCardValueType;
-    bStopASAP := bSavedStopASAP;
-    bHumanTurn := bSavedHumanTurn;
-    bEliminatedPlayer := bSavedEliminatedPlayer;
+    try
+      if (ScriptExec <> nil) and (ScriptExec <> SavedState.ScriptExec) then
+        ScriptCleanup;
+    finally
+      try
+        if Preprocessor <> nil then
+          Preprocessor.Free;
+        if Compiler <> nil then
+          Compiler.Free;
+      finally
+        RestoreTRCompRuntimeState(SavedState);
+      end;
+    end;
   end;
 end;
 

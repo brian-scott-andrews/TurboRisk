@@ -16,6 +16,10 @@ lazbuild tests\TRMapWorkflowTests.lpi
 tests\TRMapWorkflowTests.exe
 ```
 
+The workflow tests also open, validate, save, and reopen the existing
+`maps\std_map_small.trm` fixture. They exercise marker-coordinate transforms,
+the fill preview, clearing floodfill points, and validation errors.
+
 ## Import and edit
 
 - **New from SVG or BMP** imports vector artwork directly or uses a bitmap as
@@ -30,8 +34,12 @@ tests\TRMapWorkflowTests.exe
 - **Open map** opens a `.trm` package or SVG source. Existing bitmap-backed
   `.trm` maps remain bitmap-backed when saved.
 - The view selector supports floodfill points, text-box points, fixed links,
-  and a simple ownership-color preview. **Validate map** checks territory
-  points, vector assignments, and the fixed topology before use.
+  and a single-color floodfill preview. This preview checks seed coverage; it
+  is not a full game or ownership simulation.
+- **Map point coordinates - Transform** scales text-box and floodfill point
+  coordinates; it does not resize the background artwork. **Validate map**
+  checks territory points, vector assignments, and the fixed topology before
+  use.
 
 Saving a vector map writes a `.trm` file and a sibling `.svg`; if raster
 artwork is present, it also writes a sibling `.bmp`. Keep those files together

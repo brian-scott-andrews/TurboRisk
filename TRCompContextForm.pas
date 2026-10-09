@@ -18,10 +18,10 @@ type
     fConquest: TCheckBox;
     fCardRule: TComboBox;
     fMessage: TMemo;
-    procedure LoadContext(const Context: TTRCompContext);
-    function SaveContext(var Context: TTRCompContext): Boolean;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure LoadContext(const Context: TTRCompContext);
+    function SaveContext(var Context: TTRCompContext): Boolean;
   end;
 
 function EditTRCompContext(var Context: TTRCompContext): Boolean;
@@ -267,13 +267,18 @@ end;
 function EditTRCompContext(var Context: TTRCompContext): Boolean;
 var
   Form: TfTRCompContext;
+  EditedContext: TTRCompContext;
 begin
   Form := TfTRCompContext.Create(nil);
   try
     Form.LoadContext(Context);
     Result := Form.ShowModal = mrOk;
-    if Result then
-      Result := Form.SaveContext(Context);
+    if Result then begin
+      EditedContext := Context;
+      Result := Form.SaveContext(EditedContext);
+      if Result then
+        Context := EditedContext;
+    end;
   finally
     Form.Free;
   end;
