@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Colors</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Colors</h1>
+
+TurboRisk uses colors to recognize territories. During a game, it keeps in memory an hidden and 
+unaltered copy of the map; when the user clicks on a territory of the visible map, TurboRisk reads the 
+color of the corresponding pixel in the hidden map to determine which territory it belongs to.
+<p>
+For this reason, you <u>must</u> paint your map using a unique color for each territory, otherwise
+the map will not be usable by TurboRisk.
+<p> 
+Territories <u>must</u> be delimited by a border of at least one pixel. Its color must be
+"neutral", a color not used for any of the territories. The reason for this is that the color of
+the territories get changed during the game through a flood-fill algorithm, which starts from a point 
+inside a territory and (recursively) changes all the adjacent pixels of the same color. If two adjacent
+territories have no border between them, as soon as they got conquered by a player, they will be always
+colored as if they were a unique territory.
+<p>
+Similarely, the border of the territories should not be painted in a color used by the players 
+during the game. You cannot know which colors any user will chose for the players, but you can
+safely rely on the fact that black and white are not allowed. This makes them ideal for the
+purpose of drawing borders. 
+<p>
+The map can contain additional text and graphics without any constraint other than they don't use the
+same colors used for the territories. This limitation applies to the "sea" (background) as well.
+
+</body>
+</html>

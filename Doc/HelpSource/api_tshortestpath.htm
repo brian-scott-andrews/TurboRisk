@@ -1,0 +1,37 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>TShortestPath function</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>TShortestPath function</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>function</b> TShortestPath(ST, DT: integer; <b>var</b> TT, PL: integer): boolean;
+</code>
+
+<h3>Description</h3>
+
+Finds the shortest path to go from the start territory ST to the destination territory DT
+<p>
+Returns false if ST or DT are out of range, otherwise true.
+<p>
+The "var" variables will contain information on the path from ST to DT:
+<ul>
+	<li>
+	TT: first territory in the path
+	<li>
+	PL: path length (number of borders to cross)
+</ul>	
+
+</body>
+</html>

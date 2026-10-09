@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Types, Variables, Expressions</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Types, Variables, Expressions</h1>
+
+You can define your own variables, procedures and functions. Please remember
+that all your variables will be	<B>local</B>
+variables, that is they will be erased between calls.
+Even if you give your own variables a global scope, out of any procedure,
+they will not preserve their value. This happens because TurboRisk uses the
+same space to load and execute all of the different computer player programs,
+turn after turn. 
+<p>
+To overcome this problem and offer a permanent storage space, TurboRisk provides 
+100 internal buffers per player, which you can have access to through the 
+UBufferSet and UBufferGet functions. 
+Each buffer contains a value of type <I>double.</I>
+Be sure to use the	<I>trunc()</I>
+function when assigning the value of a buffer to an integer value:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;i := trunc(UBufferGet(5));
+</code>
+
+<p>
+The TurboRisk interpreter is not very tolerant about <B>type mixing</B> in expressions and logical
+conditions. The following code aborts execution, because it compares an integer value with
+a double value:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&gt;TotalArmies * 0.35 then
+</code>
+<P>
+The correct code fragment is the following:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&gt;trunc(TotalArmies * 0.35) then
+</code>
+
+<p>
+You need to be careful when using this method though. Consider the following example:
+<p>
+<code>
+	<b>var</b> 
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if PArmiesCount(T)&lt;trunc(TotalArmies * 0.35) then
+</code>
+
+<p>
+Notice that the comparative operator has changed.  If PArmiesCount(T) is 17 and
+TotalArmies * 0.35 is 17.5, then 17.5 will be truncated to 17 and the statement
+will be false even though it should be true.
+<br>
+You can use type casting in this case to get the correct result:
+<p>
+<code>
+	<b>var</b> 
+	<br>
+	&nbsp;&nbsp;TotalArmies: integer;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;if double(PArmiesCount(T))&lt;TotalArmies * 0.35 then
+</code>
+
+<p>
+There are some other cases where type mixing requires attention. 
+For example in logical expressions:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	&nbsp;&nbsp;d: double;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	&nbsp;&nbsp;if (TArmies(T) / i) &lt; d then ...
+</code>
+<p>
+This code stops the interpreter any time TArmies(T)/i is not a whole number. 
+The trunc() function is not appropriate in this case, so it is necessary to use type casting instead:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	&nbsp;&nbsp;d: double;
+	<br>
+	<b>begin</b>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	&nbsp;&nbsp;if (double(TArmies(T))) / (double(i)) &lt; d then ...
+	</code>
+
+
+<p>
+<B>Arrays</B> are supported only in their dynamic form. Use the SetArrayLength()
+procedure to set their dimension. First element is always at location 0, last
+element at Length-1. The function GetArrayLength returns the size of the array.
+Example:
+<p>
+<code>
+	<b>var</b>
+	<br>
+	&nbsp;&nbsp;i: integer;
+	<br>
+	&nbsp;&nbsp;MyArr: array of integer;
+	<br>
+	begin
+	<br>
+	&nbsp;&nbsp;SetArrayLength(MyArr,5);
+	<br>
+	&nbsp;&nbsp;for i:=0 to GetArrayLength(MyArr)-1 do
+	<br>
+	&nbsp;&nbsp;&nbsp;&nbsp;MyArr[i] := i*i;
+	<br>
+	end;
+</code>
+
+</body>
+</html>

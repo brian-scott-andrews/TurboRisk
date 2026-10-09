@@ -60,3 +60,12 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Build artifacts
+*.exe
+*.obj
+*.res.bak
+lib/
+lhelp/lib/
+tests/lib/
+PascalScript/dunit/ifps3.res

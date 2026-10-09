@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UMessageOn procedure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UMessageOn procedure</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>procedure</b> UMessageOn;
+</code>
+
+<h3>Description</h3>
+
+Enables the <a href='api_umessage.htm'>UMessage</a> function, which is, by default, disabled.
+<p>
+UMessageOn is typically invoked in the main begin-end section of the program, to enable the usage of UMessage
+during the debugging of the TRP.
+<p>
+<i>Example:</i>
+<p>
+<code>
+begin
+<br>
+&nbsp;&nbsp;UMessageOn;
+<br>
+end. 
+</code>
+
+<p>
+Before releasing a TRP for public use, the calls to UMessageOn must be removed, or commented out, or
+replaced with calls to <a href='api_umessageoff.htm'>UMessageOff</a>.
+
+</body>
+</html>

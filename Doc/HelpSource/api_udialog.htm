@@ -1,0 +1,75 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UDialog function</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UDialog function</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>function</b> UDialog(M, B: string): integer;
+</code>
+
+<h3>Description</h3>
+
+Displays message M in a modal window, and waits until the user presses one of the B buttons. 
+<ul>
+	<li>
+	M is a string that can contain line breaks, obtained by incorporating CR+LF characters in the string.
+	<li>
+	B is a comma-separated list of button names, for a maximum of 5 buttons.
+</ul>	
+<p>
+<i>Examples:</i>
+<p>
+<code>
+UDialog('My message','Continue;Stop');
+<br>
+UDialog('Line 1'+#13#10+'Line 2','Button1;;;;Button5');
+</code>
+
+<p>
+UDialog returns an integer number, corresponding to the button pressed by the user (1-5), 
+or 0 if the user closes the dialog window without clicking any button (pressing ESC or
+clicking the standard close window button).
+
+<p>
+<i>Example:</i>
+<p>
+<code>
+case UDialog('Houston, we have a problem!','Log;Stop') of
+<br>
+&nbsp;&nbsp;1: ULog('Problem');
+<br>
+&nbsp;&nbsp;2: begin
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UAbortGame;
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;exit;
+<br>
+&nbsp;&nbsp;end;  
+<br>
+end;  
+</code>
+<p>
+The dialog window actually appears only if UDialog has been
+enabled with a call to <a href='api_udialogon.htm'>UDialogOn</a>. By default UDialog is off.
+<br>
+If UDialog gets called without a previous call to UDialogOn, it always returns 0.
+<p>
+When UDialog is called, TurboRisk copies the content of the Log window into the clipboard, so as you can paste and
+examine it in the Notepad or any other text editor of your choice.
+<p>
+<u>UDialog is intended as a debug tool and should not be used in TRPs to be released in the public domain.</u>
+
+</body>
+</html>

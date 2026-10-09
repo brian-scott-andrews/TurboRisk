@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>TRSim</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>TRSim</h1>
+
+<h2>Overview</h2>
+
+<b>TRSim</b> is a simulation environment where the TRP programmer can test his/her own TRP against other TRPs. 
+Basically, TRSim can autonomously run many TurboRisk games using different sets of player (configured by the user), 
+and provides some tools to analyse the results of those games. 
+<p>
+TRSim can also be used to rank a group of TRPs for their relative strength under a given set of rules.
+
+<h2>TRP bot strategies</h2>
+
+The source headers of many TRP bots describe their intended strategies. These
+descriptions are heuristic summaries, not guarantees of behavior. The
+<a href="bot_strategies.htm">TRP Bot Strategies</a> topic summarizes the
+AI-assisted bots authored by Brian S. Andrews, including Grudge.
+
+<h2>Running a simulation</h2>
+
+<p> 
+Select the <i>Simulation</i> tab and specify the following parameters:
+<ul>
+  <li>
+  The number of games to play. TRSim reads the rules from the main TurboRisk configuration file.
+  <li>
+  The number of players per game. This number is a range, so as inside the same simulation you can have games with
+  different number of players (from 2 to 10).
+  <li>
+  Three lists of players: <i>always included</i> (will play all the games), <i>randomnly included</i> (may play
+  some of the games) and <i>never included</i> (will play no game). You can drag and drop names from one list to
+  the other.
+  <li>
+  A map file: the simulation can run either with a visible map or not.
+  <li>
+  Stats window: the simulation can run either with a visible stats window or not.
+  <li>
+  TRP error handling: tell TRSim what to do when a TRP generates an error.
+  <li>
+  Log files. Every simulation produces two log files: game and cpu usage. The first one is a text file containing information
+  about the played games, while the second is an ini-like file format containing some info about the execution of the TRPs.
+  Everytime you run a simulation, the new data are appended to the log files, so you can use always the same log files. 
+  However, you can also use different log files, for example for different set of rules or different simulation configurations.
+  <li>
+  Game limits: the duration of each game can be limited, in number of turns, number of seconds, or both. 0 in one of these 
+  parameters means "no limit".
+</ul>
+
+
+<h2>Analysing the results</h2>
+
+<p> 
+Select the <i>Analysis</i> tab, specify the file you want to analyse, and click the corresponding button.
+<p>
+You can open multiple log files of each kind, just leaving the first window open, changing the log file name 
+and clicking the button again. This is intended to make comparing results from different simulations easier.
+
+<h3>Game log</h3>
+
+For each simulated game, the game log file contains the following information (<i>Games</i> tab):
+<ul>
+  <li> 
+  Date and time it was played.
+  <li>
+  Termination type (completed, trp error, time limit, turn limit, aborted by user...)
+  <li>
+  Duration, in term of time and turns
+  <li>
+  last turn played by each player
+  <li>
+  number of remaining armies the winner had when the game finished
+<li>
+  for unfinished games, the number of armies and territories each player had when the game was interrupted
+</ul>
+<p>
+The <i>Summary</i> tab is similar to the Ranking tab of the History window, with few more columns:
+<ul>
+  <li>
+  average rank of each player
+  <li>
+  average number of turns per game
+  <li>
+  average number of turns per won games
+  <li>
+  average number of armies remaining after having won a game (only completed games are taken into account)
+</ul>  
+<p>
+The <i>Player's analysis</i> tab compare a player to all its competitors. The game accounted are only the completed ones, 
+which contained the chosen player and its competitor. For each competitor, you can see:
+<ul>
+  <li>
+  in how many games the two players had to fight together
+  <li>
+  in how many games the competitor ranked better than the chosen player
+  <li>
+  in how many games the competitor ranked worse than the chosen player
+  <li>
+  same data in %
+  <li>
+  average rank difference between the two (only related to games where both participated)
+</ul>
+
+<h3>CPU log</h3>
+
+For each player TRSim monitors the number of phases (attack, placement, occupation...), the number of calls 
+(each attack or placement phase may conatins many calls to the TRP code) and the total time used (milliseconds). 
+<p>
+The main grid shows the average Time/Phase of each player and each phase, while the detail grid below shows 
+all the data for any selected player.
+<p>
+Some important notes about CPU times:
+<ul>
+  <li>
+  they obviously depend on the performances of the PC
+  <li>
+  they can be affected by other programs running on the machine at the same time
+</ul>
+
+</body>
+</html>

@@ -1,0 +1,42 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>The TRM format</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>The TRM format</h1>
+
+A TurboRisk Map file (TRM) is a text file that contains the following elements:
+<ul>
+	<li>
+	Description of the map.
+	<li>
+	Author's name.
+	<li>
+	Revision note.
+	<li>
+	Name and size of the font used to show the number of armies in the territories.
+	<li>
+	For each territory, the color used to represent it.
+	<li>
+	For each territory, the coordinates of the <i>text box</i> used to show the number of armies.
+	<li>
+	For each territory, a list of <i>floodfill</i> points.
+</ul>
+<p>
+<i>Floodfill points</i> are the points where the color is "poured" to paint the territory. Each 
+territory needs as many floodfill points as the number of different regions it's formed by.
+For example, in the standard map Alaska has one floodfill point, Northest Territory has two of them,
+Greenland four and Indonesia twelve (every island is a region). Currently TurboRisk allows a 
+maximum of 20 floodfill points.
+<p>
+Though you can open a TRM file with any text editing program (like <code>Notepad</code>) and write or
+modify those information directly, the <a href="tm_trm_trmap.htm">TRMap</a> tool offers a much more 
+convenient way to do that.
+
+</body>
+</html>

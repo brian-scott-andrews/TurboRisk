@@ -1,0 +1,138 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Rules</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>Rules</h1>
+
+TurboRisk is a turn-based game for 2 to 10 players (the original board game
+was up to 6 players) and is played on a stylized political map of the Earth, 
+divided into 42 territories, which are grouped into 6 continents. 
+<p>
+Here follow the general rules of the game. A large amount of customization is possible 
+through the <a class=menu href="tr_options_rules.htm">Options &gt; Rules</a> menu item.
+
+<h2>Goal</h2>
+
+Object of the game is to conquer the world by occupying every territory on the
+board, thus eliminating all of the other players. 
+
+<h2>Board setup</h2>
+
+Each player receives a number of armies for initial deployment. This number depends on the number of players.
+<p>
+TurboRisk supports two alternative methods to assign territories to the players:
+<ol>
+	<li>
+	Players take turns claiming territories by placing one army on an unoccupied territory.
+	<li>
+	All the territories are assigned at random.
+</ol>	
+<p>
+After all territories have been assigned, players take turns placing their remaining armies on their territories. 
+
+<h2>Playing</h2>
+
+Each player's turn is made by 3 phases:
+
+<h3>1. Getting and placing new armies</h3>
+
+At the start of each turn, the player receives some reinforcements to add to any of its own territories.
+<ul>
+	<li>
+    The player receives 1 army every 3 territories he owns (rounded to the lowest integer).
+	<li>
+    The player receives bonus armies for occupying all of a continent.
+</ul>	
+Regardless of how many territories the player owns, he always receives a minimum of three armies per turn.
+<p>
+The player may also receive armies if he turns in a set of <i>cards</i>. 
+<p>
+There are four kind of cards: <i>artillery</i>, <i>infantry</i>, <i>cavalry</i> and <i>joker</i>. 
+In the traditional board game the deck is made of 14 cards per kind of <i>artillery</i>, <i>infantry</i> and <i>cavalry</i>,
+plus 2 <i>jokers</i>, for a total of 44 cards.
+<p> 
+TurboRisk does not use a "true" deck with 44 cards, but simulates the process of drawing cards with a stochastic routine. 
+This means that the probability to draw, for example, a joker is 2/44, but it may actually happen that there are more
+than two jokers in players' hands.
+<p>
+A <i>valid set</i> of cards consists of one of the following:
+<ul>
+	<li>
+    Three cards of the same kind.
+	<li>
+    Three cards one of each kind.
+</ul>
+The <i>joker</i> can be used in place of any other of the three kinds.
+<p>
+Once a player trades in a valid set of card, he gets some armies to reinforce his own territories. 
+This value depends on how TurboRisk has been configured. There are two options: 
+<ul>
+	<li>
+	<u>Combination</u>: the value of the set is based on the particular combination of cards.
+	<li>
+	<u>Progression</u>: the value comes from the number of trades the player has done up to the moment. 
+</ul>
+<p>	
+Both of these methods allow for further customization.
+<p>
+The player has now to place the armies he received from the territory count and cards trade in. He can place them
+in one or more of the territories he owns.
+
+<h3>2. Attacking</h3>
+
+Attacks can only occur between two adjacent territories, one owned by the attacking player, 
+and the other owned by a different player. In the traditional board game the outcomes of the battle 
+is decided by rolling dice. In TurboRisk this is process is simulated through a random numbers generator.
+<p>
+Each roll of the dice is considered an individual attack, and the attacking player may attack any number 
+of territories any number of times (including switching back and forth between targets).
+<p>
+In the board game the attacking player may roll one, two, or three dice (but at most one less than the number 
+of armies in the attacking territory). The defending player rolls either one or two (but at most the number 
+of armies in the defending territory).
+<br>
+In TurboRisk the player cannot choose the number of dice to roll: the program always rolls the maximum number
+of dice allowed for that situation. This may seem a limitation, but it's a choice that both maximizes each 
+player's possibilities to win and speeds up the game.
+<p>
+The result of the attack is obtained comparing the dice:
+<ul>
+	<li>
+    The attacker's highest die is compared against the defender's highest die.
+	<li>
+    The attacker's second-highest die is compared against the defender's second-highest die 
+	(if each rolled at least two dice).
+	<li>
+    Any other dice are disregarded.
+</ul>	
+Higher numbers win, with the <u>defender winning the tie</u>. For each loss, the loser removes one army from his territory.
+<p>
+If an attack successfully eliminates the last defending army in a territory, the territory itself gets conquered 
+by the attacking player, who must move at least the number of dice he attacked with into it. 
+There is no limit to the total number of additional armies that he may move, provided that at least one army remains 
+in the attacking territory.
+<p>
+If an attacking player conquers a player's last territory, thus eliminating him from the game, the attacker is awarded 
+all of the defender's cards. If the conquering player now has got a valid set of cards, he can trade them in and receive
+new armies. The gained armies are placed immediately.
+
+<h3>3. Fortifying</h3>
+
+When finished attacking, a player has the option to move any number of armies from one of his territories into an 
+adjacent territory that he already owns. The player must still leave at least one unit in each territory. 
+<p>
+In the board game Fortification usually ends the turn. In TurboRisk this rule can be modified so as to allow for
+Fortification at any time during a turn. However, only one fortification per turn is allowed.
+<p>
+At the end of the turn, if the player has conquered at least one territory, he receives a new card. 
+He must wait until his next turn to trade in any cards.
+<p>
+Play then proceeds to the next player.
+
+</body>
+</html>
