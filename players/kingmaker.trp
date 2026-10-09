@@ -1,0 +1,82 @@
+{
+Program: Kingmaker
+Author: Brian S. Andrews
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description below.
+
+Description:
+Identifies the leading opponent by armies, territories, cards, and continent
+bonuses, then directs attacks toward that player to prevent an uncontested
+runaway. When the leader is unreachable, it takes a safe alternative.
+}
+
+function LeadingPlayer: integer;
+var P, C, Score, Best: integer;
+begin
+  Result:=0; Best:=-1;
+  for P:=1 to 10 do if PAlive(P) and (P<>PMe) then begin
+    Score:=PArmiesCount(P)+PTerritoriesCount(P)*3+PCardCount(P)*5;
+    for C:=1 to 6 do if COwner(C)=P then Score:=Score+CBonus(C)*4;
+    if Score>Best then begin Best:=Score; Result:=P end;
+  end;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T, C, PT, PA, ET, EA, Best: integer;
+begin
+  ToTerritory:=0; Best:=-1;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    C:=TContinent(T); CAnalysis(C,PT,PA,ET,EA);
+    if ET*10-PT>Best then begin Best:=ET*10-PT; ToTerritory:=T end;
+  end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T, F, E, Lead, Score, Best: integer;
+begin
+  Lead:=LeadingPlayer; ToTerritory:=0; Best:=-1;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
+    Score:=TPressure(T)-TArmies(T);
+    for F:=1 to TFrontsCount(T) do begin E:=TFront(T,F); if TOwner(E)=Lead then Score:=Score+1000 end;
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+  if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var T, F, E, Lead: integer; Ratio, Score, Best: double;
+begin
+  Lead:=LeadingPlayer; FromTerritory:=0; ToTerritory:=0; Best:=0;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); Ratio:=double(TArmies(T)-1)/TArmies(E);
+      if Ratio>=1.15 then begin
+        Score:=Ratio;
+        if TOwner(E)=Lead then Score:=Score+10;
+        if PTerritoriesCount(TOwner(E))=1 then Score:=Score+2;
+        if Score>Best then begin Best:=Score; FromTerritory:=T; ToTerritory:=E end;
+      end;
+    end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=0;
+  if not TIsFront(FromTerritory) then Armies:=TArmies(FromTerritory)-1
+  else if TIsFront(ToTerritory) then
+    Armies:=(TArmies(FromTerritory)-TArmies(ToTerritory)) div 2;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var T, Dest, Best: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) then begin
+    Dest:=TPathToFront(T);
+    if Dest>0 then begin Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1 end;
+  end;
+end;
+
+begin
+end.

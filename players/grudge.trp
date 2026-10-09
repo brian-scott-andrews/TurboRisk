@@ -1,0 +1,171 @@
+{
+Program: Grudge
+
+Author: Brian S. Andrews
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description below.
+
+Description:
+Tracks territories Grudge owned at its previous observation and credits a loss
+to the opponent who now owns that territory. It prefers reinforcing fronts
+against, and attacking, the opponent credited with the most lost territories;
+human players win ties. If that target is unavailable, it attacks other
+opponents only when its force ratio is at least 1.5. With no recorded losses,
+it attacks any opponent at that same ratio. The game script API does not report
+failed attacks, so captured territories are used as the observable measure of
+hostile actions.
+}
+
+procedure UpdateGrudges;
+var
+  T, PreviousOwner, CurrentOwner, P: integer;
+begin
+  for T:=1 to 42 do begin
+    PreviousOwner:=trunc(UBufferGet(T));
+    CurrentOwner:=TOwner(T);
+    if (PreviousOwner=PMe) and (CurrentOwner>0) and
+       (CurrentOwner<>PMe) then begin
+      P:=CurrentOwner;
+      UBufferSet(100+P,UBufferGet(100+P)+1);
+    end;
+    UBufferSet(T,CurrentOwner);
+  end;
+end;
+
+function GrudgeTarget: integer;
+var
+  P, GrudgePoints, Score, BestScore: integer;
+begin
+  Result:=0;
+  BestScore:=0;
+  for P:=1 to 10 do
+    if PAlive(P) and (P<>PMe) then begin
+      GrudgePoints:=trunc(UBufferGet(100+P));
+      Score:=GrudgePoints*2;
+      if PHuman(P) then
+        Score:=Score+1;
+      if (GrudgePoints>0) and (Score>BestScore) then begin
+        BestScore:=Score;
+        Result:=P;
+      end;
+    end;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var
+  T: integer;
+begin
+  UpdateGrudges;
+  ToTerritory:=0;
+  for T:=1 to 42 do
+    if TOwner(T)=0 then begin
+      ToTerritory:=T;
+      break;
+    end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var
+  T, F, EnemyT, Target, TargetArmies, Score, BestScore: integer;
+begin
+  UpdateGrudges;
+  Target:=GrudgeTarget;
+  ToTerritory:=0;
+  BestScore:=-1;
+  for T:=1 to 42 do
+    if TIsMine(T) and TIsFront(T) then begin
+      TargetArmies:=0;
+      for F:=1 to TFrontsCount(T) do begin
+        EnemyT:=TFront(T,F);
+        if (Target>0) and (TOwner(EnemyT)=Target) then
+          TargetArmies:=TargetArmies+TArmies(EnemyT);
+      end;
+      if TargetArmies>0 then
+        Score:=100000+TargetArmies*100-TArmies(T)
+      else
+        Score:=TPressure(T)*10-TArmies(T);
+      if Score>BestScore then begin
+        BestScore:=Score;
+        ToTerritory:=T;
+      end;
+    end;
+
+  if ToTerritory=0 then
+    for T:=1 to 42 do
+      if TIsMine(T) then begin
+        ToTerritory:=T;
+        break;
+      end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  T, F, EnemyT, EnemyPlayer, Target, Pass: integer;
+  Ratio, BestRatio, MinimumRatio: double;
+begin
+  UpdateGrudges;
+  Target:=GrudgeTarget;
+  FromTerritory:=0;
+  ToTerritory:=0;
+
+  for Pass:=1 to 2 do begin
+    if Pass=1 then
+      MinimumRatio:=1.0
+    else
+      MinimumRatio:=1.5;
+    BestRatio:=0;
+
+    for T:=1 to 42 do
+      if TIsMine(T) and (TArmies(T)>1) then
+        for F:=1 to TFrontsCount(T) do begin
+          EnemyT:=TFront(T,F);
+          EnemyPlayer:=TOwner(EnemyT);
+          if (EnemyPlayer<=0) or (EnemyPlayer=PMe) or
+             not PAlive(EnemyPlayer) then
+            continue;
+          if ((Pass=1) and ((Target=0) or (EnemyPlayer<>Target))) or
+             ((Pass=2) and (EnemyPlayer=Target)) then
+            continue;
+
+          Ratio:=double(TArmies(T)-1)/TArmies(EnemyT);
+          if (Ratio>=MinimumRatio) and (Ratio>BestRatio) then begin
+            BestRatio:=Ratio;
+            FromTerritory:=T;
+            ToTerritory:=EnemyT;
+          end;
+        end;
+
+    if FromTerritory>0 then
+      break;
+  end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=0;
+  if not TIsFront(FromTerritory) then
+    Armies:=TArmies(FromTerritory)-1;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var
+  T, MaxArmies: integer;
+begin
+  UpdateGrudges;
+  FromTerritory:=0;
+  ToTerritory:=0;
+  Armies:=0;
+  MaxArmies:=1;
+
+  for T:=1 to 42 do
+    if TIsMine(T) and not TIsFront(T) and (TArmies(T)>MaxArmies) then begin
+      MaxArmies:=TArmies(T);
+      FromTerritory:=T;
+      ToTerritory:=TPathToFront(T);
+      Armies:=TArmies(T)-1;
+    end;
+end;
+
+begin
+end.

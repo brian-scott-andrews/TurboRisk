@@ -3136,6 +3136,8 @@ var
   PossAttackCountry: integer;
   myborders:integer;
   control:boolean;
+  Legal:boolean;
+  K,BestA,BestF,BestT: integer;
 begin
   routine:=2;
 //  if not FinisherAttack(FromTerritory, ToTerritory) then begin
@@ -3209,6 +3211,36 @@ begin
           end;
         end;
       end;
+    end;
+  end;
+  // Validate the chosen attack; if illegal, reselect with one bounded scan (no loops that can repeat)
+  if (FromTerritory<>0) or (ToTerritory<>0) then begin
+    Legal:=false;
+    if (FromTerritory>=1) and (FromTerritory<=42) and (ToTerritory>=1) and (ToTerritory<=42) then begin
+      if TIsMine(FromTerritory) and (not TIsMine(ToTerritory)) and (TArmies(FromTerritory)>1) then begin
+        for K:=1 to TBordersCount(FromTerritory) do begin
+          if TBorder(FromTerritory,K)=ToTerritory then Legal:=true;
+        end;
+      end;
+    end;
+    if not Legal then begin
+      BestF:=0;
+      BestT:=0;
+      BestA:=10000;
+      for T:=1 to 42 do begin
+        if TIsMine(T) and (TArmies(T)>3) then begin
+          for K:=1 to TBordersCount(T) do begin
+            T2:=TBorder(T,K);
+            if (not TIsMine(T2)) and (TArmies(T2)<BestA) and (TArmies(T)>TArmies(T2)+1) then begin
+              BestA:=TArmies(T2);
+              BestF:=T;
+              BestT:=T2;
+            end;
+          end;
+        end;
+      end;
+      FromTerritory:=BestF;
+      ToTerritory:=BestT;
     end;
   end;
   UBufferset(148,FromTerritory);

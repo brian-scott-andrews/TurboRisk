@@ -37,7 +37,7 @@ begin
 end;
 
 procedure kontinentsicherung;
-var c,b,n:integer;
+var c,b,n,BT,BorderT:integer;
 begin
   for n:=1 to 42 do
     ubufferset(n,1);
@@ -47,17 +47,20 @@ begin
       begin
       for b:=1 to 6 do
         begin
-        if not (cowner(tcontinent(cborder(c,b)))=pme) and (cborder(c,b)<>-1) then
+        BT:=cborder(c,b);
+        if (BT>0) and not (cowner(tcontinent(BT))=pme) then
           begin
-          if tismine(cborder(c,b)) then
-            grenz(cborder(c,b),1,c)
+          if tismine(BT) then
+            grenz(BT,1,c)
           else
             begin
             for n:=1 to 6 do
               begin
-              if (tismine(tborder(cborder(c,b),n))) and (tcontinent(tborder(cborder(c,b),n))=c) then
+              BorderT:=tborder(BT,n);
+              if (BorderT>0) and tismine(BorderT) and
+                 (tcontinent(BorderT)=c) then
                 begin
-                ubufferset(tborder(cborder(c,b),n),1+cbonus(c));
+                ubufferset(BorderT,1+cbonus(c));
                 end;
               end;
             end;
@@ -68,7 +71,7 @@ begin
 end;
 
 procedure kontinenteroberung;
-var t,c,pt,pa,et,ea,cmax,b:integer; kontopt,maxxx:double;
+var t,c,pt,pa,et,ea,cmax,b,BT:integer; kontopt,maxxx:double;
 begin
   for c:=1 to 6 do
     ubufferset(42+c,1);
@@ -77,6 +80,7 @@ begin
     if cowner(c)=0 then
       begin
       canalysis(c,pt,pa,et,ea);
+      if ea<1 then ea:=1;
       kontopt:=(cbonus(c)/cborderscount(c))*(pa/ea);
       ubufferset(42+c,kontopt);
       end;
@@ -96,6 +100,7 @@ begin
   if maxxx>0 then
     begin
     canalysis(cmax,pt,pa,et,ea);
+    if ea<1 then ea:=1;
     kontopt:=(cbonus(cmax)/cborderscount(cmax))*((pa+pnewarmies(pme))/ea);
     ubufferset(42+cmax,kontopt);
     end;
@@ -103,10 +108,14 @@ begin
     begin
     maxxx:=ubufferget(42+tcontinent(t));
     for b:=1 to 6 do
-      if (ubufferget(42+tcontinent(tborder(t,b)))>maxxx) and (tborder(t,b)<>-1) then
+      begin
+      BT:=tborder(t,b);
+      if (BT>0) and
+         (ubufferget(42+tcontinent(BT))>maxxx) then
         begin
-        maxxx:=ubufferget(42+tcontinent(tborder(t,b)));
+        maxxx:=ubufferget(42+tcontinent(BT));
         end;
+      end;
     ubufferset(t,ubufferget(t)*2+maxxx);
     end;
 end;
@@ -175,6 +184,7 @@ begin
       for bo:=1 to 6 do
         if tismine(cborder(c,bo)) then grenzarmeen:=grenzarmeen+tarmies(cborder(c,bo));
       canalysis(c,pt,pa,et,ea);
+      if ea<1 then ea:=1;
       kontopt:=1+(cbonus(c)/cborderscount(c))*((pa+grenzarmeen)/ea);
       ubufferset(c,kontopt);
       end
@@ -195,7 +205,11 @@ begin
           begin
           frontverkleinerung(toTerritory,einsparung);
           einsparung:=einsparung+2; if einsparung<1 then einsparung:=1;
-          Ratio := ( TArmies(t) / tarmies(toterritory) ) * ubufferget(tcontinent(toterritory)) * (einsparung+1)/2;
+          if TArmies(ToTerritory)>0 then
+            Ratio := (TArmies(T)/TArmies(ToTerritory)) *
+              UBufferGet(TContinent(ToTerritory)) * (einsparung+1)/2
+          else
+            Ratio := 2147483647;
           if Ratio>MinRatio then FromTerritory:=T
           else toterritory:=0;
           end

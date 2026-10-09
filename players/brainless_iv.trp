@@ -235,6 +235,12 @@ begin
       end;
     end;
   end;
+
+  if (Armies<1) or (FT=0) or (TT=0) then begin
+    FT:=0;
+    TT:=0;
+    Armies:=0;
+  end;
 end;
 
 

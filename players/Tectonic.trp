@@ -529,8 +529,11 @@ var
   average_not_p_armies: double;
 
   average_num_ter: double;
+  legal: boolean;
 
 begin
+  FromTerritory:=0;
+  ToTerritory:=0;
   cur_ter:=get_territory_biggest_army();
   cur_ter_armies:=TArmies(cur_ter);
   eliminate:=trunc(UBufferGet(402));
@@ -628,16 +631,27 @@ begin
   end else if UBufferGet(401)=1 then begin
     Conventional_Warfare_Attack(FromTerritory, ToTerritory);
   end else if UBufferGet(401)=2 then begin
-    Eliminate_Player_Attack(trunc(UBufferGet(401)), FromTerritory, ToTerritory);
+    Eliminate_Player_Attack(trunc(UBufferGet(402)), FromTerritory, ToTerritory);
+  end;
+
+  // Never return an illegal attack: stop attacking instead
+  legal:=false;
+  if (FromTerritory>0) and (ToTerritory>0) then begin
+    if (TOwner(FromTerritory)=PMe()) and (TOwner(ToTerritory)<>PMe()) then begin
+      for p:=1 to TBordersCount(FromTerritory) do begin
+        if TBorder(FromTerritory, p)=ToTerritory then legal:=true;
+      end;
+    end;
+  end;
+  if not legal then begin
+    FromTerritory:=0;
+    ToTerritory:=0;
   end;
 
 end;
 
 procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
 begin
-
-  USnapShotOn();
-  UTakeSnapshot('Snapshot');
 
   if ( (UBufferGet(401)=0) or (UBufferGet(401)=2) ) and ( UBufferGet(451)=0 ) then begin
     Armies:=TArmies(FromTerritory)-1;
