@@ -94,7 +94,7 @@ begin
           Color := ReadInteger(sSection, 'Color', clBlack);
           Coord := Point(ReadInteger(sSection, 'Tx', 0),
             ReadInteger(sSection, 'Ty', 0));
-          NOrig := ReadInteger(sSection, 'FFCount', 0);
+          NOrig := Min(ReadInteger(sSection, 'FFCount', 0), MAXORIGINS);
           for i := 1 to NOrig do
             Orig[i] := Point(ReadInteger(sSection, 'FF' + IntToStr(i) + 'x',
                 0), ReadInteger(sSection, 'FF' + IntToStr(i) + 'y', 0));

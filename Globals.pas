@@ -21,6 +21,8 @@ const
   aiDefTradeVal: array [1 .. 8] of byte = (4, 6, 8, 10, 12, 15, 20, 25);
   aiDefIniArmy: array [2 .. MAXPLAYERS] of byte = (40, 35, 30, 25, 20, 20, 20,
     20, 20);
+  aDefPlayerName: array [1 .. 4] of string = ('human', 'napoleon', 'rambo',
+    'simple');
   atDefColor: array [1 .. MAXPLAYERS] of TColor = (clBlue, clRed, clGreen,
     clYellow, clAqua, clFuchsia, clLime, clCream, clMaroon, clPurple);
 
@@ -596,19 +598,28 @@ begin
       RMaxHeldCards := ReadInteger('Rules', 'MaxHeldCards', 5);
       RImmediateTrade := ReadBool('Rules', 'TradeCapturedCards', True);
       RFinalMove := ReadBool('Rules', 'AllowAttackAfterMove', True);
-      // Players
+      // Players (defaults match the distributed TurboRisk.INI, so that
+      // a missing INI file gives the same setup)
       for iP := 1 to MAXPLAYERS do begin
         with arPlayer[iP] do begin
-          Name := ReadString('Player' + IntToStr(iP), 'Name',
-            'Player' + IntToStr(iP));
-          Active := ReadBool('Player' + IntToStr(iP), 'Active', True);
+          if iP <= 4 then
+            sTmp := aDefPlayerName[iP]
+          else
+            sTmp := '';
+          Name := ReadString('Player' + IntToStr(iP), 'Name', sTmp);
+          Active := ReadBool('Player' + IntToStr(iP), 'Active', iP <= 4);
           Color := ReadInteger('Player' + IntToStr(iP), 'Color',
             atDefColor[iP]);
-          Computer := ReadBool('Player' + IntToStr(iP), 'Computer', True);
+          Computer := ReadBool('Player' + IntToStr(iP), 'Computer',
+            (iP >= 2) and (iP <= 4));
           KeepLog := ReadBool('Player' + IntToStr(iP), 'Log', False);
           CardsHandling := TCardsHandling(ReadInteger('Player' + IntToStr(iP),
               'AutoCards', 1));
-          PrgFile := ReadString('Player' + IntToStr(iP), 'PrgFile', '');
+          if (iP >= 2) and (iP <= 4) then
+            sTmp := aDefPlayerName[iP] + '.trp'
+          else
+            sTmp := '';
+          PrgFile := ReadString('Player' + IntToStr(iP), 'PrgFile', sTmp);
           if PrgFile = '' then
             PrgFile := 'simple.trp';
         end;
@@ -1013,6 +1024,16 @@ begin
         ULogEnabled := False;
         UMessageEnabled := False;
         UDialogEnabled := False;
+        // Reset status of every player, active or not
+        NewArmy := 0;
+        Territ := 0;
+        Cards[caInf] := 0;
+        Cards[caArt] := 0;
+        Cards[caCav] := 0;
+        Cards[caJok] := 0;
+        NScambi := 0;
+        FlConq := False;
+        FlMove := False;
         // Set active players
         if Active then begin
           NewArmy := RInitialArmies[iCount];
