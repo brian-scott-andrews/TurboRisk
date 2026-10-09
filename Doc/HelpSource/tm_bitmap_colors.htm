@@ -10,27 +10,21 @@
 
 <h1>Colors</h1>
 
-TurboRisk uses colors to recognize territories. During a game, it keeps in memory an hidden and 
-unaltered copy of the map; when the user clicks on a territory of the visible map, TurboRisk reads the 
-color of the corresponding pixel in the hidden map to determine which territory it belongs to.
+These color rules apply when preparing a BMP map for TRMap's raster-region
+tracing. TRMap uses exact-color, four-connected regions to find the part of
+the bitmap containing a seed point.
 <p>
-For this reason, you <u>must</u> paint your map using a unique color for each territory, otherwise
-the map will not be usable by TurboRisk.
+Use a distinct flat color for each territory you intend to trace. Similar but
+not identical colors are treated as separate regions.
 <p> 
-Territories <u>must</u> be delimited by a border of at least one pixel. Its color must be
-"neutral", a color not used for any of the territories. The reason for this is that the color of
-the territories get changed during the game through a flood-fill algorithm, which starts from a point 
-inside a territory and (recursively) changes all the adjacent pixels of the same color. If two adjacent
-territories have no border between them, as soon as they got conquered by a player, they will be always
-colored as if they were a unique territory.
+Separate adjacent regions clearly. Anti-aliased boundaries, texture, enclosed
+holes and complex shapes may not trace as intended; inspect the SVG paths
+created by <i>Floodfill points - Autofind</i> and clean them up in an SVG
+editor if necessary.
 <p>
-Similarely, the border of the territories should not be painted in a color used by the players 
-during the game. You cannot know which colors any user will chose for the players, but you can
-safely rely on the fact that black and white are not allowed. This makes them ideal for the
-purpose of drawing borders. 
-<p>
-The map can contain additional text and graphics without any constraint other than they don't use the
-same colors used for the territories. This limitation applies to the "sea" (background) as well.
+Vector SVG maps use filled paths to define territory artwork and do not rely
+on the BMP color-tracing workflow described here. See
+<a href="tm_trm_trmap.htm">TRMap</a> for both import workflows.
 
 </body>
 </html>

@@ -10,15 +10,20 @@
 
 <h1>Required tools</h1>
 
-First of all, you need a program to create and edit bitmaps. Together with Windows you got 
-<code>Paint</code>, which is not a very sophisticated graphic editor, but serves the purpose.
+TRMap can import SVG artwork directly or import a BMP as raster artwork.
+For SVG maps, draw filled paths that correspond to territories; paths can be
+assigned to territories in TRMap.
 <p>
-Any other editor of your choice will work, provided that's able to save your graphics in bitmap format.
+For BMP maps, use an image editor that can save bitmap files. Territory
+regions should use flat, distinct colors. TRMap's tracing uses exact-color,
+four-connected regions, so anti-aliased borders, textured fills, holes and
+complex shapes may require manual cleanup or conversion to SVG. The imported
+bitmap remains a separate background when traced regions are saved as SVG.
 <p>
-You have no constraints on the size of your map. If you plan to share it with other users, you are 
-invited to consider 
-the making of different versions for different screen sizes. Typically, you would need a small map for
-screens of 640x480, a medium map for 800x600 and a large map for 1024x768 and upper resolutions.
+TRMap supports map dimensions up to 20,000 pixels per side and 10 million
+pixels total. Map-point coordinate transforms scale text-box and floodfill
+points, but do not resize the artwork. Keep artwork files together with the
+`.trm` file when moving a map.
 
 </body>
 </html>

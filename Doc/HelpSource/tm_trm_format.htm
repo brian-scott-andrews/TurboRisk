@@ -10,7 +10,9 @@
 
 <h1>The TRM format</h1>
 
-A TurboRisk Map file (TRM) is a text file that contains the following elements:
+A TurboRisk Map file (`.trm`) is a text file that stores map metadata and
+territory points. The artwork is kept in a companion SVG or BMP file. Together
+these files make up a map package. A TRM contains:
 <ul>
 	<li>
 	Description of the map.
@@ -30,13 +32,16 @@ A TurboRisk Map file (TRM) is a text file that contains the following elements:
 <p>
 <i>Floodfill points</i> are the points where the color is "poured" to paint the territory. Each 
 territory needs as many floodfill points as the number of different regions it's formed by.
-For example, in the standard map Alaska has one floodfill point, Northest Territory has two of them,
-Greenland four and Indonesia twelve (every island is a region). Currently TurboRisk allows a 
-maximum of 20 floodfill points.
+Each territory can have up to 20 floodfill points. In bitmap-backed maps,
+floodfill points identify regions to paint; in SVG-backed maps, the territory
+paths provide the fill geometry and points are used by the map data.
 <p>
 Though you can open a TRM file with any text editing program (like <code>Notepad</code>) and write or
 modify those information directly, the <a href="tm_trm_trmap.htm">TRMap</a> tool offers a much more 
 convenient way to do that.
+Keep the `.trm` file with its sibling `.svg` or `.bmp` artwork when moving the
+map. Territory borders and the 42-territory topology are defined by the game,
+not by the TRM file.
 
 </body>
 </html>

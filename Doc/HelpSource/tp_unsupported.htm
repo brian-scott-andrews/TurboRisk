@@ -8,24 +8,29 @@
 
 <body>
 
-<h1>Unsupported Pascal features</h1>
+<h1>PascalScript and TurboRisk API limits</h1>
 
 <p>
-The following PASCAL features are currently not supported by the TurboRisk script interpreter:
-<ul>
-	<li>
-	Static arrays, use dynamic ones instead. SetLength is not implemented, use SetArrayLength instead.
-	<li>
-	Nested functions, you cannot declare functions inside other functions.
-	<li>
-	Classes are not allowed.
-	<li>
-	Pointers types are not allowed.
-	<li>
-	The "Interface", "Units", "Includes" and "Absolute" clauses are not supported.
-	<li>
-	Asm: inline assembler code is not supported.
-</ul>
+TRP files use the bundled PascalScript compiler and runtime, not the complete
+Delphi or Free Pascal language and runtime. Which language constructs and
+library routines work depends on the compiler configuration and the functions
+registered by TurboRisk. A construct accepted by another Pascal compiler is
+not necessarily available to a TRP.
+<p>
+Static and dynamic arrays are used by TRP scripts. For dynamic arrays,
+<code>SetArrayLength</code> is available; see
+<a href="tp_variables.htm">Types, Variables, Expressions</a>.
+<p>
+TurboRisk exposes its game operations through the documented
+<a href="tp_api.htm">TurboRisk API</a>; it does not provide a general-purpose
+Delphi/FPC runtime to TRPs. In particular, do not assume that host-language
+features such as arbitrary class libraries, operating-system calls, DLL
+loading or inline assembler are available to a script.
+<p>
+Use TRComp's compiler as the authoritative check for a particular script and
+consult the API reference for the functions it can call. If a script compiles
+but depends on undocumented runtime behavior, it may still fail when run by
+TurboRisk.
 
 </body>
 </html>

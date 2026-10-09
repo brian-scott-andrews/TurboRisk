@@ -10,108 +10,50 @@
 
 <h1>TRMap</h1>
 
-<b>TRMap</b> is an utility software supplied with TurboRisk and located in the same
-folder.
+<b>TRMap</b> is the map editor supplied with TurboRisk. It edits `.trm` map
+metadata and territory points and imports SVG or BMP artwork.
 <p class=warning>
-	You're invited to experiment with TRMap. However, instead of altering any of the maps provided
-	with TurboRisk, you are suggested to make a copy of it and work on the copy itself.
-	<br>
-	To do this, open a map in TRMap and save it with a new name (using <font class=menu>File &gt; Save as...</font>). 
-	This will copy the bitmap and the TRM to new files. Anyway, in case you alter the original
-	maps, you can always load them again from the TurboRisk webpage.
+	Keep a backup when editing a map. Use <font class=menu>File &gt; Save As...</font>
+	to save a copy under a different name before changing a bundled map.
 </p>
 
-<h2>The File menu</h2>
+<h2>Open, import and save</h2>
 
-This menu presents pretty much standard options to create a <b>new</b> map, to <b>open</b> an existing map file
-or to <b>save</b> a map file to a selected folder.
+Use <font class=menu>File &gt; New from SVG or BMP...</font> to import artwork,
+or <font class=menu>File &gt; Open map...</font> to open a `.trm` package,
+SVG, or BMP. A map package contains the `.trm` file and its companion artwork.
+Keep the files together when copying the map into TurboRisk's `maps` folder.
+Saving a vector map writes a `.trm` and sibling `.svg`; when it has a raster
+background, TRMap also writes a sibling `.bmp`. Existing bitmap-backed maps
+remain bitmap-backed when saved.
+
+<h2>Map details and territory data</h2>
+
+The <i>Map</i> tab contains the description, author, revision, and font
+settings for army labels. The <i>Territories</i> tab selects a territory and
+lets you work with its floodfill points and text-box point on the map.
 <p>
-The <font class=menu>File &gt; New...</font> menu item shows a dialog where you are requested to select a bitmap 
-file. In fact, TRMap can create a new TRM file, but you need a bitmap file to link to the TRM file.
+The game's topology is fixed at 42 territories and six continents; TRMap
+does not edit territory names, continents or borders. Floodfill points
+identify regions that belong to a territory. A map can contain up to 20
+floodfill points for each territory.
 <p>
-The <font class=menu>File &gt; Open</font> menu item will make TRMap load the bitmap 
-and the TRM file associated to it.
-<p>
-With the <font class=menu>File &gt; Save as...</font> function TRMap saves the map file to a new file name
-(extension TRM) and at the same time creates a copy of the bitmap file with the same name and extension BMP.
-<p>
-With TRMap you can save map files to any folder, and open them from any folder, but please remember that 
-when you want to use those maps in TurboRisk you have to move them into the <code>Map</code> subfolder of
-the main TurboRisk folder.
+SVG import assigns a selected filled path to a territory when clicked. BMP
+import uses exact flat-color regions: select a territory and click a region
+to seed it, then use <i>Floodfill points - Autofind</i> to trace seeded
+regions into SVG paths. This raster tracing is intended for simple,
+flat-color maps; anti-aliased edges, texture, holes, or complex shapes may
+need cleanup in an SVG editor. Raster artwork is retained as a separate
+background.
 
-<h2>The Tool window</h2>
+<h2>Utilities and validation</h2>
 
-After you load a map, TRMap shows its <b>Tool window</b>, which contains three tabs: <i>Map</i>, 
-<i>Territories</i> and <i>Utilities</i>.
-
-<h3>Map</h3>
-
-This tab gives you access to the descriptive information of the map: description, author and revision. 
-Just type in these fields whatever information you think that describe your map.
-<p>
-In the same tab you find a button to select the font name and size used for the text box showing the 
-number of armies. Choose any font that you think is appropriate to make your map pleasent and 
-readable. You can also choose the color of the text: either black text over
-white background (default), or white text over black background.
-<p>
-Use the <i>simulation</i> option (see below) to verify how the map appears with a given font.
-
-<h3>Territories</h3>
-
-The <b>Territories</b> tab allow you to define the three properties of each territory: color, floodfill point
-and text box point. You will input these data using the <i>active map</i>, which is the map
-shown in the main TRMap window.
-<p>	
-The <u>Active map</u> selector has five options:
-<p>
-<ol>
-	<li>
-	<i>Nothing</i>: shows the bitmap "as is", no action is allowed.
-	<li>
-	<i>Floodfill points</i>: shows the floodfill points of the selected territory like small white
-	crosses. Anytime you click on a given point on the map, that point will be added to the list
-	of floodfill points, provided that it has the same color of the first one. In fact, the first
-	floodfill point is used to "pick up" the color of the territory.
-	<li>
-	<i>Text box</i>: shows the text box of the selected territory. Click on the map to move its 
-	top left corner in a new position.
-	<li>
-	<i>Links</i>: the map shows white lines connecting the first floodfill point of each territory
-	to the first floodfill point of each bordering territory. This view is provided just to check
-	the topology of the map, no action is allowed.
-	<li>
-	<i>Simulation</i>: every territory gets painted with the selected <i>simulation color</i>, and
-	all the text boxes appear. You can now change the <i>simulation color</i> and click on the
-	single territories to check that everything works well.
-</ol>	
-
-<h3>Utilities</h3>
-
-This tab contains a few utility functions that may speed up the process of 
-defining a new map or of adapting an existing map to a new size.
-<p>
-<ul>
-	<li>
-	<font class=btn>&nbsp;Floodfill points - Autofind&nbsp;</font>: usually a map contains many multi-region territories,
-	which would require the user to define a floodfill point for each region. This function
-	speeds up the process: provided that you have defined the color for each territory
-	(in a new map this means to define at least one floodfill point per territory), it
-	will create a floodfill point in every other region of the same color.
-	<li>
-	<font class=btn>&nbsp;Floodfill points - Clear all&nbsp;</font>: this button simply clear all the floodfill points
-	of all territories.
-	<li>
-	<font class=btn>&nbsp;Text box points - Transform&nbsp;</font>: the purpose of this function is to simplify the porting
-	of a map to a different size version of the same map. You can ask TRMap to transform all 
-	the text point coordinates into new ones using addition and multiplication.
-</ul>	
-
-<h3>Validation</h3>
-
-At the bottom of the window you find the <font class=btn>&nbsp;Validate map&nbsp;</font> button. It performs a number of
-tests to ensure that your map has been properly set up. The result of the test will appear
-in a Log window.
-
+The view selector displays floodfill points, text-box points, fixed links, or
+a single-color floodfill preview. The preview checks seed coverage; it is not
+a full game or ownership simulation. <i>Map point coordinates - Transform</i>
+scales text-box and floodfill point coordinates only; it does not resize the
+artwork. Use <font class=btn>&nbsp;Validate map&nbsp;</font> to check map
+points, vector assignments and fixed topology before using the map in a game.
 
 </body>
 </html>

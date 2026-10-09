@@ -1,105 +1,89 @@
-To Compile/Run:
- - Install Lazarus Pascal IDE
- - Open each of the projects TurboRisk.lpi, TRSim.lpi and lhelp/lhelp.lpi and build them.
-   (Or run `lazbuild TurboRisk.lpi` etc.)
+# TurboRisk developer guide
 
-Changes (By Nathan McNew)
---------
-This is a port of TurboRisk to Lazarus/Free Pascal.  It has been made multiplatform and tested on both Linux 
-(Linux Mint 18) and Windows (Windows 7).  No features have been added, this is as close as possible to the 
-version 2.0.5 originally released on Github.  One feature was removed: The ability to check for updates to the 
-software, as that no longer seemed as relevant and was more difficult to port.  That feature could easily be 
-added back again in the future
+TurboRisk is a Lazarus/Free Pascal port of Mario Ferrari's Risk-style strategy
+game. The repository also contains TRSim and its command-line runner, TRComp
+(the TRP editor/compiler/routine tester), and TRMap (the map editor). The
+project port is complete; this is not a pending Delphi-to-Lazarus conversion.
 
-Some notes on the code:
- - In order to make it multiplatform, the "help" was moved from Windows help to the Lazarus lhelp program. As such 
-the code for lhelp has been included as a subdirectory and can be compiled to produce the lhelp executable 
-(required to view the help file in the game).
+## Build
 
- - PascalScript defaults to treating division of ints as an int, rather than a float.  This behaviour can be 
-changed by adding the preprocessor command {$DEFINE PS_DELPHIDIV} to the include file for PascalScript.  As this 
-behavior breaks several trp players, PascalScript has been included as a subdirectory as well so that this include 
-file can be changed, and the code recompiled with this flag.
+Install Lazarus and Free Pascal, then build the projects from the repository
+root. On Windows, for example:
 
- - the TCanvas.floodfill command (necessary for changing the color of territories on the map) is unimplemented in 
-Lazarus in Linux, as documented in the forums.  As a result, a workaround proposed in the forums has been included 
-as a separate file (floodfilltest.pas) which implements a (slower) floodfill so the program will still work in 
-Linux.  When compiled for Windows TurboRisk will still use the original, functional TCanvas command.
+```powershell
+C:\lazarus\lazbuild.exe .\TurboRisk.lpi
+C:\lazarus\lazbuild.exe .\TRSim.lpi
+C:\lazarus\lazbuild.exe .\TRSimCLI.lpi
+C:\lazarus\lazbuild.exe .\TRComp.lpi
+C:\lazarus\lazbuild.exe .\TRMap.lpi
+```
 
----------
-Issues:
- 
- - A couple of players, notably Australian+.trp cause an "Access Violation" and are unplayable when used on Linux.  
-This issue only seems to arise when only computer players (no humans) are present, and if no other games have 
-already occurred.  The issue doesn't seem to be present in Windows.  
+TRMap's SVG import/export requires Lazarus `fpvectorial`. Build `lhelp` with
+`C:\lazarus\lazbuild.exe .\lhelp\lhelp.lpi` when a platform needs the separate
+Lazarus help viewer. The Windows CHM source is in `Doc\HelpSource`; after editing it, rebuild
+the tracked `Doc\TurboRisk.chm` from the repository root with
+`chmcmd .\Doc\HelpSource\TurboRisk.hhp`.
 
+## Regression checks
 
----------
-The original Readme follows.
+```powershell
+C:\lazarus\lazbuild.exe .\tests\TRCompWorkflowTests.lpi
+.\tests\TRCompWorkflowTests.exe
+C:\lazarus\lazbuild.exe .\tests\TRMapWorkflowTests.lpi
+.\tests\TRMapWorkflowTests.exe
+.\tests\Run-TRSimCLITests.ps1
+```
 
+The workflows cover TRComp routine validation/execution-context restoration,
+TRMap import/edit/save/validation, and TRSimCLI scheduling, deterministic runs,
+logging, and bot smoke tests. `TRComp.md`, `TRMap.md`, and `TRSimCLI.md` contain
+current tool-specific usage and feature details.
 
+## Current scope and known issue
 
-TurboRisk notes for the developers
-Mario Ferrari
-==================================
+Custom maps use a fixed 42-territory, six-continent topology. TRMap edits map
+artwork and territory points; it does not change the game's territory-border
+rules. It imports SVG and BMP artwork, with limitations documented in
+`TRMap.md` and the map-editor help.
 
-Comments in sparse order
-------------------------
+TurboRisk's old online news/update service was removed during the Lazarus port.
+The historical preference and help pages may still mention it; they do not
+describe a current feature.
 
-- In view of making the project open source, years ago I started translating the comments and the variable names 
-from Italian into English. Unfortunately I never finished this job. With modern refactoring tools changing names
-to the variables should be easy, fast and safe.
-As for the comments... whenever you find a comment you don't understand and are not able to translate with online 
-translators, just ask.
+[Issue #28](https://github.com/brian-scott-andrews/TurboRisk/issues/28) remains
+open. It tracks an intermittent TRP Placement access violation reported under
+specific game/configuration conditions. The historical report below is not
+evidence that the problem currently reproduces on every platform or with every
+named bot; consult the issue and current regression tests for verified status.
 
-- The procedure Supervisor (unit Globals.pas) manages the turns and the phases of the games. 
-The way the events manager of the Main window and the Supervisor pass each other the control of the application 
-is a bit tricky :-)
+## Historical developer notes
 
-- TR is made of many units and the source code is not trivial- though I think is well structured and commented. 
+The following notes are retained from the original 2019-era port/developer
+README. They describe historical context and proposals, not the current
+implementation status.
 
-- To understand how TR handles the maps, read the topic "Making custom maps -> Creating the bitmaps -> Colors". 
-To make the application multi-plataform we might need to change this architecture.
+The Lazarus/Free Pascal port was tested at the time on Linux Mint 18 and
+Windows 7. The Windows Help format replaced Delphi's original help system; the
+repository includes the `lhelp` viewer. PascalScript is built with
+`PS_DELPHIDIV` because TRP scripts rely on Delphi-style integer division.
 
-List of the units in the project
---------------------------------
+The original port notes described a Linux `TCanvas.FloodFill` workaround and
+reported an intermittent access violation for some TRPs under particular
+conditions. The current state of that issue is tracked in [#28](https://github.com/brian-scott-andrews/TurboRisk/issues/28);
+do not use that old report alone as a current compatibility guarantee.
 
-About.pas	          The About window
-Attack.pas	        The Attack window
-Cards.pas	          The Cards turn in window
-CheckUpd.pas	      Unit to check online updates
-Computer.pas	      Handles the turn of TRPs
-ExpSubr.pas	        Procedure and function used by the TRPs (API)
-Globals.pas	        Subroutines of general use
-History.pas	        The History window
-Human.pas	          Handles the turn of a human player
-Log.pas	            The Log window
-Main.pas	          The Main window
-Map.pas	            The Map choice window
-Move.pas	          The Troops Move window
-NewGame.pas	        The New Game window
-Players.pas	        The Player's property window
-Pref.pas	          The Preference window
-Programs.pas	      The TRP choice window
-Readme.pas	        The Readme window
-Rules.pas	          The Rules customization window
-Sim.pas	            *** part of the TRSim simulator
-SimCPULog.pas	      *** part of the TRSim simulator
-SimGameLog.pas      *** part of the TRSim simulator, ignore this unit
-SimMap.pas	        *** part of the TRSim simulator, ignore this unit
-SimRun.pas	        *** part of the TRSim simulator, ignore this unit
-SplashScreen.pas    The initial splash screen
-Stats.pas	          The Stats window
-Territ.pas	        Routines to handle territories
-TRPError.pas	      The TRP error reporting window
-UDialog.pas	        The dialog window invoked by the API function UDialog
+### Original author notes
 
-Planned/requested changes
--------------------------
+The notes below are from Mario Ferrari's original developer README:
 
-- I planned to move the code from Delphi to Lazarus/Free Pascal, because the second is free, open source 
-and multi-platform (Win, OSX, Linux and more). Not yet approached, but shouldn't be too difficult.
+- `Supervisor` in `Globals.pas` manages game turns and phases. Its handoff
+  between the main-window event manager and the game supervisor is
+  intentionally non-obvious.
+- The source consists of many units; the original author considered it
+  structured and commented.
+- The original map-format discussion predates TRMap's current SVG/BMP import
+  and export workflows.
 
-- I also planned to convert maps to vector graphics to make them scalable, thus more suitable for mobile devices.
-
-- Most requested feature is multi-player.
+The original wishlist mentioned completing comment/identifier translation,
+vector maps, and multiplayer. These were proposals at the time they were
+written, not a statement of current work in progress.
