@@ -14,6 +14,7 @@ type
     tbsSim: TTabSheet;
     tbsAna: TTabSheet;
     lstAlways: TListBox;
+    chkStatSignificantSample: TCheckBox;
     lstRandom: TListBox;
     Label2: TLabel;
     Label3: TLabel;
@@ -70,6 +71,7 @@ type
   private
     fPlayerSchedule: TStringList;
     fCliErrorOccurred: Boolean;
+    fCliStatSignificantSample: Boolean;
     procedure SimSetup;
     procedure SimCleanup;
     procedure PopulateTRPList;
@@ -111,6 +113,7 @@ var
   Schedule, NormalizedSchedule, GamePlayers, UniquePlayers: TStringList;
   bErrorDump: Boolean;
   bSeedSpecified: Boolean;
+  bStatSignificantSample: Boolean;
   iSeed: Integer;
 
   function NextArgument(const sOption: string): string;
@@ -145,6 +148,9 @@ var
     WriteLn('  --turn-limit <number>  Maximum turns per game (0: unlimited)');
     WriteLn('  --time-limit <seconds> Maximum seconds per game (0: unlimited)');
     WriteLn('  --seed <number>        Random-number-generator seed');
+    WriteLn('  --statistically-significant-sample');
+    WriteLn('                         Repeat schedule up to 10x until each TRP''s');
+    WriteLn('                         95% Wilson win-rate interval is within +/- 5 points');
     WriteLn('  --verbose              Log TRP decisions and action outcomes');
     WriteLn('  --error-dump           Write a game dump when a TRP errors');
     WriteLn('  --help, -h             Show this help');
@@ -162,6 +168,7 @@ begin
   sGameLogFile := '';
   sCPULogFile := '';
   bSeedSpecified := False;
+  bStatSignificantSample := False;
   iSeed := 0;
   iSimTurnLimit := 0;
   iSimTimeLimit := 0;
@@ -193,6 +200,8 @@ begin
         end
       else if sArg = '--error-dump' then
         bErrorDump := True
+      else if sArg = '--statistically-significant-sample' then
+        bStatSignificantSample := True
       else if sArg = '--verbose' then
         bSimVerbose := True
       else
@@ -301,6 +310,7 @@ begin
     chkShowStats.Checked := False;
     chkErrorAbort.Checked := True;
     chkErrorDump.Checked := bErrorDump;
+    fCliStatSignificantSample := bStatSignificantSample;
     if sGameLogFile = '' then
       sGameLogFile := ExpandFileName('TRSimCLI.sgl')
     else
@@ -334,6 +344,7 @@ begin
   end;
   FreeAndNil(fPlayerSchedule);
   bSimVerbose := False;
+  fCliStatSignificantSample := False;
   bTRSimCLI := False;
 end;
 
@@ -441,6 +452,8 @@ begin
       chkShowMap.Checked := ReadBool('Params', 'ShowMap', true);
       cboMap.ItemIndex := cboMap.Items.IndexOf(ReadString('Params', 'Map', 'std_map_small.trm'));
       chkShowStats.Checked := ReadBool('Params', 'ShowStats', true);
+      chkStatSignificantSample.Checked :=
+        ReadBool('Params', 'StatSignificantSample', False);
       chkErrorDump.Checked := ReadBool('Params', 'ErrorDump', true);
       chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
       txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
@@ -490,6 +503,8 @@ begin
       WriteBool('Params', 'ShowMap', chkShowMap.Checked);
       WriteString('Params', 'Map', cboMap.Text);
       WriteBool('Params', 'ShowStats', chkShowStats.Checked);
+      WriteBool('Params', 'StatSignificantSample',
+        chkStatSignificantSample.Checked);
       WriteBool('Params', 'ErrorDump', chkErrorDump.Checked);
       WriteBool('Params', 'ErrorAbort', chkErrorAbort.Checked);
       WriteString('Params', 'GameLog', txtGameLogFile.Text);
@@ -583,10 +598,52 @@ end;
 procedure TfSim.cmdStartClick(Sender: TObject);
 var
   i, iP: Integer;
+  iRequestedGames, iMaxSampleGames, iStatIndex: Integer;
+  bUseStatSignificantSample, bStatSignificantReached: Boolean;
+  SamplePlayers: TStringList;
+  SampleAppearances, SampleWins: array of Integer;
   GameRoster: TStringList;
+
+  function SamplePlayerIndex(const sPlayerName: string): Integer;
+  begin
+    Result := SamplePlayers.IndexOf(sPlayerName);
+    if Result < 0 then begin
+      Result := SamplePlayers.Add(sPlayerName);
+      SetLength(SampleAppearances, SamplePlayers.Count);
+      SetLength(SampleWins, SamplePlayers.Count);
+    end;
+  end;
+
+  function HasStatisticallySignificantSample: Boolean;
+  var
+    j: Integer;
+    dZ, dZSquared, dRate, dWilsonDenominator, dWilsonHalfWidth: Double;
+  begin
+    Result := SamplePlayers.Count > 0;
+    dZ := 1.96;
+    dZSquared := dZ * dZ;
+    for j := 0 to SamplePlayers.Count - 1 do begin
+      if SampleAppearances[j] = 0 then begin
+        Result := False;
+        Exit;
+      end;
+      dRate := SampleWins[j] / SampleAppearances[j];
+      dWilsonDenominator := 1 + dZSquared / SampleAppearances[j];
+      dWilsonHalfWidth := (dZ / dWilsonDenominator) *
+        Sqrt(dRate * (1 - dRate) / SampleAppearances[j] +
+        dZSquared / (4.0 * SampleAppearances[j] * SampleAppearances[j]));
+      if dWilsonHalfWidth > 0.05 then begin
+        Result := False;
+        Exit;
+      end;
+    end;
+  end;
+
 begin
   // prepare global variables
   iSimGames := StrToIntDef(txtGames.Text, 0);
+  iRequestedGames := iSimGames;
+  iMaxSampleGames := iSimGames;
   iSimMinPl := StrToIntDef(txtMinPlayers.Text, 0);
   iSimMaxPl := StrToIntDef(txtMaxPlayers.Text, 0);
   iSimTimeLimit := StrToIntDef(txtTimeLimit.Text, 0);
@@ -626,6 +683,25 @@ begin
     txtMaxPlayers.SetFocus;
     exit;
   end;
+  bUseStatSignificantSample :=
+    (bTRSimCLI and fCliStatSignificantSample) or
+    (not bTRSimCLI and chkStatSignificantSample.Checked);
+  bStatSignificantReached := False;
+  SamplePlayers := nil;
+  SampleAppearances := nil;
+  SampleWins := nil;
+  if bUseStatSignificantSample then begin
+    if iRequestedGames > High(Integer) div 10 then
+      iMaxSampleGames := High(Integer)
+    else
+      iMaxSampleGames := iRequestedGames * 10;
+    iSimGames := iMaxSampleGames;
+    SamplePlayers := TStringList.Create;
+    for i := 0 to lstAlways.Count - 1 do
+      SamplePlayerIndex(ChangeFileExt(lstAlways.Items[i], ''));
+    for i := 0 to lstRandom.Count - 1 do
+      SamplePlayerIndex(ChangeFileExt(lstRandom.Items[i], ''));
+  end;
   // prepare players
   lstRandom.Sorted := false;
   for iP := 1 to MAXPLAYERS do begin
@@ -649,6 +725,10 @@ begin
   fSimRun.BorderIcons := [];
   fSimRun.txtSimLog.Clear;
   fSimRun.SimLog('*** Simulation starts ***');
+  if bUseStatSignificantSample then
+    fSimRun.SimLog('Statistical sample mode: minimum ' +
+      IntToStr(iRequestedGames) + ' games, maximum ' +
+      IntToStr(iMaxSampleGames) + ' games');
   if not bTRSimCLI and not fSimRun.Visible then
     fSimRun.Show;
   // start simulation
@@ -703,7 +783,8 @@ begin
         try
           GameRoster.StrictDelimiter := True;
           GameRoster.Delimiter := ',';
-          GameRoster.DelimitedText := fPlayerSchedule[iSimCurr - 1];
+          GameRoster.DelimitedText :=
+            fPlayerSchedule[(iSimCurr - 1) mod fPlayerSchedule.Count];
           iSimPlayers := GameRoster.Count;
           if (iSimPlayers < iSimMinPl) or (iSimPlayers > iSimMaxPl) or
              (iSimPlayers > MAXPLAYERS) then
@@ -746,6 +827,15 @@ begin
         ssAbort:
           fSimRun.SimLog('Game #' + IntToStr(iSimCurr) + ' aborted by user');
       end;
+      if bUseStatSignificantSample and (uSimStatus = ssComplete) then begin
+        for iP := 1 to iSimPlayers do
+          if arPlayer[iP].Active then begin
+            iStatIndex := SamplePlayerIndex(arPlayer[iP].Name);
+            Inc(SampleAppearances[iStatIndex]);
+            if iP = iSimWinner then
+              Inc(SampleWins[iStatIndex]);
+          end;
+      end;
       // log game data
       UpdateHistoryFile;
       // log CPU data
@@ -753,12 +843,27 @@ begin
       // update stats
       if not bSimAbort then
         inc(iSimCompl);
-    until (iSimCompl = iSimGames) or bSimAbort;
+      if bUseStatSignificantSample and
+         (iSimCurr >= iRequestedGames) and
+         HasStatisticallySignificantSample then begin
+        bStatSignificantReached := True;
+        fSimRun.SimLog('Statistically significant sample reached after ' +
+          IntToStr(iSimCurr) + ' games (95% Wilson confidence interval within ' +
+          '+/- 5 percentage points for every included player)');
+      end;
+    until (iSimCompl = iSimGames) or bSimAbort or
+      (bUseStatSignificantSample and
+       (bStatSignificantReached or (iSimCurr >= iMaxSampleGames)));
   finally
     // last update of stats
     fSimRun.UpdateSimStats;
     if bSimAbort then
       fSimRun.SimLog('*** Simulation aborted by user ***')
+    else if bUseStatSignificantSample and not bStatSignificantReached then begin
+      fSimRun.SimLog('Statistically significant sample not reached within the ' +
+        IntToStr(iMaxSampleGames) + '-game limit');
+      fSimRun.SimLog('*** Simulation ends ***');
+    end
     else
       fSimRun.SimLog('*** Simulation ends ***');
     // enable main form again
@@ -771,6 +876,8 @@ begin
     fStats.Close;
     Screen.Cursor := crDefault;
     lstRandom.Sorted := true;
+    if SamplePlayers <> nil then
+      SamplePlayers.Free;
   end;
 end;
 
