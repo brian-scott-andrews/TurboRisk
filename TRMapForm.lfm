@@ -1,0 +1,11 @@
+object fTRMap: TfTRMap
+  Left = 0
+  Height = 800
+  Top = 0
+  Width = 1200
+  Caption = 'TRMap'
+  OnCreate = FormCreate
+  OnDestroy = FormDestroy
+  OnResize = FormResize
+  LCLVersion = '2.2.6.0'
+end
