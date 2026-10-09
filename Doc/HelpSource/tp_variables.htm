@@ -129,10 +129,9 @@ The trunc() function is not appropriate in this case, so it is necessary to use 
 
 
 <p>
-<B>Arrays</B> are supported only in their dynamic form. Use the SetArrayLength()
-procedure to set their dimension. First element is always at location 0, last
-element at Length-1. The function GetArrayLength returns the size of the array.
-Example:
+<b>Arrays</b> can be declared with fixed bounds or as dynamic arrays. Dynamic
+arrays can be sized with <code>SetArrayLength()</code>; their first element is
+at index 0. Use <code>GetArrayLength()</code> to obtain their size. Example:
 <p>
 <code>
 	<b>var</b>
@@ -143,7 +142,7 @@ Example:
 	<br>
 	begin
 	<br>
-	&nbsp;&nbsp;SetArrayLength(MyArr,5);
+	&nbsp;&nbsp;SetArrayLength(MyArr, 5);
 	<br>
 	&nbsp;&nbsp;for i:=0 to GetArrayLength(MyArr)-1 do
 	<br>
@@ -151,6 +150,11 @@ Example:
 	<br>
 	end;
 </code>
+<p>
+TurboRisk scripts use the PascalScript dialect and registered runtime
+functions; see <a href="tp_unsupported.htm">PascalScript and TurboRisk API
+limits</a> rather than assuming every Delphi or Free Pascal array feature is
+available.
 
 </body>
 </html>

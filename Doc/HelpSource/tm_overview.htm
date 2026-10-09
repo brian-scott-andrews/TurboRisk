@@ -10,25 +10,25 @@
 
 <h1>Custom Maps Overview</h1>
 <p>
-A <b>TurboRisk Map</b> is the computer equivalent of the board used in the traditional game, 
-its the area where the game takes place. 
+A <b>TurboRisk map</b> defines the artwork, territory points and descriptive
+information used for a game. The territory names and borders follow the
+game's fixed 42-territory, six-continent topology.
 <p>
-From version 2.0 on, TurboRisk allows the user to create and use custom maps. If you create a map, 
-you're encouraged to send a copy of it to the author of TurboRisk to be shared with 
-other users.
+Custom maps can use SVG vector artwork or BMP raster artwork. Use
+<a href="tm_trm_trmap.htm">TRMap</a> to import artwork, edit map points and
+validate the map.
 <p>
-A TurboRisk Map is made of two files:
+A saved map consists of a TRM metadata file and companion artwork:
 <ul>
 	<li>
-	A bitmap file with some required properties (extension BMP).
+	An SVG file for vector artwork, or a BMP file for raster artwork.
 	<li>
-	A TurboRisk Map file (extension TRM) which define the properties of the map 
-	in a format that TurboRisk can understand.
+	A TurboRisk Map file (extension TRM) containing descriptive fields,
+	territory points and other map properties.
 </ul>
 
-Those two files <u>must have the same name</u> (just different extension), 
-and need to stay in the <code>Maps</code> subfolder of the TurboRisk main folder,
-otherwise TurboRisk won't find them.
+Keep the TRM and its companion artwork together. Copy the map package into
+TurboRisk's <code>maps</code> folder for use in a game.
 
 </body>
 </html>

@@ -10,60 +10,53 @@
 
 <h1>Steps to create a new map</h1>
 
-Here is a summary of the basic steps needed to create a new map from scratch:
+TRMap accepts vector SVG artwork or a BMP with flat-color territory regions.
+The import workflow differs slightly for each format.
 <p>
 <ol>
 	<li>
-	Create your bitmap image of the map, following the instructions stated in the previous 
-	<a href="tm_bitmap_tools.htm">Creating the bitmap</a> section.
+	Prepare artwork. For a BMP, use flat, clearly separated colors and avoid
+	anti-aliased boundaries or textures if you plan to trace territories.
+	For SVG, draw filled territory paths.
 	<p>
 	<li>
-	Run TRMap. Select <font class=menu>File &gt; New...</font> from the menu and open the bitmap you just created. It will
-	appear in the main window.
+	Choose <font class=menu>File &gt; New from SVG or BMP...</font> and open the
+	artwork.
 	<p>
 	<li>
-	Fill in the descriptive fields in the <i>Map</i> tab of the <b>Tool window</b>
+	Fill in the description, author, revision and label font fields in the
+	<i>Map</i> tab.
 	<p>
 	<li>
-	Select the <i>Territories</i> tab and the option <i>Floodfill points</i> of the <u>Active map</u> control.
+	Select a territory in the <i>Territories</i> tab. For SVG artwork, click
+	its filled path to assign it. For BMP artwork, click inside a flat-color
+	region to record its seed.
 	<p>
 	<li>
-	Select the first Territory, then click on the map to mark its first floodfill point.
+	For BMP artwork, repeat for each territory, then run
+	<font class=btn>&nbsp;Floodfill points - Autofind&nbsp;</font> to trace the
+	seeded regions into vector paths. Inspect the result; complex, textured,
+	anti-aliased, or holed regions may require cleanup in an SVG editor.
 	<p>
 	<li>
-	Repeat step 5 for each territory, just one floodfill point per territory (this will define 
-	their color as well).
+	Set each territory's text-box point in the map view. If adapting a map to
+	artwork at another scale, use the coordinate transform for the text-box
+	and floodfill points; it does not resize the artwork.
 	<p>
 	<li>
-	Save the map: <font class=menu>File &gt; Save</font>.
+	Use <font class=btn>&nbsp;Validate map&nbsp;</font> to check points,
+	vector assignments and topology. The game uses a fixed 42-territory,
+	six-continent topology.
 	<p>
 	<li>
-	Select the <i>Utilities</i> tab and click the 
-	<font class=btn>&nbsp;Floodfill points - Autofind&nbsp;</font> button. TRMap will start finding 
-	all the other floodfill points of your territories. This will take a bunch of seconds.
+	Check the map with the floodfill points, text-box points, links and
+	single-color preview views. The preview checks seed coverage only; test the
+	map in TurboRisk for actual gameplay.
 	<p>
 	<li>
-	If something went wrong (painting went out from designed regions), close without saving
-	(if you saved at point 7, otherwise save now!), correct your bitmap, open the map
-	again in TRMap and restart from point 8.
-	<p>
-	<li>
-	Select the <i>Territories</i> tab and the option <i>Text box points</i> of the <u>Active map</u> control.
-	<p>
-	<li>
-	For each territory, click on the map to define the coordinates of its text box. You can 
-	click as many times you like to properly adjust the position.
-	<p>
-	<li>
-	Check your work using the <font class=btn>&nbsp;Validate map&nbsp;</font> button. Correct mistakes and validate again
-	until everything is ok.
-	<p>
-	<li>
-	Select <i>Simulation</i> option of the <u>Active map</u> control. Change simulation color and click
-	every territory to check if every region changes color as you expect it does.
-	<p>
-	<li>
-	When you're satisfied with your work, save the map and exit TRMap.
+	Save the map. Keep the `.trm` file with its sibling `.svg` and, if
+	present, `.bmp` artwork. Copy the package into TurboRisk's `maps` folder
+	to use it in a game.
 </ol>	
 
 
