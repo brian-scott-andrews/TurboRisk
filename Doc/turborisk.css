@@ -1,0 +1,26 @@
+BODY {background: white; color: black; font-family: arial,helvetica,sans-serif; font-size: 10pt; text-align: justify}
+
+HR {color: navy}
+H1 {color: navy}
+H2 {color: navy}
+
+A:link {color: blue}
+A:visited {color: maroon}
+A:active {color: red}
+A IMG {border-style: none}
+
+TD {text-align: justify}
+
+CODE.api {color: blue}
+
+IMG.photo {margin-top: 0em; margin-bottom: 0em; margin-left: 0em; margin-right: 1em; float: left}
+
+IMG.thumbnail {margin-top: 0em; margin-bottom: 0em; margin-left: 0em; margin-right: 1em; float: left}
+
+P.footer {font-family: arial,helvetica,sans-serif; font-size: 10pt; text-align: center}
+
+P.links {font-family: arial,helvetica,sans-serif; font-size: 10pt; text-align: justify}
+
+UL.news {font-size: 10pt}
+LI.news {}
+

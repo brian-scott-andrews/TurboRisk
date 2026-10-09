@@ -1,0 +1,41 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UMessage procedure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UMessage procedure</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>procedure</b> UMessage(M: string);
+</code>
+
+<h3>Description</h3>
+
+Displays message M in a modal window, and waits until the user presses the OK button. 
+<p>
+Line breaks in M can be obtained by incorporating CR+LF characters in the string:
+<p>
+<code>
+UMessage('First line'+#13#10+'Second line');
+</code> 
+<p>
+The message window actually appears only if UMessage has been
+enabled with a call to <a href='api_umessageon.htm'>UMessageOn</a>. By default UMessage is off.
+<p>
+When UMessage is called, TurboRisk copies the content of the Log window into the clipboard, so as you can paste and
+examine it in the Notepad or any other text editor of your choice.
+<p>
+<u>UMessage is intended as a debug tool and should not be used in TRPs to be released in the public domain.</u>
+
+</body>
+</html>

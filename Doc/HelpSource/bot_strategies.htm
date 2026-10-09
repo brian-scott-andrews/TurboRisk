@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>TRP Bot Strategies</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+<h1>TRP Bot Strategies</h1>
+
+<p>The following TRP scripts are authored by Brian S. Andrews and were
+created with AI assistance. Each script includes this author credit, an AI
+disclaimer, and a description in its source header. These strategies are
+heuristics, not guarantees; actual behavior may differ from the description.
+The script source is the definitive reference for behavior.</p>
+
+<h2>Strategies</h2>
+<ul>
+  <li><b>Grudge</b> (<tt>grudge.trp</tt>) tracks who captures its former
+  territories and favors attacking the opponent responsible for the most
+  losses. Human players win ties. If the target is unavailable, it attacks
+  other opponents only at a force ratio of at least 1.5. TRPs cannot observe
+  failed attacks, so captured territories are used to measure hostile actions.</li>
+  <li><b>OddsMaker</b> (<tt>oddsmaker.trp</tt>) estimates attack quality from
+  force ratios and expected exchanges, avoids low-odds attacks, and
+  concentrates armies at its best attack front.</li>
+  <li><b>BonusSaboteur</b> (<tt>bonussaboteur.trp</tt>) seeks a cheap conquest
+  that breaks an opponent's continent bonus; otherwise it targets a weak
+  border.</li>
+  <li><b>CardCollector</b> (<tt>cardcollector.trp</tt>) seeks one low-risk
+  conquest per turn for a card, then stops attacking for that turn.</li>
+  <li><b>Chokepoint</b> (<tt>chokepoint.trp</tt>) values connected territories
+  and continent entry points, seeking control of routes between regions.</li>
+  <li><b>Quartermaster</b> (<tt>quartermaster.trp</tt>) concentrates forces at
+  a favorable front and moves its largest interior reserve toward a front.</li>
+  <li><b>Turtle</b> (<tt>turtle.trp</tt>) favors survival and a compact
+  frontier, attacking only at a decisive advantage or for a low-risk card.</li>
+  <li><b>Kingmaker</b> (<tt>kingmaker.trp</tt>) scores opponents by military
+  and strategic strength, then directs attacks toward the leader.</li>
+  <li><b>Comeback</b> (<tt>comeback.trp</tt>) targets weak opponents and
+  low-risk territories when behind; when ahead, it raises its attack
+  threshold and invests in continent bonuses.</li>
+  <li><b>Opportunist</b> (<tt>opportunist.trp</tt>) re-evaluates attack
+  opportunities using force ratio, eliminations, continent bonuses, and
+  strategic access.</li>
+  <li><b>Washington</b> (<tt>washington.trp</tt>) uses a Fabian-inspired
+  approach: preserves forces, avoids unnecessary battles, reinforces exposed
+  fronts, and advances from favorable positions.</li>
+</ul>
+</body>
+</html>

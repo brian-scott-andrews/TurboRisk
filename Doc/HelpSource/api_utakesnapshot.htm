@@ -1,0 +1,43 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UTakeSnapshot procedure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UTakeSnapshot procedure</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>procedure</b> UTakeSnapshot(M: string);
+</code>
+
+<h3>Description</h3>
+
+Saves a snapshot of the game.  The snapshot is actually taken only if UTakeSnapshot has been
+enabled with a call to <a href='api_usnapshoton.htm'>USnapShotOn</a>. By default UTakeSnapshot is off.
+<p>
+A snapshot is a copy of the global status of the game saved to a file with name <code>trdump_YYYYMMDD_HHNNSS.trd</code>,
+where YYYY, MM, DD, HH, NN and SS are respectively the year, month, day, hour, minute and second when the snapshot has been taken.
+<p>
+In case the snapshot is taken during a run of TRSim, the file name has the same structure but is also postfixed with
+<code>_simgame_GGG</code>, where GGG is the number of the game in the simulation.
+<p>
+In either cases, the dump file gets saved in the <code>Dump</code> subfolder of the main TurboRisk folder.
+<p>
+The message M is included in the snapshot file.
+<p>
+Snapshots can be loaded into the <a href="tp_trcomp_run.htm">TRComp context</a> to analyze a particular situation.
+<p>
+When invoked from TRComp, UTakeSnapshot does not create a file, but just shows a modal window with message M.
+<p>
+<u>UTakeSnapshot is intended as a debug tool and should not be used in TRPs to be released in the public domain.</u>
+</body>
+</html>

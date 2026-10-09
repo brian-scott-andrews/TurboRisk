@@ -1,0 +1,67 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UAbortGame procedure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UAbortGame procedure</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>procedure</b> UAbortGame;
+</code>
+
+<h3>Description</h3>
+
+UAbortGame asks TurboRisk to stop the current game, and makes it behave exactly like if the user
+had pressed the Stop button.
+<p>
+UAbortGame doesn't exit the current procedure, it simply sets a TurboRisk flag that
+makes the game stop as soon as possible (which is usually after having finished the
+current move).
+<p>
+For this reason, in the typical usage you may also want to explicitly exit the 
+current procedure.
+<p>
+<i>Example:</i>
+<p>
+<code>
+procedure Attack(var FromTerritory, ToTerritory: integer);
+<br>
+begin
+<br>
+&nbsp;&nbsp;...
+<br>
+&nbsp;&nbsp;if &lt;MyErrorCondition&gt; then begin
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;// error, abort game
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ULog('...description of the error...');
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;FromTerritory:=0; // attack is aborted
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;ToTerritory:=0;
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;UAbortGame;
+<br>
+&nbsp;&nbsp;&nbsp;&nbsp;exit; // exit Attack procedure
+<br>
+&nbsp;&nbsp;end;
+<br>
+&nbsp;&nbsp;...
+<br>
+end;
+</code> 
+<p>
+<u>UAbortGame is intended as a debug tool and should <b>NEVER</b> be used in TRPs to be released in the public domain.</u>
+
+</body>
+</html>

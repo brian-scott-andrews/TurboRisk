@@ -1,0 +1,29 @@
+BODY {background: white; color: black; font-family: arial,helvetica,sans-serif; font-size: 10pt; text-align: left}
+
+H1 {color:navy; font-family: arial,helvetica,sans-serif; font-size: 14pt; }
+H2 {color:navy; font-family: arial,helvetica,sans-serif; font-size: 12pt; }
+H3 {color:navy; font-family: arial,helvetica,sans-serif; font-size: 10pt; }
+H4 {color:black; font-family: arial,helvetica,sans-serif; font-size: 10pt; }
+HR {color:navy}
+
+A {color: blue}
+A:link, A:visited, A:active { text-decoration: none }
+A:hover { text-decoration: underline }
+A IMG {border-style: none}
+A.menu {font-family: MS Sans Serif; font-size: 8pt; font-weight: normal; background: #D4D0C8; color: black}
+
+FONT.menu {font-family: MS Sans Serif; font-size: 8pt; font-weight: normal; font-style: normal; background: #D4D0C8; color: black}
+FONT.btn {font-family: MS Sans Serif; font-size: 8pt; font-weight: normal; 
+          background: #D4D0C8; color: black; border: 1px solid gray; border-style: outset}
+FONT.rmk  {font-style: italic; color: green}		  
+		  
+DIV.example {clear: left; flow: right;}
+		  
+P.warning {font-style: italic; color: black; background: #FFFFBB;}
+P.quest {font-weight: bold; color: black}
+
+TABLE {font-family: arial,helvetica,sans-serif; font-size: 10pt; border: 1px solid black; border-collapse: collapse;}
+TH {font-style: italic;  background: #E0E0E0; border: 1px solid black; text-align: left; vertical-align: top;}
+TD {border: 1px solid black; text-align: left; vertical-align: top;}
+IMG {margin-top: 0em; margin-bottom: 1em; margin-left: 0em; margin-right: 1em; float: left}
+

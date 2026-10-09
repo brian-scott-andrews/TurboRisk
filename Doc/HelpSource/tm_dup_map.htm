@@ -1,0 +1,71 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Steps to create a new version of a map</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Steps to create a new version of an existing map</h1>
+
+Here is a summary of the basic steps needed to create a new version of an existing map:
+<p>
+<ol>
+	<p>
+	<li>
+	Open the map you want to modify inside TRMap: <font class=menu>File &gt; Open...</font> .
+	<p>
+	<li>
+	Using <font class=menu>File &gt; Save as...</font> save it with a new name. This will create new BMP and TRM files.
+	<p>
+	<li>
+	Open the bitmap image you just created with your graphic editor. Modify the map, but
+	keep the colors of the territories the same of the map you copied from.
+	<p>
+	<li>
+	Re-open the map in TRMap. The bitmap you just modified will appear in the main window.
+	<p>
+	<li>
+	Select the <i>Utilities</i> tab and click the 
+	<font class=btn>&nbsp;Floodfill points - Clear all&nbsp;</font> button. TRMap will ask for confirmation,
+	then clears all the floodfill points (but keeps the color definitions).
+	<p>
+	<li>
+	Click the <font class=btn>&nbsp;Floodfill points - Autofind&nbsp;</font> button. TRMap will start finding 
+	all the floodfill points of your territories. This will take a bunch of seconds.
+	<p>
+	<li>
+	If something went wrong (painting went out from designed regions), close without saving, 
+	correct your bitmap, open the map again in TRMap and restart from point 5.
+	<p>
+	<li>
+	If the map has the same shape of the original map and has just been stretched to a new size,
+	you can now use the <font class=btn>&nbsp;Text box points - Transform&nbsp;</font> 
+	function to make TRMap calculate the new text box points
+	for you. Calculate the size factors by the ratio of the two bitmaps:
+	<p>
+	<code>
+	X_size_factor = new_map_width / old_map_width
+	<br>
+	Y_size_factor = new_map_height / old_map_height
+	</code>
+	<p>
+	Type these two values in the text boxes just right of the "*" and click the 
+	<font class=btn>&nbsp;Text box points - Transform&nbsp;</font> button.
+	<p>
+	<li>
+	Check your work using the <font class=btn>&nbsp;Validate map&nbsp;</font> button. Correct mistakes and validate again
+	until everything's ok.
+	<p>
+	<li>
+	Select <i>Simulation</i> option of the <u>Active map</u> control. Change simulation color and click
+	every territory to check if every region changes color as you expect it does.
+	<p>
+	<li>
+	When you're satisfied with your work, save the map and exit TRMap.
+</ol>	
+
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>UDialogOn procedure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>UDialogOn procedure</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>procedure</b> UDialogOn;
+</code>
+
+<h3>Description</h3>
+
+Enables the <a href='api_udialog.htm'>UDialog</a> function, which is, by default, disabled.
+<p>
+UDialogOn is typically invoked in the main begin-end section of the program, to enable the usage of UDialog
+during the debugging of the TRP. By default UDialog is off.
+<p>
+<i>Example:</i>
+<p>
+<code>
+begin
+<br>
+&nbsp;&nbsp;UDialogOn;
+<br>
+end.  
+</code>
+
+<p>
+Before releasing a TRP for public use, the calls to UDialogOn must be removed, or commented out, or
+replaced with calls to <a href='api_udialogoff.htm'>UDialogOff</a>.
+
+</body>
+</html>

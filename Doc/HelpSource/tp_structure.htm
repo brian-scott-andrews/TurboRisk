@@ -1,0 +1,157 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Program structure</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Program structure</h1>
+
+Any TurboRisk program <u>must</u> contain five procedures with predefined name and
+parameters that are called by TurboRisk when the computer player is expected to take some
+decision or some action.
+<br>
+Each procedure receives some "var" parameters (the Pascal convention to say a
+parameter is passed by reference instead of by value), which are used to return
+to TurboRsk its results. This is the typical program structure of a TRP program:
+
+<p>
+<code>
+	<font class=rmk>
+	{<br>
+	Program: <i>My_program_name</i><br>
+	<br>
+	Author: <i>My_name - Release date</i><br>
+	<br>
+	Description: <i>Describe the strategy of your program.</i><br>
+	}<br></font>
+	<B>program</B> MyProgram;     <font class=rmk>// this statement is optional</font>
+	<br>
+	<br>
+	<B>procedure</B> MyProcedure(...);   <font class=rmk>// define as many procedures and functions as you</font>
+	want
+	<br>
+	<B>begin</B>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>function</B>	MyFunction(...): ...;
+	<br>
+	<B>begin</B>
+	<br>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br><font class=rmk>
+	// The following procedures <u>must</u> exist in the program.
+	<br>
+	// Their position in the code is not important.
+	<br></font>
+	<br>
+	<B>procedure</B> Assignment(var ToTerritory: integer);
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// The ASSIGNMENT procedure is called during the initial assignment of territories
+	<br>
+	&nbsp;&nbsp;// to know which is the program's choice. Return the result in the ToTerritory
+	<br>
+	&nbsp;&nbsp;// var parameter.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>procedure</B> Placement(var ToTerritory: integer);
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// The PLACEMENT procedure is called at the beginning of each turn to decide where
+	<br>
+	&nbsp;&nbsp;// to place new armies. It is called N times, each one to place a single army, until
+	<br>
+	&nbsp;&nbsp;// all new armies are placed. Return the result in the ToTerritory var parameter.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>procedure</B> Attack(var FromTerritory, ToTerritory: integer);
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// The ATTACK procedure is called at attack time. Each call to ATTACK corresponds
+	<br>
+	&nbsp;&nbsp;// to a single throw of the dice. Return the program's choice in the FromTerritory
+	<br>
+	&nbsp;&nbsp;// and ToTerritory var parameters. Set FromTerritory to 0 if you decide not to attack
+	<br>
+	&nbsp;&nbsp;// and end your attack phase.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>procedure</B> Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// The OCCUPATION procedure is called after a successful attack. The parameters
+	<br>
+	&nbsp;&nbsp;// FromTerritory and ToTerritory are properly set by TurboRisk when entering the
+	<br>
+	&nbsp;&nbsp;// routine. Return the number of armies you want to move in the Armies var parameter.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>procedure</B> Fortification(var FromTerritory, ToTerritory, Armies: integer);
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// The FORTIFICATION procedure is called after the attack phase. Return the program's
+	<br>
+	&nbsp;&nbsp;// choice in the FromTerritory, ToTerritory and Armies var parameters.
+	<br>
+	&nbsp;&nbsp;// Set FromTerritory to 0 if you decide not to move any army and end your turn.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end;</B>
+	<br>
+	<br>
+	<B>begin</B>
+	<br><font class=rmk>
+	&nbsp;&nbsp;// You can place here some optional code which is executed just once at the beginning
+	<br>
+	&nbsp;&nbsp;// of a new game.
+	<br></font>
+	&nbsp;&nbsp;...
+	<br>
+	<B>end.</B>
+</code>
+
+<p>
+The comment section at the beginning of the program is optional. However, if you plan to release your TRP
+to the public, you're kindly invited to write there all the information you want to share with the TurboRisk 
+users to explain how your TRP behaves. 
+In fact, a comment section delimited by <b>{</b> and <b>}</b> and placed at the very beginning of the program
+will get shown to the user in the <a href="tr_options_players.htm">Program selection window</a>.
+<p>
+The <code>simple.trp</code> program is a very simple TRP included to provide a starting point for 
+developers to understand how TRPs work.
+
+</body>
+</html>

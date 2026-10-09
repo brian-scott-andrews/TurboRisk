@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Map topology</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Map topology</h1>
+
+In this context <i>topology</i> means the relationships among the territories that appear on the map. 
+This is a very important point, because you're allowed to draw any graphics of your choice, and give 
+your territories any shape that you like, but <b>you cannot change the number of territories and
+their links to the bordering territories.</b>
+<p>
+For example, in TurboRisk Alberta borders with Alaska, Northwest Territory, Ontario and Western US; in 
+any map you draw, these links will remain the same. Actually there's nothing that prevents you from
+drawing your Alberta in the middle of Africa, but it will continue to belong to North America and will 
+continue to border with the above mentioned territories, so what you'll get is a map that will very likely 
+create confusion in its users.
+<p>
+To visualize this concept, you can imagine the territories linked to their bordering territories with rubber bands.
+You can move them and strecht the bands, but if you make the bands cross or overlap you get an inconsistent map.
+<p>
+Look at the following example:
+<p> 
+<div class=example>
+<img src="map_topology_a.png">	
+<i>Example A</i> represents a portion of a map where the position of the territories are very close to their 
+actual positions in the TurboRisk standard map.
+</div>
+
+<p>
+<div class=example>
+<img src="map_topology_b.png">	
+In <i>Example B</i> the territories occupy new positions. However, their relations are very clear,
+because every territory is next to its the bordering territories.
+This is a "well-formed" variation of <i>Example A</i>.
+</div>
+
+<p>
+<div class=example>
+<img src="map_topology_c.png">	
+On the contrary, <i>Example C</i> is a "bad map". From the position of the territories, the
+user will deduce that he can move his armies from Alaska to Ontario, which is not possible, and
+he will be surprised to see that armies can go from Alaska to Alberta, which is not adjacent to it.
+</div>
+
+<p>
+Thus, in making new maps, you're suggested to make them easy to understand. In other words, place bordering 
+territories one next to the other, like if the armies could actually move on the ground (or sea) to
+go from one to the other.
+
+</body>
+</html>

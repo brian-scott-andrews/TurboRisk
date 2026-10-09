@@ -1,0 +1,36 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>TStrongestFront function</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>TStrongestFront function</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>function</b> TStrongestFront(T: integer; <b>var</b> ET,EA: integer): boolean;
+</code>
+
+<h3>Description</h3>
+
+Returns false if T is out of range, otherwise true.
+<p>
+The "var" variables will contain information on territory T:
+<ul>
+	<li>
+	ET: number of the strongest enemy's territory bordering on T, 0 if T has not fronts
+	<li>
+	EA: enemy's armies on territory ET
+</ul>
+<p>	
+Unassigned territories are not counted.
+
+</body>
+</html>

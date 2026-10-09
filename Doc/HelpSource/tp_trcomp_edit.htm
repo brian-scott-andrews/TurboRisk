@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>Editing a TRP</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h1>Editing a TRP</h1>
+
+The main window of TRComp is divided into six areas: 
+<ul>
+	<li>
+	The <i>menu bar</i>: gives access to all the functions of TRComp.
+	<li>
+	The <i>toolbar</i>: provides a quicker way to activate some of the same
+	functions you find in the menu bar.
+	<li>
+	The <i>editing area</i>: a large area where you can write and edit the
+	source code of your TRP.
+	<li>
+	The <i>API list</i>: a pane on the left containing the complete list
+	of the <a href="tp_api.htm">TurboRisk API functions and procedures</a>.
+	<li>
+	The <i>function list</i>: a pane on the left containing the complete list
+	of the functions and procedures defined in the program.
+	<li>
+	The <i>message list</i>: a pane at the bottom, which shows the list
+	of errors, warnings and hints reported by TRComp when you compile your TRP.
+</ul>
+
+<h2>The Editor</h2>	
+
+The text editor incorporated in TRComp is a full featured editor, with syntax 
+highlighting to make your programs more readable.
+<p>
+Its many functionalities can be accessed through the 
+<font class=menu>&nbsp;Edit&nbsp;</font> menu, the <i>toolbar</i>, some <i>keyboard
+shortcuts</i> and the <i>popup menu</i> activated by a right click inside the 
+editing area. 
+<p>
+The editor also features unlimited undo-redo of your changes, complete text find/replace
+functionalities (supporting also regular expressions) and bookmarking (up to ten
+bookmarks).
+<p>
+TRComp supports contextual help: when you press F1 and the cursor is on a valid API function,
+the help system opend at the proper API documentation page.
+
+<h2>The API list</h2>
+
+The <i>API list</i> contains all the TurboRisk API calls, grouped into categories. If you leave
+the mouse pointer on a name for a while, a hint appears that describes the purpose of the function
+and its parameters.
+<p>
+If you double-click on a name, that function name will be inserted in your source code.
+
+<h2>The function list</h2>
+
+The <i>function list</i> contains a list of the procedures and functions defined in your program,
+sorted in alphabetical order. 
+It's a dynamic list, which changes whenever you add, change or remove a procedure or
+a function.
+<p>
+If you double-click on a name, the cursor in the editing area will move to the first line of that
+procedure/function.
+
+<h2>The message list</h2>
+
+This pane is a read-only area where TRComp shows compilation errors, warnings and hints.
+<p>
+Double-click on an error message will make the cursor in the editing area move to the 
+corresponding line.
+
+<h2>Keyboard shortcuts</h2>
+
+<table>
+	<tr>
+		<th>Shortcut</th><th>Action</th>
+	</tr>	
+	<tr>
+		<td>Ctrl-A</td><td>Select all</td>
+	<tr>
+		<td>Ctrl-C</td><td>Copy selected text</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-V</td><td>Paste text</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-X</td><td>Cut selected text</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-I</td><td>Block indent</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-U</td><td>Block unindent</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-T</td><td>Delete word</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Y</td><td>Delete line</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Z</td><td>Undo</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-Z</td><td>Redo</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-1..Ctrl-9</td><td>Go to bookmark 1..9</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-1..Ctrl-Shift-9</td><td>Set bookmark 1..9</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-N</td><td>Normal selection</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-C</td><td>Column selection</td>
+	</tr>	
+	<tr>
+		<td>Ctrl-Shift-L</td><td>Line selection</td>
+	</tr>	
+</table>
+
+</body>
+</html>

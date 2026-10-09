@@ -1,0 +1,46 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+
+<html>
+<head>
+<meta name="GENERATOR" content="Microsoft&reg; HTML Help Workshop 4.1">
+<title>TWeakestPath function</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+
+<body>
+
+<h2>TWeakestPath function</h2>
+
+<hr>
+
+<h3>Syntax</h3>
+
+<code>
+  <b>function</b> TWeakestPath(ST, DT: integer; <b>var</b> TT, PL, EA: integer): boolean;
+</code>
+
+<h3>Description</h3>
+
+Finds the weakest path to go from the start territory ST to the destination territory DT.
+<p>
+The "weakest path" is the path that contains the minimum number of enemy armies
+and that doesn't cross territories already owned by the current player.
+<p>
+The "cost" of a path is computed considering the total number of enemy armies along the path
+plus 1 per each territory to conquer (corresponds to EA + PL). TWeakestPath returns the 
+path with the minimum cost among all the possible paths.
+<p>
+Returns false if ST or DT are out of range or if the path doesn't exist.
+<p>
+The "var" variables will contain return information on the path from ST to DT:
+<ul>
+	<li>
+	TT: first territory in the path.
+	<li>
+	PL: path length (number of territories to conquer).
+	<li>
+	EA: total number of enemy armies along the path.
+</ul>	
+
+</body>
+</html>
