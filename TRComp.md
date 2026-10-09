@@ -14,5 +14,21 @@ Select a procedure/function and choose **Run** to test it. TRComp asks for a tes
 
 The editor provides Pascal syntax highlighting, line numbers, undo/redo, and clipboard editing. Double-clicking a compiler message with a source line navigates to that line. TRComp reads and saves `FontSize`, `TabWidth`, and `LineNumbers` from the `[Edit]` section of `TRComp.ini` beside the executable, so the legacy editor settings file can be reused. Window dimensions and pane sizes are saved in the `[Windows]` section. **F1** opens `Doc/TurboRisk.chm` beside the executable.
 
+Routine tests run in an isolated game context. Territory, continent, player,
+turn-order, game-control, random-number, and script-runtime state is restored
+after each run; only the edited execution context (including player buffers)
+and the routine's results are returned to the editor.
+
+Build and run the TRComp regression workflow tests with:
+
+```powershell
+C:\lazarus\lazbuild.exe .\tests\TRCompWorkflowTests.lpi
+.\tests\TRCompWorkflowTests.exe
+```
+
+These tests check valid and incomplete TRP validation, editable context values,
+function results, `var` parameters, captured utility calls, and restoration of
+the active game state and random sequence.
+
 For legacy player-script migration guidance and numbered territory maps, see
 the [TRP conversion reference](Doc/README.md).

@@ -6,6 +6,12 @@ unit ExpSubr;
 
 interface
 
+type
+  TURandomState = record
+    RandSeed: LongInt;
+    Initialized: Boolean;
+  end;
+
 function TName(T: integer): string;
 function TOwner(T: integer): integer;
 function TArmies(T: integer): integer;
@@ -56,6 +62,8 @@ procedure UBufferSet(B: integer; V: double);
 function UBufferGet(B: integer): double;
 function URandom(R: integer): double;
 procedure SetURandomSeed(Seed: Integer);
+function CaptureURandomState: TURandomState;
+procedure RestoreURandomState(const State: TURandomState);
 procedure UTakeSnapshot(M: string);
 function UDialogO(M, B: string): integer;
 procedure UAbortGame;
@@ -1158,6 +1166,18 @@ procedure SetURandomSeed(Seed: Integer);
 begin
   RandSeed := Seed;
   bURandomInitialized := True;
+end;
+
+function CaptureURandomState: TURandomState;
+begin
+  Result.RandSeed := RandSeed;
+  Result.Initialized := bURandomInitialized;
+end;
+
+procedure RestoreURandomState(const State: TURandomState);
+begin
+  RandSeed := State.RandSeed;
+  bURandomInitialized := State.Initialized;
 end;
 
 function URandom(R: integer): double;

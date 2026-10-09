@@ -32,7 +32,8 @@ var
   Document: TvVectorialDocument;
   Page: TvVectorialPage;
   TerritoryPath: TPath;
-  SourceName, MapName, SVGName, BackgroundName: string;
+  SourceName, MapName, SVGName, BackgroundName, ValidationReport: string;
+  PreviewPixel: TColor;
 begin
   SourceName := IncludeTrailingPathDelimiter(ADirectory) + 'flat-territories.bmp';
   MapName := IncludeTrailingPathDelimiter(ADirectory) + 'bitmap-map.trm';
@@ -127,6 +128,53 @@ begin
     RenderedVector.Free;
   end;
 
+  Editor := TfTRMap.Create(nil);
+  try
+    Editor.OpenMapFile(MapName);
+    Editor.ActiveViewCombo.ItemIndex := 2;
+    Editor.ActiveViewComboChange(Editor.ActiveViewCombo);
+    Editor.MapImageMouseDown(Editor.MapImage, mbLeft, [], 10, 10);
+    Editor.TransformMapPoints(1.5, 2);
+    Editor.SaveMapFile(MapName);
+
+    Ini := TIniFile.Create(MapName);
+    try
+      Check(Ini.ReadInteger('Territory_1', 'Tx', -1) = 15,
+        'Transform did not scale the text-box X coordinate.');
+      Check(Ini.ReadInteger('Territory_1', 'Ty', -1) = 20,
+        'Transform did not scale the text-box Y coordinate.');
+      Check(Ini.ReadInteger('Territory_1', 'FF1x', -1) = 30,
+        'Transform did not scale the floodfill X coordinate.');
+      Check(Ini.ReadInteger('Territory_1', 'FF1y', -1) = 40,
+        'Transform did not scale the floodfill Y coordinate.');
+    finally
+      Ini.Free;
+    end;
+
+    Editor.ActiveViewCombo.ItemIndex := 4;
+    Editor.ActiveViewComboChange(Editor.ActiveViewCombo);
+    Editor.MapImageMouseDown(Editor.MapImage, mbLeft, [], 20, 20);
+    PreviewPixel := Editor.MapImage.Picture.Bitmap.Canvas.Pixels[30, 40];
+    Check(PreviewPixel <> RGBToColor(204, 34, 17),
+      'Simulation preview did not apply its preview color to the territory.');
+
+    Editor.ClearFloodPoints;
+    Editor.SaveMapFile(MapName);
+    Ini := TIniFile.Create(MapName);
+    try
+      Check(Ini.ReadInteger('Territory_1', 'FFCount', -1) = 0,
+        'Clear floodfill points did not clear the saved points.');
+    finally
+      Ini.Free;
+    end;
+    Check(not Editor.ValidateMap(ValidationReport),
+      'Validation accepted a map with cleared territory points.');
+    Check(Pos('ERROR:', ValidationReport) > 0,
+      'Validation did not report missing territory points.');
+  finally
+    Editor.Free;
+  end;
+
   Reopened := TfTRMap.Create(nil);
   try
     Reopened.OpenMapFile(MapName);
@@ -135,6 +183,41 @@ begin
       'Reopened TRM did not preserve the map dimensions.');
     Check(Reopened.TerritoryList.Items[0] = '1 - Alaska',
       'Reopened TRM did not restore the territory list.');
+  finally
+    Reopened.Free;
+  end;
+end;
+
+procedure TestExistingMapOpenSave(const ADirectory: string);
+var
+  Editor, Reopened: TfTRMap;
+  SourceName, MapName, ValidationReport: string;
+begin
+  SourceName := ExpandFileName(IncludeTrailingPathDelimiter(
+    ExtractFilePath(ParamStr(0))) + '..' + PathDelim + 'maps' + PathDelim +
+    'std_map_small.trm');
+  MapName := IncludeTrailingPathDelimiter(ADirectory) + 'existing-map.trm';
+  Check(FileExists(SourceName), 'The standard-map regression fixture is missing.');
+
+  Editor := TfTRMap.Create(nil);
+  try
+    Editor.OpenMapFile(SourceName);
+    Check(Editor.ValidateMap(ValidationReport),
+      'Existing standard map did not validate: ' + ValidationReport);
+    Editor.SaveMapFile(MapName);
+  finally
+    Editor.Free;
+  end;
+  Check(FileExists(MapName), 'Opening and saving an existing TRM failed.');
+
+  Reopened := TfTRMap.Create(nil);
+  try
+    Reopened.OpenMapFile(MapName);
+    Check((Reopened.MapImage.Picture.Bitmap.Width > 0) and
+      (Reopened.MapImage.Picture.Bitmap.Height > 0),
+      'Saved existing TRM did not reopen and render.');
+    Check(Reopened.ValidateMap(ValidationReport),
+      'Saved existing map did not validate: ' + ValidationReport);
   finally
     Reopened.Free;
   end;
@@ -201,9 +284,10 @@ end;
 var
   TempDirectory: string;
   TestGuid: TGuid;
-  TestFiles: array[0..6] of string = (
+  TestFiles: array[0..8] of string = (
     'flat-territories.bmp', 'bitmap-map.trm', 'bitmap-map.svg',
-    'bitmap-map.bmp', 'two-territories.svg', 'svg-map.trm', 'svg-map.svg');
+    'bitmap-map.bmp', 'two-territories.svg', 'svg-map.trm', 'svg-map.svg',
+    'existing-map.trm', 'existing-map.bmp');
   I: Integer;
 begin
   try
@@ -219,8 +303,9 @@ begin
     Application.Initialize;
     try
       TestBitmapImportSaveReload(TempDirectory);
+      TestExistingMapOpenSave(TempDirectory);
       TestSVGImportSaveReload(TempDirectory);
-      WriteLn('TRMap import/save/reopen workflow tests passed.');
+      WriteLn('TRMap import/edit/validate/save/reopen workflow tests passed.');
     finally
       for I := Low(TestFiles) to High(TestFiles) do
         DeleteFile(IncludeTrailingPathDelimiter(TempDirectory) + TestFiles[I]);

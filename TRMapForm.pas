@@ -81,6 +81,9 @@ type
     procedure ImportMapFile(const AFileName: string);
     procedure OpenMapFile(const AFileName: string);
     procedure SaveMapFile(const AFileName: string);
+    procedure ClearFloodPoints;
+    procedure TransformMapPoints(ScaleX, ScaleY: Double);
+    function ValidateMap(out AReport: string): Boolean;
   private
     FBitmap: TBitmap;
     FSVGDocument: TvVectorialDocument;
@@ -344,7 +347,7 @@ begin
   TransformButton := TButton.Create(Self);
   TransformButton.Parent := UtilitiesTab;
   TransformButton.SetBounds(12, 198, 330, 32);
-  TransformButton.Caption := 'Text box points - Transform';
+  TransformButton.Caption := 'Map point coordinates - Transform';
   TransformButton.OnClick := TransformButtonClick;
   ValidateButton := TButton.Create(Self);
   ValidateButton.Parent := UtilitiesTab;
@@ -1334,35 +1337,45 @@ begin
   RenderMap;
 end;
 
-procedure TfTRMap.ClearAllButtonClick(Sender: TObject);
+procedure TfTRMap.ClearFloodPoints;
 var
   I: Integer;
 begin
-  if MessageDlg('Clear all territory floodfill points?', mtConfirmation,
-    [mbYes, mbNo], 0) <> mrYes then
-    Exit;
   for I := 1 to TERRITORY_COUNT do
     SetLength(FTerritories[I].FloodPoints, 0);
   RenderMap;
 end;
 
-procedure TfTRMap.TransformButtonClick(Sender: TObject);
+procedure TfTRMap.ClearAllButtonClick(Sender: TObject);
+begin
+  if MessageDlg('Clear all territory floodfill points?', mtConfirmation,
+    [mbYes, mbNo], 0) <> mrYes then
+    Exit;
+  ClearFloodPoints;
+end;
+
+procedure TfTRMap.TransformMapPoints(ScaleX, ScaleY: Double);
 var
   I, J: Integer;
 begin
   for I := 1 to TERRITORY_COUNT do begin
     FTerritories[I].TextPoint.X := Round(FTerritories[I].TextPoint.X *
-      TransformXEdit.Value);
+      ScaleX);
     FTerritories[I].TextPoint.Y := Round(FTerritories[I].TextPoint.Y *
-      TransformYEdit.Value);
+      ScaleY);
     for J := 0 to High(FTerritories[I].FloodPoints) do begin
       FTerritories[I].FloodPoints[J].X := Round(
-        FTerritories[I].FloodPoints[J].X * TransformXEdit.Value);
+        FTerritories[I].FloodPoints[J].X * ScaleX);
       FTerritories[I].FloodPoints[J].Y := Round(
-        FTerritories[I].FloodPoints[J].Y * TransformYEdit.Value);
+        FTerritories[I].FloodPoints[J].Y * ScaleY);
     end;
   end;
   RenderMap;
+end;
+
+procedure TfTRMap.TransformButtonClick(Sender: TObject);
+begin
+  TransformMapPoints(TransformXEdit.Value, TransformYEdit.Value);
 end;
 
 procedure TfTRMap.NewVersionButtonClick(Sender: TObject);
@@ -1372,6 +1385,14 @@ end;
 
 procedure TfTRMap.ValidateButtonClick(Sender: TObject);
 var
+  Report: string;
+begin
+  ValidateMap(Report);
+  MessageDlg(Report, mtInformation, [mbOK], 0);
+end;
+
+function TfTRMap.ValidateMap(out AReport: string): Boolean;
+var
   I, J, Errors, Warnings: Integer;
   P, Q: TPoint;
   Found: Boolean;
@@ -1379,6 +1400,7 @@ var
 begin
   Errors := 0;
   Warnings := 0;
+  Result := False;
   Report := TStringList.Create;
   try
     if (FSVGPage = nil) and (FBitmap = nil) then begin
@@ -1456,7 +1478,8 @@ begin
       Report.Add('Map validation passed.');
     Report.Insert(0, Format('Validation: %d error(s), %d warning(s).',
       [Errors, Warnings]));
-    MessageDlg(Report.Text, mtInformation, [mbOK], 0);
+    AReport := Report.Text;
+    Result := (Errors = 0) and (Warnings = 0);
   finally
     Report.Free;
   end;
