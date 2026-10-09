@@ -79,8 +79,34 @@
  // 48: DoOrDie (0..42), FromTerritory (0 for none)
  // 49: DoOrDie (0..42), ToTerritory (0 for none)
  // 50: MasterID (1..10), the players ID of the chosen master
+ // 51: Master eliminated (0=no, 1=yes)
 
+PROCEDURE CheckMasterElimination;
+VAR
+  Master: Integer;
+BEGIN
+  Master:=trunc(UBufferGet(50));
+  IF (Master>0) AND (UBufferGet(51)=0) AND
+     ((NOT PActive(Master)) OR (PTerritoriesCount(Master)=0)) THEN
+    UBufferSet(51,1);
+END;
 
+FUNCTION TerritoryEnclosedByMyMaster(TT: Integer): Boolean;
+VAR
+  B, Master: Integer;
+BEGIN
+  Master:=trunc(UBufferGet(50));
+  Result:=False;
+  IF (Master=0) OR (UBufferGet(51)<>0) THEN Exit;
+  Result:=True;
+  FOR B:=1 TO TBordersCount(TT) DO
+    IF (TOwner(TBorder(TT,B))<>PMe) AND
+       (TOwner(TBorder(TT,B))<>Master) THEN
+    BEGIN
+      Result:=False;
+      Exit;
+    END;
+END;
 
 PROCEDURE Assignment(var ToTerritory: integer);
 VAR
@@ -103,8 +129,9 @@ VAR
  END;   }
 
 BEGIN
+  CheckMasterElimination;
   //choosing master
-  IF (UBufferGet(50)=0) THEN
+  IF (UBufferGet(50)=0) AND (UBufferGet(51)=0) THEN
   BEGIN
     BT := 0;
     FOR T:=1 TO 10 DO  IF PActive(T) AND (PMe <> T) THEN BT:=BT+1;
@@ -114,7 +141,7 @@ BEGIN
       IF PActive(T) AND (PMe <> T) THEN C:=C-1;
       IF (C=0) AND (UBufferGet(50)=0) THEN UBufferSet(50,T)
     END;
-    {ULog(PName(PMe),' here. Chosen master: ',PName(UBufferGet(50))) }
+    ULog(PName(PMe),' here. Chosen master: ',PName(trunc(UBufferGet(50))));
   END; //choosing Master
 
 
@@ -133,14 +160,14 @@ BEGIN
       BEGIN
         BT:=TBorder(T,B);
         IF TOwner(BT)=PMe THEN Ratio:=Ratio*1.1;  // Having myself as neighbour makes less fronts to defend
-        IF TOwner(BT)=UBufferGet(50) THEN Ratio:=Ratio*1.05;
-        IF COwner(TContinent(BT))=UBufferGet(50) THEN Ratio:=Ratio*1.2;
+        IF (UBufferGet(51)=0) AND (TOwner(BT)=UBufferGet(50)) THEN Ratio:=Ratio*1.05;
+        IF (UBufferGet(51)=0) AND (COwner(TContinent(BT))=UBufferGet(50)) THEN Ratio:=Ratio*1.2;
         IF COwner(TContinent(BT))=PMe THEN Ratio:=Ratio*1.25
       END;
       CLeader(C, LP,LT,LA);
       IF (LT=CTerritoriesCount(C)-1) AND (LP>0) THEN
       BEGIN
-        IF LP=UBufferGet(50) THEN Ratio:=0.1
+        IF (UBufferGet(51)=0) AND (LP=UBufferGet(50)) THEN Ratio:=0.1
         ELSE Ratio:=Ratio*10+10;  // I want THIS territory, either to avoid the enemy getting the bonus, or to make it my bonus
       END;
       IF Ratio>MaxRatio THEN
@@ -177,20 +204,8 @@ VAR
     result:=ETIE;
   END; //function EnemyTerritoryIsEnclosed(TT:Integer):Boolean;}
 
-  {FUNCTION TerritoryEnclosedByMyMaster(TT:Integer):Boolean;
-  VAR CTEBMM, BTEBMM : Integer;
-      TEBMM : Boolean;
-  BEGIN
-    TEBMM := true;
-    FOR BTEBMM:=1 TO TBordersCount(TT) DO
-    BEGIN
-      IF (TOwner(TBorder(TT,BTEBMM))<>UBufferGet(50)) AND (TOwner(TBorder(TT,BTEBMM))<>PMe) THEN TEBMM:=false;
-    END;
-    result:=TEBMM
-  END; //function TerritoryEnclosedByMyMaster(TT:Integer):Boolean;}
-
-
 BEGIN
+  CheckMasterElimination;
   // reinforce territory with greatest ratio between total enemy armies and own armies
   // modified by some factors (on same continent, number of fronts, ...)
   ToTerritory:=0;
@@ -202,7 +217,7 @@ BEGIN
   // I need to defend every territory if BFAT is True. Later I only strengthen certain
   // territories to prevent useless placement of armies.
 
-  IF (UBufferGet(50)=0) AND BeforeFirstAttackTurn THEN
+  IF (UBufferGet(50)=0) AND (UBufferGet(51)=0) AND BeforeFirstAttackTurn THEN
   BEGIN
     PT := 0;
     FOR T:=1 TO 10 DO  IF PActive(T) AND (PMe <> T) THEN PT:=PT+1;
@@ -212,7 +227,7 @@ BEGIN
       IF PActive(T) AND (PMe <> T) THEN B:=B-1;
       IF (B=0) AND (UBufferGet(50)=0) THEN UBufferSet(50,T)
     END;
-    {ULog(PName(PMe),' here. Chosen master: ',PName(UBufferGet(50)));}
+    ULog(PName(PMe),' here. Chosen master: ',PName(trunc(UBufferGet(50))));
     UBufferSet(2,0)
   END;
 
@@ -254,7 +269,7 @@ BEGIN
       CRatio := PT/(PT+ET);
       IF CRatio > 0.5 THEN Ratio := Ratio* 4*CRatio;
 
-      {IF TerritoryEnclosedByMyMaster(T) THEN Ratio := 0.1;}
+      IF TerritoryEnclosedByMyMaster(T) THEN Ratio:=0.1;
 
       IF Ratio>MaxRatio THEN
       BEGIN
@@ -296,6 +311,7 @@ VAR
   END; //function EnemyTerritoryIsEnclosed}
 
 BEGIN
+  CheckMasterElimination;
 
   //Suspend "DoOrDie"
   SuspendDoOrDie := False;
@@ -328,7 +344,8 @@ BEGIN
         FOR B:=1 TO TBordersCount(T) DO
         BEGIN
           EnemyT := TBorder(T,B);
-          IF (NOT TIsMine(EnemyT)) AND (TOwner(EnemyT)<>UBufferGet(50)) THEN
+          IF (NOT TIsMine(EnemyT)) AND
+             ((UBufferGet(51)<>0) OR (TOwner(EnemyT)<>UBufferGet(50))) THEN
           BEGIN
             Ratio:=(double(TArmies(T))-1)/double(TArmies(EnemyT));     // an extra of 1 army needed (the defending one)
             IF (TFrontsCount(EnemyT) = 0) AND (Ratio>=2*MinAttackRatio/3) THEN Ratio:=Ratio*3;  //Do attack if the enemy territory is completely enclosed and two-thirds of the minimal forceratio is reached
@@ -440,6 +457,7 @@ VAR T, FromT, BiggestArmy, B, MinArmy, MaxArmy  :Integer;
   END; //function SlaveTIsFront(STIF:Integer):Boolean;}
 
 BEGIN
+  CheckMasterElimination;
   //Search weakest front and fortify it with the biggest army 
   //standing on a bordering, non-front territory.
   //If there are several weakest fronts,

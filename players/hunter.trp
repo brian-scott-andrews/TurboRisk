@@ -60,7 +60,7 @@ BEGIN
       IF PActive(T) AND (PMe <> T) THEN C:=C-1;
       IF (C=0) AND (UBufferGet(1)=0) THEN UBufferSet(1,T)
     END;
-    {ULog(PName(PMe),' here. Chosen prey: ',PName(UBufferGet(1)));}
+    ULog(PName(PMe),' here. Chosen prey: ',PName(trunc(UBufferGet(1))));
     UBufferSet(2,0)
   END;
 
@@ -139,7 +139,7 @@ BEGIN
       IF PActive(T) AND (PMe <> T) THEN B:=B-1;
       IF (B=0) AND (UBufferGet(1)=0) THEN UBufferSet(1,T)
     END;
-    {ULog(PName(PMe),' here. Chosen prey: ',PName(UBufferGet(1)));}
+    ULog(PName(PMe),' here. Chosen prey: ',PName(trunc(UBufferGet(1))));
     UBufferSet(2,0)
   END;
 

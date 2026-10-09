@@ -3330,7 +3330,7 @@ end; // end procedure Placement
 
 {------------------------------------------ATTACK--------------------------------------------------------}
 
-procedure Attack(var FromTerritory, ToTerritory: integer);
+procedure AttackCore(var FromTerritory, ToTerritory: integer);
 var
   EA1, SP, WP, P, E, MinArmy, MaxArmy, B, BT, PL, x, Cost, TT, T, ET, EA, MaxCost,
   C, MinCost, TWF, WF, Y, Armies, WPArmies, NewPArmiesCount, CForce, MaxPArmiesCount,
@@ -4401,6 +4401,41 @@ end;
     bs(69, FromTerritory);
 
   end; // end if bg(63) = 0
+end; // end procedure AttackCore
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var
+  T, GK, GBest: integer;
+  GLegal: Boolean;
+begin
+  AttackCore(FromTerritory, ToTerritory);
+  // Guard: never return an illegal attack; reselect with one bounded scan
+  if (FromTerritory > 0) or (ToTerritory > 0) then begin
+    GLegal:= False;
+    if (FromTerritory >= 1) and (FromTerritory <= 42) and (ToTerritory >= 1) and (ToTerritory <= 42) then begin
+      if TIsMine(FromTerritory) and (not TIsMine(ToTerritory)) and (TArmies(FromTerritory) > 1) then begin
+        for GK:= 1 to TBordersCount(FromTerritory) do begin
+          if TBorder(FromTerritory, GK) = ToTerritory then GLegal:= True;
+        end;
+      end;
+    end;
+    if not GLegal then begin
+      FromTerritory:= 0;
+      ToTerritory:= 0;
+      GBest:= 10000;
+      for T:= 1 to 42 do begin
+        if TIsMine(T) and (TArmies(T) > 3) then begin
+          for GK:= 1 to TBordersCount(T) do begin
+            if (not TIsMine(TBorder(T, GK))) and (TArmies(TBorder(T, GK)) < GBest) and (TArmies(T) > TArmies(TBorder(T, GK)) + 1) then begin
+              GBest:= TArmies(TBorder(T, GK));
+              FromTerritory:= T;
+              ToTerritory:= TBorder(T, GK);
+            end;
+          end;
+        end;
+      end;
+    end;
+  end;
 end; // end procedure Attack
 
 procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);

@@ -259,7 +259,7 @@ begin
      TheOwner:=TOwner(TBorder(T,j));
      if (PProgram(TheOwner)<>PProgram(PMe)) then OnlyFriends:=false;
     end;
-    if TIsMine(T) and not OnlyFriends then begin  // territory is mine and not "front"  
+    if TIsMine(T) and OnlyFriends then begin  // territory is mine and not "front"
       if TArmies(T)>MaxArmy then 
       begin
         MaxArmy := TArmies(T);

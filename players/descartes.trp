@@ -517,6 +517,7 @@ var
   TerritoryArmies: integer;
   PT,PA,ET,EA,ET2,EA2:integer;
   Au27,Au29,Au30,Au31,Au32,Au33,Au36,Au39:Integer;
+  Legal: boolean;
 begin
   FromTerritory:=0;
   ToTerritory:=0;
@@ -608,6 +609,7 @@ begin
   if (FromTerritory=0) then begin
     for T:=1 to 42 do begin
       D:=1000;
+      TA:=0;
       if TIsMine(T) then begin
         Y:=TBordersCount(T);
         for Z:=1 to Y do begin
@@ -622,7 +624,7 @@ begin
         end;
         if (KillPlayer>0) then begin
           if (((TArmies(T)-(25+D))>MaxTerritoryValue)
-          and (TArmies(T)>3)) then begin
+          and (TArmies(T)>3) and (TA>0)) then begin
             MaxTerritoryValue:=TArmies(T)-(5+D);
             FromTerritory:=T;
             ToTerritory:=TA;
@@ -630,7 +632,7 @@ begin
         end
         else begin
           if (((TArmies(T)-(25+(trunc(UBufferGet(T)))+D))>MaxTerritoryValue)
-          and (TArmies(T)>3)) then begin
+          and (TArmies(T)>3) and (TA>0)) then begin
             MaxTerritoryValue:=TArmies(T) - (25+(trunc(UBufferGet(T)))+D);
             FromTerritory:=T;
             ToTerritory:=TA;
@@ -700,6 +702,34 @@ begin
               MaxTerritoryValue:=TerritoryValue;
               ToTerritory:=T2;
             end;
+          end;
+        end;
+      end;
+    end;
+  end;
+
+  // Only return a legal attack: owned From next to a foreign To
+  Legal:=false;
+  if ((FromTerritory>0) and (ToTerritory>0)) then begin
+    if (TIsMine(FromTerritory) and (not TIsMine(ToTerritory))) then begin
+      Y:=TBordersCount(FromTerritory);
+      for Z:=1 to Y do begin
+        if (TBorder(FromTerritory,Z)=ToTerritory) then Legal:=true;
+      end;
+    end;
+  end;
+  if (not Legal) then begin
+    FromTerritory:=0;
+    ToTerritory:=0;
+    EA:=10000;
+    for T:=1 to 42 do begin
+      if (TIsMine(T) and (TArmies(T)>3)) then begin
+        for Z:=1 to TBordersCount(T) do begin
+          T2:=TBorder(T,Z);
+          if ((not TIsMine(T2)) and (TArmies(T2)<EA) and (TArmies(T)>TArmies(T2)+1)) then begin
+            EA:=TArmies(T2);
+            FromTerritory:=T;
+            ToTerritory:=T2;
           end;
         end;
       end;
