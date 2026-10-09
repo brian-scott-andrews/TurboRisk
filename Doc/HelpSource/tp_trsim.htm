@@ -39,6 +39,13 @@ Select the <i>Simulation</i> tab and specify the following parameters:
   Three lists of players: <i>always included</i> (will play all the games), <i>randomnly included</i> (may play
   some of the games) and <i>never included</i> (will play no game). You can drag and drop names from one list to
   the other.
+  <br>
+  The <i>Statistically significant sample</i> option applies to GUI simulations. The entered game count becomes
+  the minimum; TRSim continues until every player in the <i>always included</i> and <i>randomly included</i> lists
+  has a 95% Wilson confidence interval for their win rate within +/- 5 percentage points, or until ten times the
+  requested game count is reached. Only completed games count toward these estimates. If the limit is reached
+  first, the simulation log reports that the target was not reached. For TRSimCLI, use the
+  <code>--statistically-significant-sample</code> command-line option.
   <li>
   A map file: the simulation can run either with a visible map or not.
   <li>

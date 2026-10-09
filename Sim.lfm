@@ -79,7 +79,7 @@ object fSim: TfSim
         Left = 3
         Top = 93
         Width = 145
-        Height = 184
+        Height = 141
         DragMode = dmAutomatic
         ItemHeight = 13
         MultiSelect = True
@@ -87,6 +87,17 @@ object fSim: TfSim
         TabOrder = 3
         OnDragDrop = lstTRPDragDrop
         OnDragOver = lstTRPDragOver
+      end
+      object chkStatSignificantSample: TCheckBox
+        Left = 3
+        Top = 239
+        Width = 145
+        Height = 38
+        Caption = 'Statistically significant sample'
+        Hint = 'Runs at least the requested number of games, then continues until every player in Always and Random has a win-rate estimate with a 95% Wilson confidence interval within +/- 5 percentage points, or the 10x limit is reached. Only completed games count.'
+        ShowHint = True
+        TabOrder = 6
+        WordWrap = True
       end
       object lstRandom: TListBox
         Left = 154
@@ -149,7 +160,7 @@ object fSim: TfSim
         Width = 145
         Height = 118
         Caption = 'TRP error handling'
-        TabOrder = 6
+        TabOrder = 7
         object Label1: TLabel
           Left = 5
           Top = 0
@@ -184,7 +195,7 @@ object fSim: TfSim
         Width = 139
         Height = 52
         Caption = 'Start simulation'
-        TabOrder = 7
+        TabOrder = 8
         OnClick = cmdStartClick
       end
       object GroupBox1: TGroupBox
@@ -193,7 +204,7 @@ object fSim: TfSim
         Width = 296
         Height = 118
         Caption = 'Map && Stats'
-        TabOrder = 8
+        TabOrder = 9
         object chkShowMap: TCheckBox
           Left = 6
           Top = 0
@@ -225,7 +236,7 @@ object fSim: TfSim
         Width = 296
         Height = 118
         Caption = 'Simulation log'
-        TabOrder = 9
+        TabOrder = 10
         object Label4: TLabel
           Left = 6
           Top = 0
@@ -285,7 +296,7 @@ object fSim: TfSim
         Width = 143
         Height = 118
         Caption = 'Game limits'
-        TabOrder = 10
+        TabOrder = 11
         object Label10: TLabel
           Left = 5
           Top = 0

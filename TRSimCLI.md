@@ -72,6 +72,7 @@ Run multiple instances concurrently by assigning different `--game-log` and `--c
 | `--turn-limit <number>` | Maximum turns per game; `0` disables the limit. |
 | `--time-limit <seconds>` | Maximum seconds per game; `0` disables the limit. |
 | `--seed <number>` | Seed for the game random-number generator, including calls made by TRPs through `URandom`. Identical seeds, schedules, and game inputs produce repeatable random sequences. |
+| `--statistically-significant-sample` | Repeat the schedule cyclically, using its length as the minimum and at most 10 times that many games. Stop early when every scheduled TRP's win rate has a 95% Wilson confidence interval within +/- 5 percentage points. Only completed games contribute; the log reports if the target is not reached. |
 | `--verbose` | Log TRP decisions and action outcomes. |
 | `--error-dump` | Write a game dump when a TRP errors. |
 | `--help`, `-h` | Show command-line help. |

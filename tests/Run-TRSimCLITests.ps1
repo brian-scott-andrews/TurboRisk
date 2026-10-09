@@ -82,6 +82,13 @@ try {
   Copy-Item -Path (Join-Path $repoRoot 'maps\*') -Destination $mapsPath -Recurse
 
   $cli = Join-Path $runtimeRoot 'TRSimCLI.exe'
+  $helpResult = Invoke-TRSimCLI $cli @('--help') $runA
+  Assert-ExitCode $helpResult 0 'Command-line help'
+  if ($helpResult.StdOut -notmatch '--statistically-significant-sample') {
+    throw "Command-line help omitted --statistically-significant-sample.`n$($helpResult.StdOut)"
+  }
+  Write-Output 'PASS: --help documents statistically significant sampling.'
+
   $messagePlayer = [System.IO.File]::ReadAllText((Join-Path $playersPath 'simple.trp'))
   $messagePlayer = [regex]::Replace(
     $messagePlayer,
@@ -128,6 +135,23 @@ try {
     throw 'Verbose decision output was printed without the --verbose option.'
   }
   Write-Output 'PASS: identical seeds and rosters produce identical stable game results.'
+
+  $sampleSchedule = Join-Path $testRoot 'sample.csv'
+  Set-Content -LiteralPath $sampleSchedule -Value 'simple,randy' -Encoding ASCII
+  $sampleResult = Invoke-TRSimCLI $cli @(
+    '--schedule', $sampleSchedule, '--turn-limit', '1', '--seed', '123',
+    '--statistically-significant-sample',
+    '--game-log', (Join-Path $runA 'sample.sgl'), '--cpu-log', (Join-Path $runA 'sample.scl')
+  ) $runA
+  Assert-ExitCode $sampleResult 0 'Statistically significant sample cap'
+  $sampleGamesStarted = [regex]::Matches($sampleResult.StdOut, 'Game #\d+ started').Count
+  if ($sampleGamesStarted -ne 10) {
+    throw "Statistical sample mode should repeat a one-game schedule to its 10-game cap; started $sampleGamesStarted games."
+  }
+  if ($sampleResult.StdOut -notmatch 'Statistically significant sample not reached within the 10-game limit') {
+    throw "Statistical sample mode did not report reaching its cap.`n$($sampleResult.StdOut)"
+  }
+  Write-Output 'PASS: statistical sample mode repeats schedules and stops at the 10x cap.'
 
   $verboseSchedule = Join-Path $testRoot 'verbose.csv'
   Set-Content -LiteralPath $verboseSchedule -Value 'digger,simple' -Encoding ASCII
