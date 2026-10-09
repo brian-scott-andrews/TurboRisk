@@ -19,13 +19,16 @@
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
         <PackageName Value="lhelpcontrolpkg"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
       </Item2>
+      <Item3>
+        <PackageName Value="fpvectorialpkg"/>
+      </Item3>
     </RequiredPackages>
     <Units Count="1">
       <Unit0>

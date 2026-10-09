@@ -31,6 +31,7 @@ type
   TCardsSet = (csInf, csArt, csCav, csDif);
   TCardsHandling = (chManual, chSmart, chAuto);
   TContId = (coNA, coSA, coEU, coAF, coAS, coAU);
+  TCardValueType = (cvConstant, cvProgressive);
   TSimStatus = (ssRunning, ssComplete, ssError, ssTurnLimit, ssTimeLimit,
     ssAbort);
 
@@ -59,6 +60,9 @@ type
     Bonus: integer; // Bonus armies for the owner
   end;
 
+  TCardCounts = array [TCard] of Integer;
+  TPlayerBuffer = array [1 .. MAXBUFFER] of Double;
+
   TCPUusage = record // Information about CPU usage by TRPs (for TRSim)
     iTime: int64; // length of calls (in high resolution timer ticks)
     iPhases, // number of phases (e.g. attack, occupation...)
@@ -82,20 +86,39 @@ type
     Army: integer; // Total armies (not updated in real-time)
     NewArmy: integer; // Armies to be placed
     Territ: integer; // Number of owned territories
-    Cards: array [TCard] of integer; // Count of the owned cards (number of cards per kind)
-    NScambi: integer; // N° scambi carte effettuati
+    Cards: TCardCounts; // Count of the owned cards (number of cards per kind)
+    NScambi: integer; // Number of card trades completed
     FlConq: boolean; // Flag, true if the player conquered at least one territory during the turn
     FlMove: boolean; // Flag, true if the player performed at leaste one troops move during the turn
     LastTurn, // last turn played by the player
     Rank: integer; // Rank at the end of the game
     // Runtime variables
-    Buffer: array [1 .. MAXBUFFER] of double; // Buffer reserved to the TRPs for their 'static' values
+    Buffer: TPlayerBuffer; // Buffer reserved to the TRPs for their 'static' values
     USnapShotEnabled, // flag to enable USnapShot
     ULogEnabled, // flag to enable ULog
     UMessageEnabled, // flag to enable UMessage
     UDialogEnabled: boolean; // flag to enable UDialog
     // TRSim statistics
     aCPU: array [TRoutine] of TCPUusage;
+  end;
+
+  TTerritoryArray = array [1 .. MAXTERRITORIES] of TTerritory;
+  TContInfoArray = array [TContId] of TContInfo;
+  TPlayerArray = array [0 .. MAXPLAYERS] of TPlayer;
+
+  TTRCompContext = record
+    CurrentPlayer: Integer;
+    Conquest: Boolean;
+    CardTradeByCombination: Boolean;
+    TerritoryOwner: array [1 .. MAXTERRITORIES] of Integer;
+    TerritoryArmies: array [1 .. MAXTERRITORIES] of Integer;
+    PlayerActive: array [1 .. MAXPLAYERS] of Boolean;
+    PlayerName: array [1 .. MAXPLAYERS] of string;
+    PlayerProgram: array [1 .. MAXPLAYERS] of string;
+    PlayerCards: array [1 .. MAXPLAYERS] of TCardCounts;
+    PlayerNewArmies: array [1 .. MAXPLAYERS] of Integer;
+    Buffers: TPlayerBuffer;
+    Message: string;
   end;
 
   TPlayersSet = record // Information about a set of players
@@ -115,7 +138,9 @@ var
 
   // Generic global variabils
   bG_TRSim, // true if the main program is TRSim
-  bTRSimCLI: boolean; // true when TRSim is running without the GUI
+  bTRSimCLI, // true when TRSim is running without the GUI
+  bTRCompRunning: boolean; // true while TRComp executes a test routine
+  sTRCompRuntimeLog: string;
   sG_AppName, // application name
   sG_AppVers, // version
   sG_AppPath: string; // exe file name
@@ -138,8 +163,8 @@ var
 
   // Global variables about the map
   BaseMap: TBitmap; // Hidden base map for territory recognition
-  arTerritory: array [1 .. MAXTERRITORIES] of TTerritory; // Territories
-  arContinent: array [TContId] of TContInfo; // Continents
+  arTerritory: TTerritoryArray; // Territories
+  arContinent: TContInfoArray; // Continents
   sMapFile, // File name of the map (.trm)
   sMapDesc, // Map description
   sMapFontName: string; // Map font name
@@ -147,7 +172,7 @@ var
   tMapTextFG, tMapTextBG: TColor; // text foreground and background colors
 
   // Global variables about players and sets of players
-  arPlayer: array [0 .. MAXPLAYERS] of TPlayer; // Players
+  arPlayer: TPlayerArray; // Players
   arPlayersSet: array [0 .. MAXPLSETS] of TPlayersSet; // Players
   aiTurnList: array [0 .. MAXPLAYERS] of integer; // Turn sequence
   iPlSet, // curent players set
@@ -157,7 +182,7 @@ var
   RAssignmentType: (atRandom, atTurns); // Type of territory assignment
   RInitialArmies: array [2 .. MAXPLAYERS] of integer;
   // Number of initial armies to place
-  RCardsValueType: (cvConstant, cvProgressive); // Card trade value scheme
+  RCardsValueType: TCardValueType; // Card trade value scheme
   RSetValue: array [TCardsSet] of integer; // Value of the cards sets for the constant value scheme
   RTradeValue: array [1 .. 8] of integer; // Value of the cards sets for the progressive value scheme
   RValueInc: integer; // Value increment for the progressive value scheme after 8th trade
@@ -208,6 +233,11 @@ var
 procedure Setup;
 
 function ResolveSimPath(const sFileName: string): string;
+function ValidateTRPSource(const sName, sSource: string;
+  out sDiagnostics: string): Boolean;
+function RunTRPRoutine(const sName, sSource, sRoutine: string;
+  var Context: TTRCompContext; var aParams: array of Variant;
+  out sReturnValue, sDiagnostics: string): Boolean;
 
 // Application Cleanup
 procedure Cleanup;
@@ -259,7 +289,7 @@ procedure SetHooverTerritory(iT: integer);
 implementation
 
 uses Forms, SysUtils, IniFiles, Dialogs, Math, DateUtils,
-  uPSCompiler,
+  Variants, uPSCompiler,
   Main, Territ, Computer, Stats, Human, Cards, Log, ExpSubr, History, SimRun;
 
 function ResolveSimPath(const sFileName: string): string;
@@ -949,6 +979,245 @@ begin
   end;
 end;
 
+function ValidateTRPSource(const sName, sSource: string;
+  out sDiagnostics: string): Boolean;
+var
+  Compiler: TPSPascalCompiler;
+  Preprocessor: TPSPreProcessor;
+  sPreprocessed: ansistring;
+  iErr: Integer;
+begin
+  Result := False;
+  sDiagnostics := '';
+  bAssignmentFound := False;
+  bPlacementFound := False;
+  bAttackFound := False;
+  bOccupationFound := False;
+  bFortificationFound := False;
+
+  Compiler := TPSPascalCompiler.Create;
+  Preprocessor := TPSPreProcessor.Create;
+  try
+    Compiler.OnUses := ScriptOnUses;
+    Compiler.OnExportCheck := ScriptOnExportCheck;
+    Preprocessor.MainFileName := sName;
+    Preprocessor.MainFile := sSource;
+    Preprocessor.PreProcess(sName, sPreprocessed);
+    Result := Compiler.Compile(sPreprocessed);
+    Preprocessor.AdjustMessages(Compiler);
+
+    for iErr := 0 to Compiler.MsgCount - 1 do
+      sDiagnostics := sDiagnostics +
+        Compiler.Msg[iErr].MessageToString + LineEnding;
+
+    if Result then begin
+      if not bAssignmentFound then
+        sDiagnostics := sDiagnostics + 'ASSIGNMENT procedure not found' + LineEnding
+      else if not bPlacementFound then
+        sDiagnostics := sDiagnostics + 'PLACEMENT procedure not found' + LineEnding
+      else if not bAttackFound then
+        sDiagnostics := sDiagnostics + 'ATTACK procedure not found' + LineEnding
+      else if not bOccupationFound then
+        sDiagnostics := sDiagnostics + 'OCCUPATION procedure not found' + LineEnding
+      else if not bFortificationFound then
+        sDiagnostics := sDiagnostics + 'FORTIFICATION procedure not found' + LineEnding
+      else
+        Exit(True);
+      Result := False;
+    end;
+
+    if sDiagnostics = '' then
+      sDiagnostics := 'Compilation failed without compiler diagnostics.';
+  finally
+    Preprocessor.Free;
+    Compiler.Free;
+  end;
+end;
+
+function RunTRPRoutine(const sName, sSource, sRoutine: string;
+  var Context: TTRCompContext; var aParams: array of Variant;
+  out sReturnValue, sDiagnostics: string): Boolean;
+var
+  Compiler: TPSPascalCompiler;
+  Preprocessor: TPSPreProcessor;
+  sPreprocessed, Code: ansistring;
+  iP, iTerritory, iOwner: Integer;
+  iProc: Cardinal;
+  tContinent: TContId;
+  bScriptReady: Boolean;
+  bContinentSet: Boolean;
+  aSavedTerritories: TTerritoryArray;
+  aSavedContinents: TContInfoArray;
+  aSavedPlayers: TPlayerArray;
+  iSavedTurn, iSavedPlayerCount: Integer;
+  eSavedGameState: TGameState;
+  eSavedCardValueType: TCardValueType;
+  bSavedStopASAP, bSavedHumanTurn, bSavedEliminatedPlayer,
+    bSavedTRCompRunning: Boolean;
+  sSavedTRCompRuntimeLog: string;
+  vReturn: Variant;
+begin
+  Result := False;
+  sReturnValue := '';
+  sDiagnostics := '';
+  if (Context.CurrentPlayer < 1) or (Context.CurrentPlayer > MAXPLAYERS) or
+     not Context.PlayerActive[Context.CurrentPlayer] then begin
+    sDiagnostics := 'The current player must be active.';
+    Exit;
+  end;
+
+  aSavedTerritories := arTerritory;
+  aSavedContinents := arContinent;
+  aSavedPlayers := arPlayer;
+  iSavedTurn := iTurn;
+  iSavedPlayerCount := iNPlayers;
+  eSavedGameState := GameState;
+  eSavedCardValueType := RCardsValueType;
+  bSavedStopASAP := bStopASAP;
+  bSavedHumanTurn := bHumanTurn;
+  bSavedEliminatedPlayer := bEliminatedPlayer;
+  bSavedTRCompRunning := bTRCompRunning;
+  sSavedTRCompRuntimeLog := sTRCompRuntimeLog;
+  sTRCompRuntimeLog := '';
+  bScriptReady := False;
+  Compiler := TPSPascalCompiler.Create;
+  Preprocessor := TPSPreProcessor.Create;
+  try
+    try
+      bAssignmentFound := False;
+      bPlacementFound := False;
+      bAttackFound := False;
+      bOccupationFound := False;
+      bFortificationFound := False;
+      Compiler.OnUses := ScriptOnUses;
+      Compiler.OnExportCheck := ScriptOnExportCheck;
+      Preprocessor.MainFileName := sName;
+      Preprocessor.MainFile := sSource;
+      Preprocessor.PreProcess(sName, sPreprocessed);
+      if not Compiler.Compile(sPreprocessed) then begin
+        Preprocessor.AdjustMessages(Compiler);
+        for iP := 0 to Compiler.MsgCount - 1 do
+          sDiagnostics := sDiagnostics +
+            Compiler.Msg[iP].MessageToString + LineEnding;
+        if sDiagnostics = '' then
+          sDiagnostics := 'Compilation failed without compiler diagnostics.';
+        Exit;
+      end;
+      Preprocessor.AdjustMessages(Compiler);
+      for iP := 0 to Compiler.MsgCount - 1 do
+        sDiagnostics := sDiagnostics +
+          Compiler.Msg[iP].MessageToString + LineEnding;
+      Compiler.GetOutput(Code);
+
+      bScriptReady := True;
+      ScriptSetup;
+      if not ScriptExec.LoadData(Code) then begin
+        sDiagnostics := sDiagnostics + 'Script loading failed.';
+        Exit;
+      end;
+
+      SetupTerritories;
+      for iTerritory := 1 to MAXTERRITORIES do begin
+        arTerritory[iTerritory].Owner := Context.TerritoryOwner[iTerritory];
+        arTerritory[iTerritory].Army := Context.TerritoryArmies[iTerritory];
+      end;
+      for iP := 1 to MAXPLAYERS do begin
+        arPlayer[iP].Active := Context.PlayerActive[iP];
+        arPlayer[iP].Computer := True;
+        arPlayer[iP].Name := Context.PlayerName[iP];
+        arPlayer[iP].PrgFile := Context.PlayerProgram[iP];
+        arPlayer[iP].NewArmy := Context.PlayerNewArmies[iP];
+        arPlayer[iP].Territ := 0;
+        arPlayer[iP].Army := 0;
+        arPlayer[iP].Cards := Context.PlayerCards[iP];
+        arPlayer[iP].FlConq := Context.Conquest;
+        arPlayer[iP].FlMove := False;
+        arPlayer[iP].USnapShotEnabled := False;
+        arPlayer[iP].ULogEnabled := False;
+        arPlayer[iP].UMessageEnabled := False;
+        arPlayer[iP].UDialogEnabled := False;
+        arPlayer[iP].Buffer := Context.Buffers;
+      end;
+      iNPlayers := 0;
+      for iTerritory := 1 to MAXTERRITORIES do begin
+        iOwner := arTerritory[iTerritory].Owner;
+        if (iOwner < 0) or (iOwner > MAXPLAYERS) then
+          raise Exception.CreateFmt('Territory %d has invalid owner %d.',
+            [iTerritory, iOwner]);
+        if iOwner > 0 then begin
+          Inc(arPlayer[iOwner].Territ);
+          Inc(arPlayer[iOwner].Army, arTerritory[iTerritory].Army);
+        end;
+      end;
+      for iP := 1 to MAXPLAYERS do
+        if arPlayer[iP].Active then
+          Inc(iNPlayers);
+      for tContinent := Low(TContId) to High(TContId) do begin
+        arContinent[tContinent].Owner := 0;
+        iOwner := 0;
+        bContinentSet := False;
+        for iTerritory := 1 to MAXTERRITORIES do
+          if arTerritory[iTerritory].Contin = tContinent then begin
+            if not bContinentSet then begin
+              iOwner := arTerritory[iTerritory].Owner;
+              bContinentSet := True;
+            end
+            else if iOwner <> arTerritory[iTerritory].Owner then begin
+              iOwner := -1;
+              Break;
+            end;
+          end;
+        if iOwner > 0 then
+          arContinent[tContinent].Owner := iOwner;
+      end;
+      iTurn := Context.CurrentPlayer;
+      GameState := gsPlaying;
+      if Context.CardTradeByCombination then
+        RCardsValueType := cvConstant
+      else
+        RCardsValueType := cvProgressive;
+      bHumanTurn := False;
+      bEliminatedPlayer := False;
+      bStopASAP := False;
+      bTRCompRunning := True;
+      ScriptExec.RunScript;
+
+      iProc := ScriptExec.GetProc(sRoutine);
+      if iProc >= ScriptExec.GetProcCount then begin
+        sDiagnostics := sDiagnostics + 'Routine not found: ' + sRoutine;
+        Exit;
+      end;
+      vReturn := ScriptExec.RunProcPVar(aParams, iProc);
+      if not VarIsNull(vReturn) then
+        sReturnValue := VarToStr(vReturn);
+      Context.Buffers := arPlayer[Context.CurrentPlayer].Buffer;
+      Result := True;
+    except
+      on E: Exception do
+        sDiagnostics := sDiagnostics + E.ClassName + ': ' + E.Message;
+    end;
+  finally
+    if sTRCompRuntimeLog <> '' then
+      sDiagnostics := sDiagnostics + sTRCompRuntimeLog;
+    bTRCompRunning := bSavedTRCompRunning;
+    sTRCompRuntimeLog := sSavedTRCompRuntimeLog;
+    if bScriptReady then
+      ScriptCleanup;
+    Preprocessor.Free;
+    Compiler.Free;
+    arTerritory := aSavedTerritories;
+    arContinent := aSavedContinents;
+    arPlayer := aSavedPlayers;
+    iTurn := iSavedTurn;
+    iNPlayers := iSavedPlayerCount;
+    GameState := eSavedGameState;
+    RCardsValueType := eSavedCardValueType;
+    bStopASAP := bSavedStopASAP;
+    bHumanTurn := bSavedHumanTurn;
+    bEliminatedPlayer := bSavedEliminatedPlayer;
+  end;
+end;
+
 // New game setup
 procedure NewGameSetup;
 var
@@ -1485,7 +1754,7 @@ begin
           // Manual assignment in turn
           if arPlayer[iTurn].Computer then begin
             // Computer player
-            EseguiTurnoComputer;
+            ExecuteComputerTurn;
             PassTurn;
           end
           else begin
@@ -1535,7 +1804,7 @@ begin
         // Execute distribution
         if arPlayer[iTurn].Computer then begin
           // Computer player
-          EseguiTurnoComputer;
+          ExecuteComputerTurn;
           PassTurn;
         end
         else begin
@@ -1607,7 +1876,7 @@ begin
       // Execute a move
       if arPlayer[iTurn].Computer then begin
         // Computer player
-        EseguiTurnoComputer;
+        ExecuteComputerTurn;
         // Pick a new card if at least one territory has been conquered
         if arPlayer[iTurn].FlConq then begin
           PescaCarta;

@@ -5,7 +5,8 @@ unit Territ;
 interface
 
 uses Forms, Graphics, SysUtils, Classes, ExtCtrls, IniFiles, Math,
-  Globals, Main, Stats, Log, Sim, SimMap, FPimage, IntfGraphics, GraphType, floodfilltest;
+  Globals, Main, Stats, Log, Sim, SimMap, FPimage, IntfGraphics, GraphType,
+  floodfilltest, VectorMapRenderer;
 
 // Load a map from file
 procedure LoadMap;
@@ -62,23 +63,14 @@ end;
 procedure LoadMap;
 var
   IniFile: TIniFile;
+  VectorBitmap, BackgroundBitmap: TBitmap;
   i, iT: integer;
-  sBitmapFile, sSection: string;
+  sBitmapFile, sVectorFile, sBackgroundFile, sSection, sMapPath: string;
 begin
 
-  // load bitmap
-  sBitmapFile := ChangeFileExt(sG_AppPath + 'maps'+ PathDelim + sMapFile, '.bmp');
-  BaseMap.LoadFromFile(sBitmapFile);
-  if bG_TRSim then begin // TRSim
-    fSimMap.imgMap.Picture.Assign(BaseMap);
-  end
-  else begin // TurboRisk
-    fMain.imgMap.Picture.Assign(BaseMap);
-    // resize main window according to map
-    ResizeMainWindow;
-  end;
   // load map data
-  IniFile := TIniFile.Create(sG_AppPath + 'maps' + PathDelim + sMapFile);
+  sMapPath := IncludeTrailingPathDelimiter(sG_AppPath + 'maps');
+  IniFile := TIniFile.Create(sMapPath + sMapFile);
   try
     with IniFile do begin
       // load general info
@@ -87,6 +79,8 @@ begin
       iMapFontSize := ReadInteger('Map', 'FontSize', 8);
       tMapTextFG := ReadInteger('Map', 'TextFG', clBlack);
       tMapTextBG := ReadInteger('Map', 'TextBG', clWhite);
+      sVectorFile := ReadString('Map', 'VectorFile', '');
+      sBackgroundFile := ReadString('Map', 'BackgroundFile', '');
       // load territories
       for iT := 1 to MAXTERRITORIES do begin
         with arTerritory[iT] do begin
@@ -103,6 +97,41 @@ begin
     end;
   finally
     IniFile.Free;
+  end;
+
+  sBitmapFile := sMapPath + ChangeFileExt(sMapFile, '.bmp');
+  if sVectorFile <> '' then begin
+    sVectorFile := sMapPath + ExtractFileName(sVectorFile);
+    if sBackgroundFile <> '' then begin
+      sBitmapFile := sMapPath + ExtractFileName(sBackgroundFile);
+      BackgroundBitmap := TBitmap.Create;
+      VectorBitmap := TBitmap.Create;
+      try
+        if not FileExists(sBitmapFile) then
+          raise Exception.CreateFmt('Map background not found: %s', [sBitmapFile]);
+        BackgroundBitmap.LoadFromFile(sBitmapFile);
+        RenderSVGToBitmap(sVectorFile, VectorBitmap, True,
+          BackgroundBitmap.Width, BackgroundBitmap.Height);
+        BaseMap.Assign(BackgroundBitmap);
+        BaseMap.Canvas.Draw(0, 0, VectorBitmap);
+      finally
+        VectorBitmap.Free;
+        BackgroundBitmap.Free;
+      end;
+    end
+    else
+      RenderSVGToBitmap(sVectorFile, BaseMap);
+  end
+  else
+    BaseMap.LoadFromFile(sBitmapFile);
+
+  if bG_TRSim then begin // TRSim
+    fSimMap.imgMap.Picture.Assign(BaseMap);
+  end
+  else begin // TurboRisk
+    fMain.imgMap.Picture.Assign(BaseMap);
+    // resize main window according to map
+    ResizeMainWindow;
   end;
 end;
 
