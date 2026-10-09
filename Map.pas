@@ -44,7 +44,7 @@ implementation
 
 {$R *.lfm}
 
-uses Globals, IniFiles, Territ;
+uses Globals, IniFiles, Territ, VectorMapRenderer;
 
 procedure TfMap.FormShow(Sender: TObject);
 var
@@ -115,35 +115,55 @@ end;
 procedure TfMap.lstMapSelectItem(Sender: TObject; Item: TListItem;
   Selected: Boolean);
 var
-  sBmpFile: string;
-  bmp: TBitmap;
+  sBmpFile, sVectorFile, sBackgroundFile, sMapPath: string;
+  bmp, VectorBitmap: TBitmap;
+  IniFile: TIniFile;
 begin
   if bLoading then exit;
   if lstMap.ItemIndex<0 then exit;
-  sBmpFile := ChangeFileExt(sG_AppPath+'maps'+PathDelim+Item.Caption,'.bmp');
-  if FileExists(sBmpFile) then begin
-    bmp := TBitmap.Create;
-    try
-      // load bitmap and compute ratio
+  sMapPath := IncludeTrailingPathDelimiter(sG_AppPath+'maps');
+  sBmpFile := ChangeFileExt(sMapPath+Item.Caption,'.bmp');
+  IniFile := TIniFile.Create(sMapPath+Item.Caption);
+  try
+    sVectorFile := IniFile.ReadString('Map','VectorFile','');
+    sBackgroundFile := IniFile.ReadString('Map','BackgroundFile','');
+  finally
+    IniFile.Free;
+  end;
+  bmp := TBitmap.Create;
+  try
+    if sVectorFile <> '' then begin
+      sVectorFile := sMapPath+ExtractFileName(sVectorFile);
+      if sBackgroundFile <> '' then begin
+        sBmpFile := sMapPath+ExtractFileName(sBackgroundFile);
+        bmp.LoadFromFile(sBmpFile);
+        VectorBitmap := TBitmap.Create;
+        try
+          RenderSVGToBitmap(sVectorFile, VectorBitmap, True, bmp.Width,
+            bmp.Height);
+          bmp.Canvas.Draw(0, 0, VectorBitmap);
+        finally
+          VectorBitmap.Free;
+        end;
+      end
+      else
+        RenderSVGToBitmap(sVectorFile, bmp);
+    end
+    else begin
       bmp.LoadFromFile(sBmpFile);
-      // stretch it into preview
-      SetStretchBltMode(imgMapPreview.Canvas.Handle, HALFTONE);  // improve strech quality
-      StretchBlt(imgMapPreview.Canvas.Handle, 0, 0, imgMapPreview.Width, imgMapPreview.Height, bmp.Canvas.Handle, 0, 0, bmp.Width, bmp.Height, SrcCopy);
-      imgMapPreview.Refresh;
-      // update controls
-      imgMapPreview.Visible := true;
-      panMapPreview.Caption := '';
-      txtMapSize.Text := IntToStr(bmp.Width)+' x '
-                       + IntToStr(bmp.Height);
-      txtMapAuthor.Text := lstMap.ItemFocused.SubItems[1];
-      txtMapRevision.Text := lstMap.ItemFocused.SubItems[2];
-    finally
-      bmp.Free;
     end;
-  end else begin
-    imgMapPreview.Visible := false;
-    txtMapSize.Text := '';
-    panMapPreview.Caption := 'Cannot find bitmap file';
+    SetStretchBltMode(imgMapPreview.Canvas.Handle, HALFTONE);
+    StretchBlt(imgMapPreview.Canvas.Handle, 0, 0, imgMapPreview.Width,
+      imgMapPreview.Height, bmp.Canvas.Handle, 0, 0, bmp.Width, bmp.Height,
+      SrcCopy);
+    imgMapPreview.Refresh;
+    imgMapPreview.Visible := true;
+    panMapPreview.Caption := '';
+    txtMapSize.Text := IntToStr(bmp.Width)+' x '+IntToStr(bmp.Height);
+    txtMapAuthor.Text := lstMap.ItemFocused.SubItems[1];
+    txtMapRevision.Text := lstMap.ItemFocused.SubItems[2];
+  finally
+    bmp.Free;
   end;
 end;
 

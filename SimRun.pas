@@ -55,10 +55,14 @@ begin
 end;
 
 procedure TfSimRun.SimLog(const sMsg: string);
+var
+  sLogEntry: string;
 begin
-  txtSimLog.Lines.Add(FormatDateTime('hh:nn:ss',Now)+' '+sMsg);
+  sLogEntry := FormatDateTime('hh:nn:ss', Now) + ' ' + sMsg;
   if bTRSimCLI then
-    WriteLn(FormatDateTime('hh:nn:ss', Now) + ' ' + sMsg);
+    WriteLn(sLogEntry)
+  else
+    txtSimLog.Lines.Add(sLogEntry);
 end;
 
 procedure TfSimRun.UpdateSimStats;

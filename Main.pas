@@ -282,7 +282,7 @@ begin
   try
     if Help.ServerRunning = false then
       Help.StartHelpServer('letters', GetLHelpFilename);
-    Res := Help.OpenFile(sG_AppPath + 'TurboRisk.chm');
+    Res := Help.OpenFile(sG_AppPath + 'Doc' + PathDelim + 'TurboRisk.chm');
   finally
     Screen.Cursor := crDefault;
   end;
@@ -305,7 +305,8 @@ end;
 procedure TfMain.mnuHelReadmeClick(Sender: TObject);
 begin
   // Application.HelpSystem.ShowTableOfContents; // doesn'twork!
-  Application.HelpSystem.ShowContextHelp(100, sG_AppPath + 'TurboRisk.chm');
+  Application.HelpSystem.ShowContextHelp(100,
+    sG_AppPath + 'Doc' + PathDelim + 'TurboRisk.chm');
 end;
 }
 

@@ -82,13 +82,14 @@ type
 
 var
   fSim: TfSim;
+  bSimVerbose: Boolean;
 
 implementation
 
 {$R *.lfm}
 
 uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
-  SimCPULog, SimGameLog;
+  SimCPULog, SimGameLog, ExpSubr;
 
 procedure TfSim.FormShow(Sender: TObject);
 begin
@@ -97,7 +98,7 @@ begin
   PopulateMapList;
   SimSetup; // TRSim specific setup
   Caption := 'TRSim ' + sG_AppVers;
-  Application.HelpFile := sG_AppPath + 'TurboRisk.chm';
+  Application.HelpFile := sG_AppPath + 'Doc' + PathDelim + 'TurboRisk.chm';
   PopulateTRPList;
   pgcSim.ActivePage := tbsSim;
 end;
@@ -144,6 +145,7 @@ var
     WriteLn('  --turn-limit <number>  Maximum turns per game (0: unlimited)');
     WriteLn('  --time-limit <seconds> Maximum seconds per game (0: unlimited)');
     WriteLn('  --seed <number>        Random-number-generator seed');
+    WriteLn('  --verbose              Log TRP decisions and action outcomes');
     WriteLn('  --error-dump           Write a game dump when a TRP errors');
     WriteLn('  --help, -h             Show this help');
     WriteLn('Exit codes: 0 success; 1 one or more TRP errors; 2 input or setup error.');
@@ -154,6 +156,7 @@ var
 begin
   Result := 2;
   bErrorDump := False;
+  bSimVerbose := False;
   sScheduleFile := '';
   sMapName := 'std_map_small.trm';
   sGameLogFile := '';
@@ -190,6 +193,8 @@ begin
         end
       else if sArg = '--error-dump' then
         bErrorDump := True
+      else if sArg = '--verbose' then
+        bSimVerbose := True
       else
         raise Exception.Create('Unknown option: ' + ParamStr(iArg));
       Inc(iArg);
@@ -206,7 +211,7 @@ begin
     bTRSimCLI := True;
     FormShow(Self);
     if bSeedSpecified then
-      RandSeed := iSeed;
+      SetURandomSeed(iSeed);
 
     iValue := cboMap.Items.IndexOf(LowerCase(sMapName));
     if iValue < 0 then
@@ -297,11 +302,11 @@ begin
     chkErrorAbort.Checked := True;
     chkErrorDump.Checked := bErrorDump;
     if sGameLogFile = '' then
-      sGameLogFile := ResolveSimPath('TRSimCLI.sgl')
+      sGameLogFile := ExpandFileName('TRSimCLI.sgl')
     else
       sGameLogFile := ExpandFileName(sGameLogFile);
     if sCPULogFile = '' then
-      sCPULogFile := ResolveSimPath('TRSimCLI.scl')
+      sCPULogFile := ExpandFileName('TRSimCLI.scl')
     else
       sCPULogFile := ExpandFileName(sCPULogFile);
     if not DirectoryExists(ExtractFileDir(sGameLogFile)) then
@@ -328,6 +333,7 @@ begin
     end;
   end;
   FreeAndNil(fPlayerSchedule);
+  bSimVerbose := False;
   bTRSimCLI := False;
 end;
 

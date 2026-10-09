@@ -65,13 +65,16 @@
         <Mode0 Name="default"/>
       </Modes>
     </RunParams>
-    <RequiredPackages Count="2">
+    <RequiredPackages Count="3">
       <Item1>
         <PackageName Value="lhelpcontrolpkg"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
       </Item2>
+      <Item3>
+        <PackageName Value="fpvectorialpkg"/>
+      </Item3>
     </RequiredPackages>
     <Units Count="31">
       <Unit0>
