@@ -39,7 +39,7 @@ source code is the definitive reference for behavior.
 | `comeback.trp` | When behind in army strength, targets weak opponents and low-risk territories; when ahead, raises its attack threshold and invests in continent bonuses. |
 | `opportunist.trp` | Re-evaluates attack opportunities using force ratio, eliminations, continent bonuses, and strategic access. |
 | `washington.trp` | Uses a Fabian-inspired approach: preserves forces, avoids unnecessary battles, reinforces exposed fronts, and advances from favorable positions. |
-| `doomstack.trp` | Concentrated-army strategy inspired by brainless IV (Mattias Beimers) and Vexer's elimination planning, independently implemented. Takes inexpensive conquests for cards, plans budgeted elimination routes against opponents with up to six territories, adjusts for progression or combination cards, and consolidates reserves through owned paths. Evaluates opponents by position and cards, never by name. |
+| `doomstack.trp` | Concentrated-army strategy inspired by brainless IV (Mattias Beimers) and Vexer's elimination planning, independently implemented. Takes inexpensive conquests for cards, plans budgeted elimination routes against opponents with up to six territories, adjusts for progression or combination cards, and consolidates reserves through owned paths. In games of four or fewer players it also targets, breaks, and defends continents and keeps its stack rolling in duels. Evaluates opponents by position and cards, never by name. |
 
 ```text
 alexander.trp,australian.trp,balancer.trp,frank.trp

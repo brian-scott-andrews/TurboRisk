@@ -21,6 +21,11 @@ with budgeted elimination routes through intervening opponents, card-rule
 awareness, continent completion, and consolidation along owned paths.
 Elimination planning is greedy and limited to opponents with six territories;
 its army budget is a conservative estimate, not a combat guarantee.
+In games that start with four or fewer players it also plays a continent
+game: it targets the most achievable continent, attacks there and against
+enemy-held continents at lower odds, reinforces threatened entries of its own
+continents, widens elimination planning to ten territories, and in a duel
+keeps its main stack attacking. Larger games keep the original behaviour.
 All opponents are evaluated by board position and cards, never by name.
 Buffers 1 and 2 store the elimination target and its pursuing stack.
 }
@@ -55,13 +60,15 @@ function EliminationRoute(Start, P, Budget: integer;
 var
   Used, Closed: array [1..42] of boolean;
   Distance, Previous: array [1..42] of integer;
-  T, E, F, Current, Next, Remaining, N, Cheapest, StepCost, Factor: integer;
+  T, E, F, Current, Next, Remaining, N, Cheapest, StepCost, Factor, Limit: integer;
 begin
   result:=false; First:=0; Cost:=0;
   if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;
   if not TIsMine(Start) or (P=PMe) or not PActive(P) then exit;
   Remaining:=PTerritoriesCount(P);
-  if (Remaining<1) or (Remaining>6) then exit;
+  Limit:=6;
+  if (SAlivePlayersCount<=4) and (SPlayersCount<=4) then Limit:=10;
+  if (Remaining<1) or (Remaining>Limit) then exit;
   Factor:=2;
   if SCardsBasedOnCombo then Factor:=3;
   if Factor*PArmiesCount(P)+Remaining+4>Budget then exit;
@@ -150,6 +157,71 @@ begin
   result:=Total;
 end;
 
+function SmallMode: boolean;
+begin
+  result:=(SAlivePlayersCount>=3) and (SAlivePlayersCount<=4) and (SPlayersCount<=4);
+end;
+
+function Threat(T: integer): integer;
+var F, E: integer;
+begin
+  result:=0;
+  for F:=1 to TBordersCount(T) do begin
+    E:=TBorder(T,F);
+    if not TIsMine(E) and (TArmies(E)>1) then result:=result+TArmies(E)-1;
+  end;
+end;
+
+// Most achievable continent not yet owned: bonus versus enemy presence and entries.
+function TargetContinent: integer;
+var C, PT, PA, ET, EA, Score, Best: integer;
+begin
+  result:=0; Best:=-100000;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)<>PMe) then begin
+      CAnalysis(C,PT,PA,ET,EA);
+      if PT>0 then begin
+        Score:=CBonus(C)*6+PT*5+PA-ET*3-EA-CEntriesCount(C)*4;
+        if Score>Best then begin Best:=Score; result:=C end;
+      end;
+    end;
+end;
+
+function DefensePlacement: integer;
+var C, B, E, Score, Best, Need: integer;
+begin
+  result:=0; Best:=0;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)=PMe) then
+      for B:=1 to CEntriesCount(C) do begin
+        E:=CEntry(C,B);
+        if TIsFront(E) then begin
+          Need:=Threat(E);
+          if Need>CBonus(C)*4+4 then Need:=CBonus(C)*4+4;
+          if TArmies(E)<Need then begin
+            Score:=CBonus(C)*10+Need-TArmies(E);
+            if Score>Best then begin Best:=Score; result:=E end;
+          end;
+        end;
+      end;
+end;
+
+function StagingTerritory(TC: integer): integer;
+var T, F, E, Score, Best: integer;
+begin
+  result:=0; Best:=-100000;
+  if TC=0 then exit;
+  for T:=1 to 42 do if TIsMine(T) then
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if not TIsMine(E) and (TContinent(E)=TC) then begin
+        Score:=TArmies(T)*3-Defense(E);
+        if TContinent(T)=TC then Score:=Score+5;
+        if Score>Best then begin Best:=Score; result:=T end;
+      end;
+    end;
+end;
+
 procedure Assignment(var ToTerritory: integer);
 var T, F, E, C, PT, PA, ET, EA, Score, Best: integer;
 begin
@@ -167,15 +239,21 @@ begin
 end;
 
 procedure Placement(var ToTerritory: integer);
-var T, Score, Best, Reward, Target, Next: integer;
+var T, Score, Best, Reward, Target, Next, BestReward: integer;
 begin
   UBufferSet(1,0);
   UBufferSet(2,0);
-  ToTerritory:=0; Best:=-100000;
+  ToTerritory:=0; Best:=-100000; BestReward:=0;
   for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
     Reward:=ChooseElimination(T,TArmies(T)+PNewArmies(PMe)-1,Target,Next);
+    if Reward>BestReward then BestReward:=Reward;
     Score:=TArmies(T)*10+Reward*3-CheapestFront(T);
     if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+  if SmallMode and (BestReward=0) then begin
+    T:=DefensePlacement;
+    if T=0 then T:=StagingTerritory(TargetContinent);
+    if T>0 then ToTerritory:=T;
   end;
   if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
 end;
@@ -184,6 +262,8 @@ procedure Attack(var FromTerritory, ToTerritory: integer);
 var T, F, E, P, Next, Cost, Target, Reward, BestReward, Stack,
   Available, Score, Best, H, Neighbor, Onward, Cheapest, Force: integer;
   Need: double;
+  Small, Duel, Allowed, Breaks: boolean;
+  TC: integer;
 begin
   FromTerritory:=0; ToTerritory:=0;
   Stack:=StrongestFront;
@@ -205,16 +285,33 @@ begin
   if ToTerritory>0 then exit;
 
   Best:=-100000; Force:=EnemyArmies;
+  // Large games keep the original big-game behaviour throughout.
+  Duel:=(SAlivePlayersCount=2) and (SPlayersCount<=4);
+  Small:=(SAlivePlayersCount<=4) and (SPlayersCount<=4);
+  TC:=0;
+  if SmallMode then TC:=TargetContinent;
   for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
     for F:=1 to TFrontsCount(T) do begin
       E:=TFront(T,F); Available:=TArmies(T)-1;
+      Breaks:=COwner(TContinent(E))=TOwner(E);
       Need:=3.0;
       if SCardsBasedOnCombo then Need:=4.0;
       if CompletesContinent(E) then Need:=2.5;
-      if (SAlivePlayersCount=2) or (Available>Force*2+42) then Need:=1.8;
-      if (not SConquest or CompletesContinent(E) or
-          (SAlivePlayersCount=2) or (Available>Force*2+42)) and
-          (Available>=Need*Defense(E)) then begin
+      Allowed:=not SConquest or CompletesContinent(E);
+      if (Available>Force*2+42) or (SAlivePlayersCount=2) then begin Need:=1.8; Allowed:=true end;
+      if Small and not Duel then begin
+        // Few opponents: continents and bonus denial matter more than in big games.
+        if CompletesContinent(E) then begin Need:=1.5; Allowed:=true end
+        else if (TC>0) and (TContinent(E)=TC) then begin Need:=1.3; Allowed:=true end
+        else if Breaks then begin Need:=2.0; Allowed:=true end;
+        if (T=Stack) and (Available>Force) then begin Need:=1.5; Allowed:=true end;
+      end;
+      if Duel then begin
+        // One opponent: keep the main stack rolling; other armies only take a card.
+        if T=Stack then begin Need:=1.0; Allowed:=true end
+        else Allowed:=not SConquest;
+      end;
+      if Allowed and (Available>=Need*Defense(E)) then begin
         Onward:=0; Cheapest:=100000;
         for H:=1 to TBordersCount(E) do begin
           Neighbor:=TBorder(E,H);
@@ -224,8 +321,10 @@ begin
           end;
         end;
         Score:=Available-Defense(E)*8+Onward*2;
+        if Duel then Score:=Available-Defense(E)*3+Onward*4;
         if Cheapest<100000 then Score:=Score-Cheapest;
         if CompletesContinent(E) then Score:=Score+CBonus(TContinent(E))*12;
+        if (TC>0) and (TContinent(E)=TC) then Score:=Score+40;
         if COwner(TContinent(E))=TOwner(E) then
           Score:=Score+CBonus(TContinent(E))*4;
         if Score>Best then begin Best:=Score; FromTerritory:=T; ToTerritory:=E end;
@@ -240,6 +339,12 @@ begin
   if TArmies(FromTerritory)<=1 then exit;
   if TIsFront(ToTerritory) or not TIsFront(FromTerritory) then
     Armies:=TArmies(FromTerritory)-1;
+  // Keep a garrison when leaving an owned continent through its entry.
+  if SmallMode and (COwner(TContinent(FromTerritory))=PMe) and
+      (TContinent(ToTerritory)<>TContinent(FromTerritory)) then begin
+    Armies:=TArmies(FromTerritory)-1-Threat(FromTerritory);
+    if Armies<0 then Armies:=0;
+  end;
 end;
 
 function OwnedStep(Start, Destination: integer): integer;
@@ -272,7 +377,8 @@ begin
   FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
   Stack:=StrongestFront;
   if Stack=0 then exit;
-  for T:=1 to 42 do if TIsMine(T) and (T<>Stack) and (TArmies(T)>Best) then begin
+  for T:=1 to 42 do if TIsMine(T) and (T<>Stack) and (TArmies(T)>Best) and
+      not (SmallMode and TIsFront(T) and (COwner(TContinent(T))=PMe)) then begin
     Dest:=OwnedStep(T,Stack);
     if (Dest=0) and not TIsFront(T) then Dest:=TPathToFront(T);
     if Dest>0 then begin Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1 end;
