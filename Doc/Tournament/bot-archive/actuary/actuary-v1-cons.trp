@@ -1,0 +1,439 @@
+{
+Program: Actuary
+Author: Brian S. Andrews
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic and actual behavior may differ from the description below.
+
+Credits / inspiration:
+- Common Risk strategy guide advice: take a card every turn, eliminate weak
+  players for their cards, hold continents with few entries, defend only the
+  borders, keep armies concentrated and attack only with favourable odds.
+- Doomstack (doomstack.trp): concentrated stack and consolidation ideas.
+
+Description:
+Prices every decision with exact dice odds. A Markov-chain table gives the
+probability that A attacking armies conquer D defenders under TurboRisk's
+always-maximum-dice rule. Each attack roll is re-evaluated as an expected
+value: win probability times the value of the conquest (card, continent
+completion, breaking an enemy bonus, elimination, border shortening) minus
+the expected army loss weighted by how costly attrition is for the number of
+players alive. Because Attack is called once per roll, a battle whose odds
+turn bad is abandoned immediately.
+Eliminations are planned as chains of weakest paths from the strongest
+stacks, and are pursued when the chained win probability and the captured
+cards justify it. Placement first funds such a kill, then reinforces owned
+continent entries whose odds of falling are too high, and otherwise builds
+one stack aimed at the most achievable continent. Occupation leaves only the
+garrison that keeps a continent entry safe, and fortification feeds the
+stack along owned paths.
+All opponents are evaluated by board position and cards, never by name.
+}
+
+var
+  OddsTable: array [0..860] of double;
+  OddsReady: boolean;
+
+procedure BuildOdds;
+var A, D, I: integer;
+begin
+  for A:=0 to 40 do
+    for D:=0 to 20 do begin
+      I:=A*21+D;
+      if D=0 then OddsTable[I]:=1.0
+      else if A=0 then OddsTable[I]:=0.0
+      else if (A>=3) and (D>=2) then
+        OddsTable[I]:=(2890.0*OddsTable[A*21+D-2]+2611.0*OddsTable[(A-1)*21+D-1]+
+          2275.0*OddsTable[(A-2)*21+D])/7776.0
+      else if (A>=3) and (D=1) then
+        OddsTable[I]:=(855.0*OddsTable[A*21]+441.0*OddsTable[(A-1)*21+1])/1296.0
+      else if (A=2) and (D>=2) then
+        OddsTable[I]:=(295.0*OddsTable[A*21+D-2]+420.0*OddsTable[(A-1)*21+D-1]+
+          581.0*OddsTable[D])/1296.0
+      else if (A=2) and (D=1) then
+        OddsTable[I]:=(125.0*OddsTable[A*21]+91.0*OddsTable[22])/216.0
+      else if (A=1) and (D>=2) then
+        OddsTable[I]:=55.0*OddsTable[21+D-1]/216.0
+      else
+        OddsTable[I]:=15.0*OddsTable[21]/36.0;
+    end;
+  OddsReady:=true;
+end;
+
+// Probability that A attacking armies (excluding the one left behind) conquer D defenders.
+function Win(A, D: integer): double;
+begin
+  if D<=0 then begin result:=1.0; exit end;
+  if A<=0 then begin result:=0.0; exit end;
+  if not OddsReady then BuildOdds;
+  if D>20 then begin
+    A:=(A*20+D div 2) div D;
+    D:=20;
+    if A<=0 then begin result:=0.0; exit end;
+  end;
+  if A>40 then A:=40;
+  result:=OddsTable[A*21+D];
+end;
+
+// Approximate attacker losses needed to destroy D defenders.
+function ExpLoss(D: integer): double;
+begin
+  if D<=1 then result:=0.55 else result:=0.86*D;
+end;
+
+function Defense(T: integer): integer;
+begin
+  if TArmies(T)<1 then result:=1 else result:=TArmies(T);
+end;
+
+function Alive: integer;
+begin
+  result:=SAlivePlayersCount;
+end;
+
+function SmallMode: boolean;
+begin
+  result:=(Alive<=4) and (SPlayersCount<=4);
+end;
+
+function AttritionWeight: double;
+begin
+  if Alive=2 then result:=0.30
+  else if SmallMode then result:=0.30
+  else result:=0.45;
+end;
+
+function CardValue: double;
+begin
+  if SCardsBasedOnCombo then result:=4.0
+  else result:=3.0+PCardTurnInValue(PMe)/3.0;
+end;
+
+function EnemyArmies: integer;
+var P: integer;
+begin
+  result:=0;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) then result:=result+PArmiesCount(P);
+end;
+
+function CompletesContinent(E: integer): boolean;
+var T, C: integer;
+begin
+  result:=true; C:=TContinent(E);
+  for T:=1 to 42 do
+    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then begin
+      result:=false; exit;
+    end;
+end;
+
+function CheapestFront(T: integer): integer;
+var F, E: integer;
+begin
+  result:=100000;
+  for F:=1 to TFrontsCount(T) do begin
+    E:=TFront(T,F);
+    if Defense(E)<result then result:=Defense(E);
+  end;
+end;
+
+function StrongestFront: integer;
+var T, Best: integer;
+begin
+  result:=0; Best:=0;
+  for T:=1 to 42 do
+    if TIsMine(T) and TIsFront(T) and (TArmies(T)>Best) then begin
+      result:=T; Best:=TArmies(T);
+    end;
+end;
+
+// Largest enemy stack adjacent to T, minus the army it must leave behind.
+function MaxAttacker(T: integer): integer;
+var F, E: integer;
+begin
+  result:=0;
+  for F:=1 to TBordersCount(T) do begin
+    E:=TBorder(T,F);
+    if not TIsMine(E) and (TOwner(E)>0) and (TArmies(E)-1>result) then
+      result:=TArmies(E)-1;
+  end;
+end;
+
+// Probability that T falls to its strongest neighbour next round (with modest reinforcement).
+function FallRisk(T: integer): double;
+var M: integer;
+begin
+  M:=MaxAttacker(T);
+  if M<=0 then result:=0.0 else result:=Win(M+3,Defense(T));
+end;
+
+// Most achievable continent not yet owned: bonus per entry versus enemy presence.
+function TargetContinent: integer;
+var C, PT, PA, ET, EA: integer; Score, Best: double;
+begin
+  result:=0; Best:=-100000.0;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)<>PMe) and (CBonus(C)>0) then begin
+      CAnalysis(C,PT,PA,ET,EA);
+      if PT>0 then begin
+        Score:=CBonus(C)*8.0/(CEntriesCount(C)+1)+PT*6.0/CTerritoriesCount(C)*4.0
+          +PA*0.5-EA*1.0-ET*2.0;
+        if Score>Best then begin Best:=Score; result:=C end;
+      end;
+    end;
+end;
+
+// Greedy chain of weakest paths from S through every territory of P.
+function PlanKill(S, P, Extra: integer; var First: integer; var Prob: double): boolean;
+var Done: array [1..42] of boolean;
+  T, D, Cur, Left, TT, PL, EA, BestT, BestFirst, BestPL, BestEA, Cost, BestCost,
+  TotalEA, TotalPL, Avail: integer;
+begin
+  result:=false; First:=0; Prob:=0.0;
+  if (S<1) or (S>42) or (P<1) or (P>10) or (P=PMe) or not PActive(P) then exit;
+  Left:=PTerritoriesCount(P);
+  if Left<1 then exit;
+  for T:=1 to 42 do Done[T]:=false;
+  Cur:=S; TotalEA:=0; TotalPL:=0;
+  while Left>0 do begin
+    BestT:=0; BestCost:=100000; BestFirst:=0; BestPL:=0; BestEA:=0;
+    for D:=1 to 42 do
+      if (TOwner(D)=P) and not Done[D] then
+        if TWeakestPath(Cur,D,TT,PL,EA) then begin
+          Cost:=EA+PL;
+          if (PL>0) and (Cost<BestCost) then begin
+            BestCost:=Cost; BestT:=D; BestFirst:=TT; BestPL:=PL; BestEA:=EA;
+          end;
+        end;
+    if BestT=0 then exit;
+    if First=0 then First:=BestFirst;
+    TotalEA:=TotalEA+BestEA; TotalPL:=TotalPL+BestPL;
+    Done[BestT]:=true; Left:=Left-1; Cur:=BestT;
+  end;
+  if (First<1) or TIsMine(First) or not TIsBordering(S,First) then exit;
+  Avail:=TArmies(S)-1+Extra-TotalPL+1;
+  Prob:=Win(Avail,TotalEA);
+  result:=true;
+end;
+
+function KillValue(P: integer): double;
+var Cards: integer;
+begin
+  Cards:=PCardCount(P);
+  result:=6.0+Cards*4.0;
+  if not SCardsBasedOnCombo and (Cards>0) then result:=result+PCardTurnInValue(PMe)*0.5;
+  if PCardCount(PMe)+Cards>=5 then result:=result+8.0;
+  if Alive=2 then result:=result+1000.0;
+end;
+
+// Best elimination from the three strongest fronts; returns its expected value.
+function BestKill(Extra: integer; var From, First, Victim: integer): double;
+var Tops: array [1..3] of integer;
+  T, I, J, P, F, Limit: integer; Prob, EV, W: double;
+begin
+  result:=0.0; From:=0; First:=0; Victim:=0;
+  for I:=1 to 3 do Tops[I]:=0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) and (TArmies(T)>1) then
+    for I:=1 to 3 do
+      if (Tops[I]=0) or (TArmies(T)>TArmies(Tops[I])) then begin
+        for J:=3 downto I+1 do Tops[J]:=Tops[J-1];
+        Tops[I]:=T; break;
+      end;
+  Limit:=7;
+  if SmallMode then Limit:=12;
+  W:=AttritionWeight;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) and (PTerritoriesCount(P)<=Limit) and
+        ((PCardCount(P)>0) or (Alive<=3)) then
+      for I:=1 to 3 do if Tops[I]>0 then
+        if PlanKill(Tops[I],P,Extra,F,Prob) then
+          if Prob>=0.6 then begin
+            EV:=Prob*KillValue(P)-W*ExpLoss(PArmiesCount(P)+PTerritoriesCount(P));
+            if EV>result then begin
+              result:=EV; From:=Tops[I]; First:=F; Victim:=P;
+            end;
+          end;
+end;
+
+function DefensePlacement: integer;
+var C, B, E: integer; Risk, Score, Best: double;
+begin
+  result:=0; Best:=0.0;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)=PMe) and (CBonus(C)>0) then
+      for B:=1 to CEntriesCount(C) do begin
+        E:=CEntry(C,B);
+        if TIsMine(E) and TIsFront(E) then begin
+          Risk:=FallRisk(E);
+          // Stacks we cannot hope to stop are left to the counter-attack.
+          if (Risk>0.3) and (MaxAttacker(E)<=TArmies(E)+PNewArmies(PMe)*2+4) then begin
+            Score:=Risk*CBonus(C);
+            if Score>Best then begin Best:=Score; result:=E end;
+          end;
+        end;
+      end;
+end;
+
+function StagingTerritory(TC: integer): integer;
+var T, F, E: integer; Score, Best: double;
+begin
+  result:=0; Best:=-100000.0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
+    Score:=TArmies(T)*1.0-CheapestFront(T)*0.3;
+    if TC>0 then
+      for F:=1 to TBordersCount(T) do begin
+        E:=TBorder(T,F);
+        if not TIsMine(E) and (TContinent(E)=TC) then begin
+          Score:=Score+20.0; break;
+        end;
+      end;
+    if Score>Best then begin Best:=Score; result:=T end;
+  end;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T, F, E, C, PT, PA, ET, EA: integer; Score, Best: double;
+begin
+  ToTerritory:=0; Best:=-100000.0;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    C:=TContinent(T); CAnalysis(C,PT,PA,ET,EA);
+    Score:=CBonus(C)*20.0/(CTerritoriesCount(C)*(CEntriesCount(C)+1))+PT*4.0-ET*3.0;
+    if TIsEntry(T) then Score:=Score+1.0;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) then Score:=Score+3.0;
+    end;
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T, From, First, Victim: integer;
+begin
+  ToTerritory:=0;
+  if BestKill(PNewArmies(PMe),From,First,Victim)>0.0 then ToTerritory:=From;
+  if ToTerritory=0 then ToTerritory:=DefensePlacement;
+  if ToTerritory=0 then begin
+    // Big games keep one stack; few-player games chase a continent bonus.
+    if SmallMode and (Alive>2) then T:=StagingTerritory(TargetContinent)
+    else T:=StagingTerritory(0);
+    ToTerritory:=T;
+  end;
+  if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var T, F, E, H, Owner, A, D, Onward, TC, Stack, From, First, Victim, Force: integer;
+  P, V, EV, Best, W: double;
+begin
+  FromTerritory:=0; ToTerritory:=0;
+  if BestKill(0,From,First,Victim)>0.0 then
+    if (From>0) and (First>0) and TIsBordering(From,First) and not TIsMine(First) then begin
+      FromTerritory:=From; ToTerritory:=First; exit;
+    end;
+  W:=AttritionWeight; Best:=0.0; TC:=TargetContinent;
+  Stack:=StrongestFront; Force:=EnemyArmies;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); Owner:=TOwner(E);
+      A:=TArmies(T)-1; D:=Defense(E);
+      P:=Win(A,D);
+      if P>=0.5 then begin
+        V:=0.5;
+        if not SConquest then V:=V+CardValue;
+        if (CBonus(TContinent(E))>0) and CompletesContinent(E) then
+          V:=V+CBonus(TContinent(E))*3.0;
+        if (Owner>0) and (COwner(TContinent(E))=Owner) then
+          V:=V+CBonus(TContinent(E))*2.0;
+        if (TC>0) and (TContinent(E)=TC) then V:=V+1.5;
+        if (Owner>0) and (PTerritoriesCount(Owner)=1) then begin
+          V:=V+6.0+PCardCount(Owner)*4.0;
+          if Alive=2 then V:=V+1000.0;
+        end;
+        Onward:=0;
+        for H:=1 to TBordersCount(E) do
+          if not TIsMine(TBorder(E,H)) then Onward:=Onward+1;
+        if Onward=0 then V:=V+1.0;
+        if (T=Stack) and ((Alive=2) or (A>Force*2)) then V:=V+2.0;
+        EV:=P*V-W*(P*ExpLoss(D)+(1.0-P)*A);
+        if EV>Best then begin Best:=EV; FromTerritory:=T; ToTerritory:=E end;
+      end;
+    end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+var Guard, M: integer;
+begin
+  Armies:=0;
+  if TArmies(FromTerritory)<=1 then exit;
+  if not TIsFront(ToTerritory) and TIsFront(FromTerritory) then exit;
+  Armies:=TArmies(FromTerritory)-1;
+  if TIsFront(FromTerritory) then begin
+    M:=MaxAttacker(FromTerritory);
+    Guard:=1;
+    // Keep just enough on an owned continent's entry to make it unlikely to fall.
+    if (COwner(TContinent(FromTerritory))=PMe) and TIsEntry(FromTerritory) and (M>0) then
+      while (Guard<TArmies(FromTerritory)-1) and (Win(M+3,Guard)>0.35) do Guard:=Guard+1;
+    Armies:=TArmies(FromTerritory)-Guard;
+  end;
+  if Armies<0 then Armies:=0;
+end;
+
+function OwnedStep(Start, Destination: integer): integer;
+var Queue, Previous: array [1..42] of integer;
+  Head, Tail, T, E, F: integer;
+begin
+  result:=0;
+  if Start=Destination then exit;
+  for T:=1 to 42 do Previous[T]:=0;
+  Head:=1; Tail:=1; Queue[1]:=Start; Previous[Start]:=Start;
+  while Head<=Tail do begin
+    T:=Queue[Head]; Head:=Head+1;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) and (Previous[E]=0) then begin
+        Previous[E]:=T;
+        if E=Destination then begin
+          while Previous[E]<>Start do E:=Previous[E];
+          result:=E; exit;
+        end;
+        Tail:=Tail+1; Queue[Tail]:=E;
+      end;
+    end;
+  end;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var T, Dest, Best, Stack, Guard: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  // Shore up the most endangered continent entry first.
+  Dest:=DefensePlacement;
+  if Dest>0 then
+    for T:=1 to 42 do
+      if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) and TIsBordering(T,Dest) then begin
+        Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+      end;
+  if Armies>0 then exit;
+  Stack:=StrongestFront;
+  if Stack=0 then exit;
+  Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and (T<>Stack) and (TArmies(T)>Best) then begin
+    Guard:=1;
+    if TIsFront(T) then begin
+      if (COwner(TContinent(T))=PMe) and TIsEntry(T) then continue;
+      if FallRisk(T)>0.5 then continue;
+    end;
+    Dest:=OwnedStep(T,Stack);
+    if (Dest=0) and not TIsFront(T) then Dest:=TPathToFront(T);
+    if Dest>0 then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-Guard;
+    end;
+  end;
+  if Armies<1 then begin FromTerritory:=0; ToTerritory:=0; Armies:=0 end;
+end;
+
+begin
+  OddsReady:=false;
+end.
+
