@@ -28,7 +28,7 @@ function render(){
  const sortBots=(mode,avgByBot)=>d.bots.map((name,index)=>({name,index,avg:avgByBot[index]})).sort((a,b)=>mode==='alpha'?a.name.localeCompare(b.name,undefined,{sensitivity:'base'}):b.avg-a.avg||a.name.localeCompare(b.name,undefined,{sensitivity:'base'}));
  const rowMode=document.getElementById('rowSort').value,rowOpponent=document.getElementById('rowOpponent').value,rowOpponentIndex=d.bots.indexOf(rowOpponent);
  const rowAvgs=rowMode==='matchup'?d.bots.map((_,i)=>d.cells[i][rowOpponentIndex]?d.cells[i][rowOpponentIndex][0]:-1):d.avg;
- const rowBots=sortBots(rowMode==='alpha'?'alpha':'rate',rowAvgs),columnAvgs=d.bots.map((_,j)=>{let score=0,games=0;for(let i=0;i<d.bots.length;i++){const c=d.cells[i][j];if(c){score+=(1-c[0])*c[2];games+=c[2]}}return games?score/games:0});
+ const rowBots=sortBots(rowMode==='alpha'?'alpha':'rate',rowAvgs),columnAvgs=d.avg;
  const rows=rowBots.filter(bot=>!f||bot.name.toLowerCase().includes(f)),cols=sortBots(document.getElementById('colSort').value,columnAvgs);
  const playerTip=b=>{const s=d.playerStats[b],total=s.completed+s.timeouts;return `${b}: games=${total}, completed=${s.completed}, timeouts=${s.timeouts}`};
  let h='<table><thead><tr><th class="corner">row \\ col (avg)</th>'+cols.map(bot=>`<th class="${bot.name=='doomstack'?'ds':''}" data-t="${playerTip(bot.name)}">${bot.name}</th>`).join('')+'</tr></thead><tbody>';
