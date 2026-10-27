@@ -1,0 +1,79 @@
+Opponent overperformance frequency in 2-player matchups
+Generated from the current-version bot matrix on 2026-10-27.
+
+For each bot, this is the percentage of its opponents whose win rate against
+that bot is higher than the opponent's overall win rate in the 2-player matrix.
+Every opponent with at least one recorded game is included, regardless of
+matchup sample size. The count is divided by all other matrix bots. This is a
+descriptive frequency, not a calibrated probability for
+an arbitrary future opponent; small-sample matchups can make it noisy.
+
+The source matrix is deduplicated and excludes pre-2026-10-23 Actuary results.
+Pre-stalemate Doomstack results are labeled challenger.
+Pre-restoration V and pre-route-planner VI results use the
+brainless V legacy and brainless vi legacy labels.
+Time-limit results count as ties.
+
+Bot                  Opponents overperforming
+-------------------  ------------------------
+actuary               0.0%  ( 0/57)
+alexander            43.9%  (25/57)
+australian          100.0%  (57/57)
+australian+          77.2%  (44/57)
+australian09         77.2%  (44/57)
+balancer             75.4%  (43/57)
+Basic                43.9%  (25/57)
+bonussaboteur        26.3%  (15/57)
+borg                  3.5%  ( 2/57)
+brainless V           0.0%  ( 0/57)
+brainless V legacy    0.0%  ( 0/57)
+brainless vi          0.0%  ( 0/57)
+brainless vi legacy    1.8%  ( 1/57)
+brainless_iv          0.0%  ( 0/57)
+cardcollector        96.5%  (55/57)
+challenger            0.0%  ( 0/57)
+chokepoint            8.8%  ( 5/57)
+comeback             31.6%  (18/57)
+constant             26.3%  (15/57)
+crusader             77.2%  (44/57)
+defender             89.5%  (51/57)
+descartes            26.3%  (15/57)
+descartes09          78.9%  (45/57)
+digger                5.3%  ( 3/57)
+doomstack             0.0%  ( 0/57)
+endeavour09          78.9%  (45/57)
+era$or-bot           19.3%  (11/57)
+finisher              0.0%  ( 0/57)
+Fluid                82.5%  (47/57)
+frank                 0.0%  ( 0/57)
+frank+                0.0%  ( 0/57)
+grudge               10.5%  ( 6/57)
+hunter                1.8%  ( 1/57)
+Khorne              100.0%  (57/57)
+kingmaker             3.5%  ( 2/57)
+napoleon             59.6%  (34/57)
+oddsmaker            94.7%  (54/57)
+opportunist           8.8%  ( 5/57)
+piranha              89.5%  (51/57)
+pitbull               1.8%  ( 1/57)
+quartermaster         7.0%  ( 4/57)
+rambo                59.6%  (34/57)
+randy                80.7%  (46/57)
+raptorbot            29.8%  (17/57)
+shy                  94.7%  (54/57)
+shy2                 96.5%  (55/57)
+shy3                 98.2%  (56/57)
+simple               84.2%  (48/57)
+slave                96.5%  (55/57)
+struggler            40.4%  (23/57)
+struggler+           19.3%  (11/57)
+Tectonic              0.0%  ( 0/57)
+turtle               98.2%  (56/57)
+vexer                 0.0%  ( 0/57)
+Walker2              12.3%  ( 7/57)
+washington           86.0%  (49/57)
+wyrm                 49.1%  (28/57)
+zotob                43.9%  (25/57)
+
+This is a descriptive post-run summary of the shared confidence-width tournament.
+No inferential significance tests are applied to these adaptively sampled results.

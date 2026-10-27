@@ -1,0 +1,313 @@
+{
+Program: Doomstack
+Author: Brian S. Andrews
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic and actual behavior may differ from the description below.
+
+Credits / inspiration:
+- brainless IV (brainless_iv.trp) by Mattias Beimers, building on brainless by
+  Chiel ten Brinke: the single concentrated attack stack, one cheap conquest
+  per turn for a card, and eliminating weak card-holding players. No code was
+  copied; the ideas were independently reimplemented and expanded.
+- Vexer (vexer.trp): the idea of planning path-cost eliminations of weak
+  players to capture their cards. Doomstack uses its own simpler greedy
+  route search.
+
+Description:
+Builds a concentrated army, takes inexpensive territories for cards, and saves
+strength for player eliminations or a decisive sweep. Expands that approach
+with budgeted elimination routes through intervening opponents, card-rule
+awareness, continent completion, and consolidation along owned paths.
+Elimination planning is greedy and limited to opponents with six territories;
+its army budget is a conservative estimate, not a combat guarantee.
+All opponents are evaluated by board position and cards, never by name.
+Buffers 1 and 2 store the elimination target and its pursuing stack.
+}
+
+function Defense(T: integer): integer;
+begin
+  if TArmies(T)<1 then result:=1 else result:=TArmies(T);
+end;
+
+function StrongestFront: integer;
+var T, Best: integer;
+begin
+  result:=0; Best:=0;
+  for T:=1 to 42 do
+    if TIsMine(T) and TIsFront(T) and (TArmies(T)>Best) then begin
+      result:=T; Best:=TArmies(T);
+    end;
+end;
+
+function CheapestFront(T: integer): integer;
+var F, E: integer;
+begin
+  result:=100000;
+  for F:=1 to TFrontsCount(T) do begin
+    E:=TFront(T,F);
+    if Defense(E)<result then result:=Defense(E);
+  end;
+end;
+
+function EliminationRoute(Start, P, Budget: integer;
+  var First, Cost: integer): boolean;
+var
+  Used, Closed: array [1..42] of boolean;
+  Distance, Previous: array [1..42] of integer;
+  T, E, F, Current, Next, Remaining, N, Cheapest, StepCost, Factor, Limit: integer;
+begin
+  result:=false; First:=0; Cost:=0;
+  if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;
+  if not TIsMine(Start) or (P=PMe) or not PActive(P) then exit;
+  Remaining:=PTerritoriesCount(P);
+  Limit:=6;
+  if SAlivePlayersCount<=4 then Limit:=10;
+  if (Remaining<1) or (Remaining>Limit) then exit;
+  Factor:=2;
+  if SCardsBasedOnCombo then Factor:=3;
+  if Factor*PArmiesCount(P)+Remaining+4>Budget then exit;
+  for T:=1 to 42 do Used[T]:=false;
+  Used[Start]:=true; Current:=Start;
+
+  while Remaining>0 do begin
+    for T:=1 to 42 do begin
+      Distance[T]:=100000; Previous[T]:=0; Closed[T]:=false;
+    end;
+    Distance[Current]:=0; Next:=0;
+    for N:=1 to 42 do begin
+      E:=0; Cheapest:=100000;
+      for T:=1 to 42 do
+        if not Closed[T] and (Distance[T]<Cheapest) then begin
+          E:=T; Cheapest:=Distance[T];
+        end;
+      if E=0 then break;
+      Closed[E]:=true;
+      if (E<>Current) and (TOwner(E)=P) then begin Next:=E; break end;
+      for F:=1 to TBordersCount(E) do begin
+        T:=TBorder(E,F);
+        if not TIsMine(T) and not Used[T] and not Closed[T] then begin
+          StepCost:=Distance[E]+Factor*Defense(T)+1;
+          if StepCost<Distance[T] then begin
+            Distance[T]:=StepCost; Previous[T]:=E;
+          end;
+        end;
+      end;
+    end;
+    if Next=0 then exit;
+    Cost:=Cost+Distance[Next];
+    if Cost+4>Budget then exit;
+    T:=Next;
+    // The moving stack cannot cross its own trail by attacking.
+    while T<>Current do begin
+      if TOwner(T)=P then Remaining:=Remaining-1;
+      Used[T]:=true;
+      E:=Previous[T];
+      if E=0 then exit;
+      if (Current=Start) and (E=Start) then First:=T;
+      T:=E;
+    end;
+    Current:=Next;
+  end;
+  result:=First>0;
+end;
+
+function ChooseElimination(Start, Budget: integer;
+  var Target, Next: integer): integer;
+var P, E, Cost, Cards, Reward: integer;
+begin
+  result:=0; Target:=0; Next:=0;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) then begin
+      Cards:=PCardCount(P);
+      if (Cards>0) or (SAlivePlayersCount=2) then
+        if EliminationRoute(Start,P,Budget,E,Cost) then begin
+          Reward:=20+Cards*12-Cost;
+          if PCardCount(PMe)+Cards>=5 then Reward:=Reward+40
+          else if PCardCount(PMe)+Cards>=3 then Reward:=Reward+15;
+          if not SCardsBasedOnCombo and (Cards>0) then
+            Reward:=Reward+PCardTurnInValue(PMe);
+          if SAlivePlayersCount=2 then Reward:=Reward+100000;
+          if Reward>result then begin
+            result:=Reward; Target:=P; Next:=E;
+          end;
+        end;
+    end;
+end;
+
+function CompletesContinent(E: integer): boolean;
+var T, C: integer;
+begin
+  result:=true; C:=TContinent(E);
+  for T:=1 to 42 do
+    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then result:=false;
+end;
+
+function EnemyArmies: integer;
+var P, Total: integer;
+begin
+  Total:=0;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) then Total:=Total+PArmiesCount(P);
+  result:=Total;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T, F, E, C, PT, PA, ET, EA, Score, Best: integer;
+begin
+  ToTerritory:=0; Best:=-100000;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    C:=TContinent(T); CAnalysis(C,PT,PA,ET,EA);
+    Score:=TBordersCount(T)*3+PT*3-ET*2;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) then Score:=Score+8;
+    end;
+    if SCardsBasedOnCombo then Score:=Score+CBonus(C)*2;
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T, Score, Best, Reward, Target, Next: integer;
+begin
+  UBufferSet(1,0);
+  UBufferSet(2,0);
+  ToTerritory:=0; Best:=-100000;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
+    Reward:=ChooseElimination(T,TArmies(T)+PNewArmies(PMe)-1,Target,Next);
+    Score:=TArmies(T)*10+Reward*3-CheapestFront(T);
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+  if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var T, F, E, P, Next, Cost, Target, Reward, BestReward, Stack,
+  Available, Score, Best, H, Neighbor, Onward, Cheapest, Force: integer;
+  Need: double;
+  Small, Duel, Allowed, Breaks: boolean;
+begin
+  FromTerritory:=0; ToTerritory:=0;
+  Stack:=StrongestFront;
+  if Stack=0 then exit;
+  P:=trunc(UBufferGet(1));
+  T:=trunc(UBufferGet(2));
+  if (P>=1) and (P<=10) and (T>=1) and (T<=42) then
+    if EliminationRoute(T,P,TArmies(T)-1,Next,Cost) then begin
+      FromTerritory:=T; ToTerritory:=Next; exit;
+    end;
+  UBufferSet(1,0); UBufferSet(2,0); BestReward:=0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) and (TArmies(T)>1) then begin
+    Reward:=ChooseElimination(T,TArmies(T)-1,Target,Next);
+    if Reward>BestReward then begin
+      BestReward:=Reward; FromTerritory:=T; ToTerritory:=Next;
+      UBufferSet(1,Target); UBufferSet(2,T);
+    end;
+  end;
+  if ToTerritory>0 then exit;
+
+  Best:=-100000; Force:=EnemyArmies;
+  Duel:=SAlivePlayersCount=2;
+  Small:=SAlivePlayersCount<=4;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); Available:=TArmies(T)-1;
+      Breaks:=COwner(TContinent(E))=TOwner(E);
+      Need:=3.0;
+      if SCardsBasedOnCombo then Need:=4.0;
+      if CompletesContinent(E) then Need:=2.5;
+      Allowed:=not SConquest or CompletesContinent(E);
+      if Available>Force*2+42 then begin Need:=1.8; Allowed:=true end;
+      if Small and not Duel then begin
+        // Few opponents: continents and bonus denial matter more than in big games.
+        if CompletesContinent(E) then begin Need:=2.0; Allowed:=true end
+        else if Breaks then begin Need:=2.5; Allowed:=true end;
+        if (T=Stack) and (Available>Force) then begin Need:=1.5; Allowed:=true end;
+      end;
+      if Duel then begin
+        // One opponent: keep the main stack rolling; other armies only take a card.
+        if T=Stack then begin Need:=1.0; Allowed:=true end
+        else Allowed:=not SConquest;
+      end;
+      if Allowed and (Available>=Need*Defense(E)) then begin
+        Onward:=0; Cheapest:=100000;
+        for H:=1 to TBordersCount(E) do begin
+          Neighbor:=TBorder(E,H);
+          if not TIsMine(Neighbor) then begin
+            Onward:=Onward+1;
+            if Defense(Neighbor)<Cheapest then Cheapest:=Defense(Neighbor);
+          end;
+        end;
+        Score:=Available-Defense(E)*8+Onward*2;
+        if Duel then Score:=Available-Defense(E)*3+Onward*4;
+        if Cheapest<100000 then Score:=Score-Cheapest;
+        if CompletesContinent(E) then Score:=Score+CBonus(TContinent(E))*12;
+        if COwner(TContinent(E))=TOwner(E) then
+          Score:=Score+CBonus(TContinent(E))*4;
+        if Score>Best then begin Best:=Score; FromTerritory:=T; ToTerritory:=E end;
+      end;
+    end;
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=0;
+  if trunc(UBufferGet(1))>0 then UBufferSet(2,ToTerritory);
+  if TArmies(FromTerritory)<=1 then exit;
+  if TIsFront(ToTerritory) or not TIsFront(FromTerritory) then
+    Armies:=TArmies(FromTerritory)-1;
+end;
+
+function OwnedStep(Start, Destination: integer): integer;
+var Queue, Previous: array [1..42] of integer;
+  Head, Tail, T, E, F: integer;
+begin
+  result:=0;
+  if Start=Destination then exit;
+  for T:=1 to 42 do Previous[T]:=0;
+  Head:=1; Tail:=1; Queue[1]:=Start; Previous[Start]:=Start;
+  while Head<=Tail do begin
+    T:=Queue[Head]; Head:=Head+1;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) and (Previous[E]=0) then begin
+        Previous[E]:=T;
+        if E=Destination then begin
+          while Previous[E]<>Start do E:=Previous[E];
+          result:=E; exit;
+        end;
+        Tail:=Tail+1; Queue[Tail]:=E;
+      end;
+    end;
+  end;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var T, Dest, Best, Stack, F, E, Cheapest: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  Stack:=StrongestFront;
+  if Stack=0 then exit;
+  for T:=1 to 42 do if TIsMine(T) and (T<>Stack) and (TArmies(T)>Best) then begin
+    Dest:=OwnedStep(T,Stack);
+    if (Dest=0) and not TIsFront(T) then Dest:=TPathToFront(T);
+    if Dest>0 then begin Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1 end;
+  end;
+  // Move a blocked stack only if the new front offers cheaper card access.
+  if (Armies=0) and not SConquest then begin
+    Cheapest:=CheapestFront(Stack);
+    for F:=1 to TBordersCount(Stack) do begin
+      E:=TBorder(Stack,F);
+      if TIsMine(E) and TIsFront(E) then
+        if CheapestFront(E)<Cheapest then begin
+          Cheapest:=CheapestFront(E);
+          FromTerritory:=Stack; ToTerritory:=E; Armies:=TArmies(Stack)-1;
+        end;
+    end;
+  end;
+  if Armies<1 then begin FromTerritory:=0; ToTerritory:=0; Armies:=0 end;
+end;
+
+begin
+end.

@@ -1,0 +1,61 @@
+Bot Comment Improvement Notes
+Generated: 2026-10-27
+
+This is a read-only scan of comments in players/*.trp for author-recorded
+unfinished work, possible improvements, known bugs, and workarounds. The
+findings are based on comments only; they have not been independently verified
+against runtime behavior.
+
+ACTIONABLE NOTES
+
+players\Walker2.trp:10-13
+TODOs: improve the fortification routine, add continent awareness, and improve
+attack efficiency.
+
+players\brainless V.trp:7-8
+The comment says the planner is incomplete and diagnostic, and does not select
+attack targets.
+
+players\brainless V.trp:13-15
+Possible improvements: improve the player-elimination function and make
+territory hopping smarter.
+
+players\brainless vi.trp:12-14
+Possible improvements: improve the player-elimination function and make
+territory hopping smarter.
+
+players\brainless_iv.trp:25-33
+Possible improvements:
+- Improve the player-kill function, which is currently limited to certain
+  adjacent cases.
+- Make territory hopping smarter.
+- Add cooperation between two Brainless IV bots.
+- Try a hybrid card-combination strategy.
+
+players\wyrm.trp:498
+Safe player-elimination behavior is marked "Not Implemented yet."
+
+players\zotob.trp:974
+Safe player-elimination behavior is marked "Not Implemented yet."
+
+players\zotob.trp:1243-1244
+The author describes an infrequent bug as masked rather than fixed.
+
+LEGACY OR AMBIGUOUS NOTES
+
+players\digger.trp:458-460
+The comment describes an "armies := 0" workaround and says it prevents
+effective occupation. It may refer to old engine behavior; current relevance is
+uncertain.
+
+players\pitbull.trp:510-512
+The same "armies := 0" fortification workaround and occupation side effect are
+noted. Current relevance is uncertain.
+
+players\brainless V legacy.trp:12-14
+Repeats the possible improvements listed in the current V comments. As this is
+a legacy script, successor versions may already address them.
+
+players\brainless vi legacy.trp:12-14
+Repeats the possible improvements listed in the current VI comments. As this
+is a legacy script, successor versions may already address them.

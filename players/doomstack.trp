@@ -26,6 +26,9 @@ game: it targets the most achievable continent, attacks there and against
 enemy-held continents at lower odds, reinforces threatened entries of its own
 continents, widens elimination planning to ten territories, and in a duel
 keeps its main stack attacking. Larger games keep the original behaviour.
+To break stalemates it will also attack a player holding 30 or more armies on
+one or two territories, even without cards, budgeting about one attacker per
+defender because long dice battles favour the attacker.
 All opponents are evaluated by board position and cards, never by name.
 Buffers 1 and 2 store the elimination target and its pursuing stack.
 }
@@ -71,6 +74,9 @@ begin
   if (Remaining<1) or (Remaining>Limit) then exit;
   Factor:=2;
   if SCardsBasedOnCombo then Factor:=3;
+  // Stalemate breaker: a player holding a large stack on one or two territories can only
+  // be stopped by attacking it; long dice battles cost about 0.85 attackers per defender.
+  if (Remaining<=2) and (PArmiesCount(P)>=30) then Factor:=1;
   if Factor*PArmiesCount(P)+Remaining+4>Budget then exit;
   for T:=1 to 42 do Used[T]:=false;
   Used[Start]:=true; Current:=Start;
@@ -125,7 +131,8 @@ begin
   for P:=1 to 10 do
     if (P<>PMe) and PActive(P) then begin
       Cards:=PCardCount(P);
-      if (Cards>0) or (SAlivePlayersCount=2) then
+      if (Cards>0) or (SAlivePlayersCount=2) or
+          ((PTerritoriesCount(P)<=2) and (PArmiesCount(P)>=30)) then
         if EliminationRoute(Start,P,Budget,E,Cost) then begin
           Reward:=20+Cards*12-Cost;
           if PCardCount(PMe)+Cards>=5 then Reward:=Reward+40

@@ -2,6 +2,10 @@
 Program: brainless V
 
 Author: Chiel ten Brinke
+
+Description: Restored near-original elimination planner with safety guards.
+The planner remains incomplete and diagnostic; it does not select attack
+targets.
 }
 
 
@@ -14,110 +18,101 @@ POSSIBLE IMPROVEMENTS:
 type TArray = array {[1..42]} of integer;
 Function ConquerArea(ST: integer; DTArray:TArray; var TTArray: TArray; PL, EA: integer): boolean;
 Var
-  iPL, ChildArmies, T, B, iNode, iChild, iCostFromStart: integer;
+  ChildArmies, T, B, iNode, iChild, iCostFromStart: integer;
   bFound: boolean;
-
   DT,TempT,GoalCounter,i: integer;
-
   aNode: array [1..42] of record
-    bClosed: boolean;          // node is in the CLOSED list
-    bOpen: boolean;            // node is in the Open list
-    iParent: integer;          // previous node in the optimal path
-    iCostFromStart: integer;   // cost to arrive to this node
-    iPL: integer;              // Path length from this node to the start T
+    bClosed: boolean;
+    bOpen: boolean;
+    iParent: integer;
+    iCostFromStart: integer;
+    iPL: integer;
   end;
-    //QTArmies, QTOwner: Array of Integer;
 begin
-
-  SetArrayLength(TTArray, 43);
-  //SetArrayLength(QTArmies, 43);
-
-  Result:= False;
-  PL:= 0;
-  EA:= 0;
-
-  if (ST = 0) or (Length(DTArray)=0) or
-    ((Length(DTArray)=1) and ((ST = DTArray[0]) or (TIsBordering(ST, DTArray[0]) and TIsMine(ST) and TIsMine(DTArray[0])))) then exit;
-
+  SetArrayLength(TTArray,43);
+  Result:=False;
+  PL:=0;
+  EA:=0;
   bFound:=False;
   DT:=0;
+
+  if (ST<1) or (ST>42) or (Length(DTArray)=0) or (Length(DTArray)>42) then exit;
+  if (Length(DTArray)=1) and
+    ((ST=DTArray[0]) or
+    (TIsBordering(ST,DTArray[0]) and TIsMine(ST) and TIsMine(DTArray[0]))) then exit;
+
   for T:=1 to 42 do begin
-    with aNode[T] do begin
-      bClosed := false;
-      bOpen:= false;
-    end;
+    aNode[T].bClosed:=False;
+    aNode[T].bOpen:=False;
+    aNode[T].iParent:=0;
+    aNode[T].iCostFromStart:=0;
+    aNode[T].iPL:=0;
   end;
 
-  aNode[ST].iParent := 0;
-  aNode[ST].iCostFromStart := 0;
-  aNode[ST].iPL:= 0;
-  aNode[ST].bopen := True;
+  aNode[ST].iParent:=0;
+  aNode[ST].iCostFromStart:=0;
+  aNode[ST].iPL:=0;
+  aNode[ST].bOpen:=True;
 
-  Repeat
-    T:= 0;
-    iNode:= 0;
+  repeat
+    T:=0;
+    iNode:=0;
     repeat
-      T:= T + 1;
-      if aNode[T].bopen and not aNode[t].bClosed then begin
-        iNode:= T;
-      end;
-    until (iNode > 0) or (T = 42);
+      T:=T+1;
+      if aNode[T].bOpen and not aNode[T].bClosed then
+        iNode:=T;
+    until (iNode>0) or (T=42);
 
     if iNode=0 then break;
-    TempT := iNode;
+    TempT:=iNode;
     GoalCounter:=0;
-    while (aNode[TempT].iParent > 0) and (aNode[TempT].iParent <> ST) do begin
-      TempT := aNode[TempT].iParent;
-      for i:=0 to Length(DTArray)-1 do begin   //if DTArray contains TempT, increase GoalCounter by 1
+    while (TempT>0) and (TempT<=42) and
+      (aNode[TempT].iParent>0) and (aNode[TempT].iParent<>ST) do begin
+      TempT:=aNode[TempT].iParent;
+      for i:=0 to Length(DTArray)-1 do
         if TempT=DTArray[i] then begin
           GoalCounter:=GoalCounter+1;
           break;
         end;
-      end;
     end;
-    if GoalCounter = Length(DTArray) then bFound:= True;  //if We've got all DT's, return true
+    if GoalCounter=Length(DTArray) then bFound:=True;
 
-    if iNode <> 0 then begin
-      if not (iNode = DT) then begin
-        // examine connected nodes
-        for B:= 1 to TBordersCount(iNode) do begin
-          iChild:= TBorder(iNode, B);
-          // skip Ts that are mine
-          if (TOwner(iChild) <> PMe) then continue;
+    if iNode<>DT then begin
+      for B:=1 to TBordersCount(iNode) do begin
+        iChild:=TBorder(iNode,B);
+        if (iChild<1) or (iChild>42) then continue;
+        if TOwner(iChild)<>PMe then continue;
 
-          ChildArmies:= TArmies(iChild);
-          iCostFromStart:= aNode[iNode].iCostFromStart + ChildArmies + 1;  // add 1 to incorporate the cost of the path length into the total cost
-          iPL:= aNode[iNode].iPL + 1;
-          // assign cost to child if end node has not been reached already
-          // or if reached with higher cost
-          if ((not aNode[iChild].bOpen) and (not aNode[iChild].bClosed))
-          or (iCostFromStart < aNode[iChild].iCostFromStart) or ( (iCostFromStart = aNode[iChild].iCostFromStart) and (iPL < aNode[iChild].iPL) ) then begin
-            aNode[iChild].iParent := iNode;
-            aNode[iChild].iCostFromStart := iCostFromStart;
-            aNode[iChild].iPl:= iPL;
-            if aNode[iChild].bClosed then aNode[iChild].bClosed:= false; // if closed then remove child from CLOSED list
-            if not aNode[iChild].bOpen then aNode[iChild].bOpen:= true;  // add to open list
-          end;
+        ChildArmies:=TArmies(iChild);
+        iCostFromStart:=aNode[iNode].iCostFromStart+ChildArmies+1;
+        if (not aNode[iChild].bOpen and not aNode[iChild].bClosed)
+          or (iCostFromStart<aNode[iChild].iCostFromStart)
+          or ((iCostFromStart=aNode[iChild].iCostFromStart) and
+          (aNode[iNode].iPL+1<aNode[iChild].iPL)) then begin
+          aNode[iChild].iParent:=iNode;
+          aNode[iChild].iCostFromStart:=iCostFromStart;
+          aNode[iChild].iPL:=aNode[iNode].iPL+1;
+          if aNode[iChild].bClosed then aNode[iChild].bClosed:=False;
+          if not aNode[iChild].bOpen then aNode[iChild].bOpen:=True;
         end;
       end;
-      aNode[iNode].bClosed := true; // node has been examined, add to CLOSED list
     end;
-  until (iNode = 0);  // loop until there are no more open nodes
+    aNode[iNode].bClosed:=True;
+  until iNode=0;
 
-  if bFound then begin
-    Result:= True;
-    EA:= aNode[DT].iCostFromStart - aNode[DT].iPL;
-    PL:= aNode[DT].iPL;
-
-    i:=0; //set indexer
-    while (aNode[DT].iParent > 0) and (aNode[DT].iParent <> ST) do begin
-      DT := aNode[DT].iParent;
+  if bFound and (DT>=1) and (DT<=42) then begin
+    Result:=True;
+    EA:=aNode[DT].iCostFromStart-aNode[DT].iPL;
+    PL:=aNode[DT].iPL;
+    i:=0;
+    while (aNode[DT].iParent>0) and (aNode[DT].iParent<>ST) and (i<Length(TTArray)) do begin
+      DT:=aNode[DT].iParent;
+      if (DT<1) or (DT>42) then break;
       TTArray[i]:=DT;
       i:=i+1;
     end;
   end;
 end;
-
 
 
 function GetAttT: integer;
@@ -167,8 +162,12 @@ end;
 
 procedure Attack(var FT, TT: integer);
 var
-  A,N,ET,EA,F,MinF,TPA,AttackTerritory: integer;
+  A,N,ET,EA,F,MinF,P,TPA,i,PL,T,AttackTerritory: integer;
+  DTArray,TTArray: array of integer;
 begin
+  SetArrayLength(DTArray,42);
+  SetArrayLength(TTArray,42);
+  DTArray[0]:=0;
   FT:=0;
   TT:=0;
   AttackTerritory:=GetAttT;
@@ -180,6 +179,30 @@ begin
     TWeakestFront(AttackTerritory,ET,EA);
     if ( (A>3*EA) and (EA<99) and (not(SCardsBasedOnCombo)) )
     or ( (A>4*EA) and ( (EA<4) or ( (EA<5) and (A>99) ) ) and (SCardsBasedOnCombo) ) then TT:=ET;
+  end;
+
+  // Kill a player if possible
+  for P:=1 to 10 do begin
+    if (PActive(P)) and (P<>PMe) then begin
+      if PArmiesCount(P)<TArmies(AttackTerritory) then begin
+        i:=0;
+        for T:=1 to 42 do begin
+          if TOwner(T)=P then begin
+            if i<Length(DTArray) then begin
+              DTArray[i]:=T;
+              i:=i+1;
+            end;
+          end;
+        end;
+
+        if ConquerArea(AttackTerritory,DTArray,TTArray,PL,EA) then begin
+          if (EA>0) and ((TArmies(AttackTerritory)/EA)>1) then begin
+            ULog('HOPPA!');
+            UMessage('pause');
+          end;
+        end;
+      end;
+    end;
   end;
 
   // Number of armies of all my enemies
