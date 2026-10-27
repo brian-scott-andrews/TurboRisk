@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TurboRisk Google Group Archive Review</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Segoe UI", Arial, sans-serif;
+      line-height: 1.55;
+      color: #202124;
+      background: #f7f8fa;
+    }
+    body {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: #fff;
+    }
+    h1, h2 { line-height: 1.2; }
+    h1 { margin-bottom: .35rem; }
+    .meta, .note { color: #5f6368; }
+    .coverage {
+      padding: 1rem 1.25rem;
+      border-left: 4px solid #1a73e8;
+      background: #f1f6fe;
+    }
+    section { margin-top: 2rem; }
+    .topics {
+      padding-left: 1.5rem;
+    }
+    .topics li {
+      margin: 0 0 1rem;
+      padding-left: .25rem;
+    }
+    .topics p { margin: .25rem 0 0; }
+    a { color: #1459a6; }
+    code { background: #f1f3f4; padding: .1rem .25rem; }
+    footer {
+      border-top: 1px solid #dadce0;
+      margin-top: 2rem;
+      padding-top: 1rem;
+    }
+    @media (max-width: 650px) {
+      body { padding: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TurboRisk Google Group Archive Review</h1>
+    <p class="meta">Completed October 26, 2026 | Source: <a href="https://groups.google.com/g/turborisk">Google Groups, turborisk</a></p>
+  </header>
+
+  <div class="coverage">
+    <strong>Coverage:</strong> I inspected all 30 discussion topics exposed by the group's public index and all-date search, spanning August 2010 through October 2024. I opened each topic and reviewed the message bodies made available on its thread page, including the multi-message discussions. The index's <code>page=2</code> view repeated the same list rather than exposing additional topics.
+    <br><br>
+    This is an exhaustive review of the publicly exposed index as accessed on the date above, not a claim about private or removed group content. Deleted messages, inaccessible content, binary attachments, and external destinations linked from messages were not independently recoverable or inspected. The report summarizes rather than reproduces user posts; each topic links to its source thread.
+  </div>
+
+  <section>
+    <h2>Findings at a glance</h2>
+    <p>The archive documents requests and discussion around multiplayer, broader/custom maps, alternate rules and visibility options, bot authoring, maps and TRP contributions, and defects encountered in game play or TRComp. Contributions and fixes are noted separately from suggestions: a feature being discussed is not evidence it was implemented.</p>
+    <p>Items with a verifiable repository counterpart include the Lazarus/Free Pascal port, community TRP files, the 2K map set, the fixed-aspect-ratio map, and the 2014 map update files. Corresponding map assets are present under <code>maps</code>; related player scripts are present under <code>Players</code>. Exact historical versions are not implied by matching names. TRComp execution-context regression tests were added and passed in this workspace, but that does not establish when or whether the original historical defect was fixed upstream.</p>
+  </section>
+
+  <section>
+    <h2>Archive topics reviewed</h2>
+    <ol class="topics">
+      <li><a href="https://groups.google.com/g/turborisk/c/J4B0MSMwK0s">BUY DMT vapes and cartridges from southparkspychedelics</a> <span class="meta">(October 2024)</span><p>Two visible messages are unrelated spam, not TurboRisk discussion.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/oNSti-btrRM">New map - original map with fixed aspect ratio</a> <span class="meta">(August 2021)</span><p>A large-medium standard map variant with a fixed aspect ratio was shared; matching map files are present in this repository.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/KsAESNCf7UQ">Available Command List</a> <span class="meta">(January-February 2021)</span><p>A user asked where to find the newer TRP command list and then found it in the help file.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/eIZ3iJSdyhg">New map for TR</a> <span class="meta">(March 2019-April 2020)</span><p>Garnett Williams shared simplified and Mercator-style 2K maps, including revisions; Brian Andrews said the package was added to GitHub. The repository contains the three named map variants.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/nd1w0CwM7Ms">Port of TurboRisk to Lazarus/Free Pascal, now multiplatform</a> <span class="meta">(August-October 2019)</span><p>The port was tested on Windows and Linux. Frank+ initially failed to load; a Windows program-selection bug, which also limited discovery to the first TRP, was reported fixed and confirmed by the thread participants. Executable size and build settings were also discussed.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/5QhUKn-c_Mc">runaway game with all Vexers</a> <span class="meta">(December 2016)</span><p>A long stalemate among three surviving Vexer bots produced armies above 100,000. A bot author described the situation as a deadlock arising from rational play and gaps in earlier AI versions.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/I4mRPaEm0IY">couple neat ideas</a> <span class="meta">(December 2016)</span><p>Suggestions included allowing multiple adjacent army moves per turn and increasing the territory limit from 42 to 84, potentially enabling larger maps and more starting space for ten players.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/CKO-VH9kP5g">Announcing the release of TurboRisk source</a> <span class="meta">(March-July 2015)</span><p>The GPL v3 source release and project collaboration were announced. Developer notes described code translation/refactoring, a Lazarus port, scalable vector maps, and identified multiplayer as the most-requested feature.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/w7PLr_1OSyk">Dominating12.com - My website for playing risk online</a> <span class="meta">(February 2012-December 2014)</span><p>Nathan Scarbrough promoted an online multiplayer site with multiple maps, fog of war, capitals, live and asynchronous turns, and a live-game timer-refresh bug. The thread also mentioned two TurboRisk map updates and planned bot updates.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/QnHCJtzn16U">Multiplayer? Is it even possible?</a> <span class="meta">(March 2011-December 2014)</span><p>Players requested LAN/Internet multiplayer. Saved-game handoff was discussed as an awkward workaround because saving around card turn-ins was problematic. Mario called network multiplayer a major change and later described open sourcing as a way to enable community development.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/8ryTjS80PoM">Defect in Projection Map - Iceland to Sweden bridge not shown</a> <span class="meta">(September 2013-December 2014)</span><p>A missing visual bridge conflicted with the map's playable Sweden-Iceland connection. Nathan supplied map update files, and Brian confirmed updating his copy. The related update archive was previously hash-checked against repository map files.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/v3BMVbMSeUU">problem with static vs dynamic arrays</a> <span class="meta">(December 2010-December 2014)</span><p>A TRP author reported trouble passing arrays into a routine and failures involving an unset territory result, then said the work had not continued. Follow-up testing retrieved the attached 8,650-byte <code>brainless V.trp</code> (not byte-identical to this repository's copy) and compiled it successfully in the historical TRComp 2.0.4 included with TurboRisk 2.0.5; its executable matches the user's supplied 2010 binary by SHA-256. The bot's <code>TArray = array {[1..42]} of integer</code> has its bounds inside a Pascal comment, so it is dynamic, as are the caller's arrays allocated with <code>SetArrayLength</code>; this attachment does not demonstrate a static-array parameter failure. It does contain separate likely defects: an inclusive <code>0..Length(DTArray)</code> scan, uninitialized <code>bFound</code>/<code>DT</code>, no zero-node guard before indexing <code>aNode[iNode]</code>, and <code>PL</code>/<code>EA</code> output values passed by value. A separate historical routine-runner probe confirmed matching fixed-array <code>var</code> and by-value parameter passing at runtime (return value <code>60</code>); changing the bot's formal type to fixed-size while retaining its dynamic-array caller fails to compile. In a deterministic <code>ConquerArea</code> probe with a 42-element dynamic array and owned path 5-6-7, the inclusive loop left a sentinel return value of <code>99</code>, while changing only the loop to <code>0..Length(DTArray)-1</code> completed with return value <code>2</code>. The probe initialized <code>DT</code>/<code>bFound</code> and guarded the unrelated empty-node index so the scan bound was isolated; TRComp showed no explicit runtime diagnostic, so the result is differential evidence of the out-of-range read rather than a captured error message. A full TRSim game reproduced an invalid attack target 0 at turn 45 in <code>brainless vi</code>. Unlike <code>brainless V</code> and <code>brainless_iv</code>, which start with no attack source and only keep one when a target is selected, the failing <code>vi</code> callback exposed a nonzero source with no target after a capture. Refactoring <code>vi</code> to use a local candidate source and assign the output source only when a target exists fixed the same-seed run: the game completed in 46 turns without a TRP error. The requested <code>Players/brainless vi.trp</code> copy also retains the corrected dynamic-array scan bound and compiles in historical TRComp.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/GynEN9JchJM">bug concerning execution context</a> <span class="meta">(November 2010-December 2014)</span><p>TRComp routine testing reportedly required clearing output and re-entering all arguments between runs; a wrapper around <code>TWeakestPath</code> could produce an access error. The thread confirms the reports but not a historical resolution.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/CuXJOjO8wX4">TurboRisk and TRSim Log Files Suggestion</a> <span class="meta">(December 2014)</span><p>Brian Andrews asked whether TRSim and game-history log formats could be made compatible to avoid manual column editing. No implementation confirmation appears in the inspected thread.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/xNZ6fKMz1UM">Ported AI's</a> <span class="meta">(December 2014)</span><p>A batch of ported bots was shared. The author noted compile failures in two scripts, a territory-0 placement problem, missing bot/goal announcements that could stall games, and mixed performance among the bots. Corresponding player names exist in this repository, but that alone does not prove byte-for-byte version identity.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/u6B7LapJ3x0">A couple of new AIs</a> <span class="meta">(January-November 2014)</span><p>Basic and Tectonic were shared. Brian later reported Tectonic sometimes aborted while placing to an invalid territory. Both scripts are present in this repository.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/e1Z3tAsYWQ4">Porting Old 1.2 TRPs</a> <span class="meta">(October 2012-November 2014)</span><p>The discussion concerns porting older player scripts, double-precision variables, and placement/attack behavior. The visible code post includes a guard for avoiding a no-attackable-target loop; the report does not treat that code as proof every ported bot was fixed.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/0rq-iN4_b4M">Any way to show dice rolls?</a> <span class="meta">(June 2012-November 2013)</span><p>A player suspected biased rolls and asked to see dice outcomes. A reply pointed to attacker/defender rolls in the status bar; later replies explained randomness and disputed perceived bias.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/t3Jqy6-2xxs">History &gt; Ranking &gt; Points</a> <span class="meta">(April 2013)</span><p>A user asked how ranking points worked because the help file was blank. Mario replied with the ranking, average-points, and head-to-head comparison rules.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/6qrpEQEF1W0">Risk Game</a> <span class="meta">(November-December 2011)</span><p>A participant introduced a separate C# game with a gold bonus territory and asked for feedback. The exchange clarified its rules, wording, and lack of LAN/Internet multiplayer at that time.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/NA7y6CpLiaQ">Change Computer vs. Human</a> <span class="meta">(July 2011)</span><p>A user asked whether a player could be switched between human and computer after a game began. The response said there was no official way and that editing INI files might break the game.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/o11E135wGRc">Copyright Infringement Problem Help</a> <span class="meta">(May 2011)</span><p>Community members discussed possible naming and map changes after the trademark dispute. Suggestions included alternate territories and naval regions; Mario later outlined possible future multiplayer, hints, game-history playback, and sounds, without promising delivery.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/26p_SQWpACk">Infringement of Hasbro, Inc.'s RISK trademarks and copyrights</a> <span class="meta">(October 2010-January 2011)</span><p>This long thread covers the legal letter, possible name/map changes, proposed alternate rules, map topology and territory ideas, and community suggestions. Mario reported changing the name to TurboRSC; the participants also discussed extra maps and preserving existing bot compatibility. Legal claims in the thread are historical statements by participants, not legal conclusions in this report.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/G72xtWs5Rkc">Stupid Question</a> <span class="meta">(January 2011)</span><p>A player asked how cards are earned. Replies explained the one-card-per-turn conquest rule and cards received when eliminating another player.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/EXuitTtFSbw">suggestion about player recognition</a> <span class="meta">(November 2010)</span><p>Participants debated options for disabling AI recognition of human/AI identities or making play fully blind. Arguments addressed fairness, strategic play, AI quality, and possible API behavior; no implementation is confirmed by this thread.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/015rJmiRvws">Player programming</a> <span class="meta">(November 2010)</span><p>A new author asked which language and API to use. The reply directed them to the custom-TRP and API help, Pascal examples, TRComp, and sample scripts.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/I73_mLOALks">Bug</a> <span class="meta">(October 2010)</span><p>A user could not select certain player colors. Replies explained black and white were reserved for army-count text, suggested resetting the INI file, and the user reported reinstalling resolved the broader color-list behavior.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/R7uM26dy31o">Re: Infringement of Hasbro, Inc.'s RISK trademarks and copyrights</a> <span class="meta">(October 2010)</span><p>A reply to the trademark discussion proposed alternate names and questioned the requested changes. It contains quoted portions of the legal discussion, not a separate feature request.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/ZPLTnE20HrA">Maps</a> <span class="meta">(August-September 2010)</span><p>Vexer offered satellite or elliptical map versions at custom dimensions; a 1024x768 map was requested and Vexer said one was being made.</p></li>
+      <li><a href="https://groups.google.com/g/turborisk/c/ZJuCsQ_tJ7Y">TurboRisk AI</a> <span class="meta">(August 2010)</span><p>Vexer offered help with custom-player development and invited suggestions to strengthen the Vexer bot.</p></li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>Interpretation and verification boundaries</h2>
+    <p>The archive contains both requests and shipped/community contributions. Examples of concrete contributions include the AI scripts, map packages, the open-source release, and the Lazarus port. Other ideas—including online multiplayer in TurboRisk itself, blind play, expanded territory counts, and log compatibility—should remain labeled as proposals unless independently verified in the code or release history.</p>
+    <p>Repository presence was checked only for the named map assets, player-script families, and the TRComp regression-test work summarized above. This document is an archive survey, not a full source-code audit of whether every historical request or defect is present in the current program.</p>
+  </section>
+
+  <footer class="note">
+    <p>Inspection was based on publicly accessible Google Groups pages retrieved on October 26, 2026. The group index and all-date search displayed the same 30 topics; unavailable/deleted material and attachment binaries are outside the stated coverage.</p>
+  </footer>
+</body>
+</html>

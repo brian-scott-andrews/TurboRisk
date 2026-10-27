@@ -29,6 +29,36 @@ begin
     LineEnding +
     'procedure AddFive(var Value: integer); begin Value := Value + 5; end;' +
     LineEnding +
+    'type TStaticArray = array[1..3] of integer;' +
+    ' TDynamicArray = array of integer;' + LineEnding +
+    'function StaticTotal(Values: TStaticArray): integer;' +
+    ' begin Result := Values[1] + Values[2] + Values[3]; end;' + LineEnding +
+    'procedure ChangeStatic(var Values: TStaticArray);' +
+    ' begin Values[2] := Values[2] + 10; end;' + LineEnding +
+    'function DynamicTotal(Values: TDynamicArray): integer;' +
+    ' begin Result := Values[0] + Values[1] + Values[2]; end;' + LineEnding +
+    'procedure ChangeDynamic(var Values: TDynamicArray);' +
+    ' begin Values[1] := Values[1] + 20; end;' + LineEnding +
+    'function TestArrayPassing: integer;' + LineEnding +
+    'var StaticValues: TStaticArray; DynamicValues: TDynamicArray;' +
+    LineEnding +
+    'begin' + LineEnding +
+    ' StaticValues[1] := 1; StaticValues[2] := 2; StaticValues[3] := 3;' +
+    LineEnding +
+    ' SetArrayLength(DynamicValues, 3);' + LineEnding +
+    ' DynamicValues[0] := 4; DynamicValues[1] := 5; DynamicValues[2] := 6;' +
+    LineEnding +
+    ' Result := StaticTotal(StaticValues);' + LineEnding +
+    ' ChangeStatic(StaticValues);' + LineEnding +
+    ' Result := Result + StaticTotal(StaticValues) * 10;' + LineEnding +
+    ' Result := Result + DynamicTotal(DynamicValues) * 100;' + LineEnding +
+    ' ChangeDynamic(DynamicValues);' + LineEnding +
+    ' Result := Result + DynamicTotal(DynamicValues) * 1000;' + LineEnding +
+    'end;' + LineEnding +
+    'function MyWeakestPath(ST, DT: integer; var TT, PL, EA: integer): boolean;' +
+    LineEnding +
+    'begin Result := TWeakestPath(ST, DT, TT, PL, EA); end;' +
+    LineEnding +
     'procedure Mutate;' + LineEnding +
     'var RandomValue: double;' + LineEnding +
     'begin' + LineEnding +
@@ -111,6 +141,20 @@ begin
       'Execution-context editor did not save territory edits.');
     Check(Abs(EditedContext.Buffers[1] - 19.5) < 0.001,
       'Execution-context editor did not save buffer edits.');
+    Form.LoadContext(EditedContext);
+    for I := 0 to Form.ComponentCount - 1 do
+      if (Form.Components[I] is TStringGrid) and
+         (TStringGrid(Form.Components[I]).Cells[0, 0] = 'Player') then begin
+        TStringGrid(Form.Components[I]).Cells[4, 1] := '8';
+        Break;
+      end;
+    Check(Form.SaveContext(EditedContext),
+      'Execution-context editor rejected a second edit to the same context.');
+    Check((EditedContext.PlayerName[1] = 'Edited player') and
+      (EditedContext.PlayerNewArmies[1] = 8) and
+      (EditedContext.TerritoryArmies[1] = 4) and
+      (Abs(EditedContext.Buffers[1] - 19.5) < 0.001),
+      'Editing the context a second time discarded existing inputs.');
   finally
     Form.Free;
   end;
@@ -211,6 +255,14 @@ begin
       'TRP function execution failed: ' + Diagnostics);
     Check(ReturnValue = '42', 'TRP function return value was not captured.');
 
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'TestArrayPassing',
+      Context, Parameters, ReturnValue, Diagnostics);
+    Check(bSuccess,
+      'Static/dynamic array routine execution failed: ' + Diagnostics);
+    Check(ReturnValue = '36666',
+      'Static/dynamic array parameters returned unexpected values: ' +
+      ReturnValue);
+
     SetLength(Parameters, 1);
     Parameters[0] := 8;
     bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'AddFive', Context,
@@ -219,6 +271,46 @@ begin
       'TRP var-parameter execution failed: ' + Diagnostics);
     Check(Parameters[0] = 13,
       'TRP routine did not return its updated var parameter.');
+
+    Parameters[0] := 21;
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'AddFive', Context,
+      Parameters, ReturnValue, Diagnostics);
+    Check(bSuccess,
+      'Second TRP routine execution failed: ' + Diagnostics);
+    Check(Parameters[0] = 26,
+      'Second routine execution did not use its newly supplied input.');
+    Check(Context.Buffers[1] = 123,
+      'A second routine execution lost the prior execution context.');
+
+    Context.TerritoryOwner[1] := 1;
+    Context.TerritoryOwner[2] := 2;
+    Context.TerritoryArmies[2] := 4;
+    SetLength(Parameters, 5);
+    Parameters[0] := 1;
+    Parameters[1] := 2;
+    Parameters[2] := 0;
+    Parameters[3] := 0;
+    Parameters[4] := 0;
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'MyWeakestPath',
+      Context, Parameters, ReturnValue, Diagnostics);
+    Check(bSuccess,
+      'Wrapper routine calling TWeakestPath failed: ' + Diagnostics);
+    Check((ReturnValue = 'True') and (Parameters[2] = 2) and
+      (Parameters[3] = 1) and (Parameters[4] = 4),
+      'TWeakestPath wrapper returned incorrect path outputs.');
+
+    Parameters[0] := 0;
+    Parameters[1] := 2;
+    Parameters[2] := -1;
+    Parameters[3] := -1;
+    Parameters[4] := -1;
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'MyWeakestPath',
+      Context, Parameters, ReturnValue, Diagnostics);
+    Check(bSuccess,
+      'Wrapper routine failed for invalid territory input: ' + Diagnostics);
+    Check((ReturnValue = 'False') and (Parameters[2] = 0) and
+      (Parameters[3] = 0) and (Parameters[4] = 0),
+      'TWeakestPath did not safely reject invalid territory input.');
   finally
     ScriptExec := nil;
     ExistingExec.Free;

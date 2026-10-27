@@ -1,6 +1,6 @@
 [OPTIONS]
 Compatibility=1.1
-Compiled file=Doc\TurboRisk.chm
+Compiled file=..\TurboRisk.chm
 Contents file=Table of Contents.hhc
 Index file=Index.hhk
 Default topic=overview.htm

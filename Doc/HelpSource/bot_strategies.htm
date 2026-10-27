@@ -9,57 +9,218 @@
 <body>
 <h1>TRP Bot Strategies</h1>
 
-<p>The following TRP scripts are authored by Brian S. Andrews and were
-created with AI assistance. Each script includes this author credit, an AI
-disclaimer, and a description in its source header. These strategies are
-heuristics, not guarantees; actual behavior may differ from the description.
-The script source is the definitive reference for behavior.</p>
+<p>These summaries describe the bundled TRP players. Many are community
+contributions; the author and source header are retained in each script.
+Strategies are heuristics, not guarantees, and actual behavior may differ from
+these summaries. The script source is the definitive reference.</p>
 
 <h2>Strategies</h2>
 <ul>
+  <li><b>Actuary</b> (<tt>actuary.trp</tt>) evaluates attacks with exact dice
+  probabilities, abandons battles whose expected value turns unfavorable,
+  plans eliminations, and concentrates forces toward a defensible continent.</li>
+  <li><b>Alexander</b> (<tt>alexander.trp</tt>) assigns and attacks continents;
+  its source recommends games with one or two other computer players.</li>
+  <li><b>Australian</b> (<tt>australian.trp</tt>) is a Descartes-based strategy
+  that travels widely while eventually aiming to return to Australia.</li>
+  <li><b>Australian+</b> (<tt>australian+.trp</tt>) adds weak-player elimination
+  behavior to Australian, helping it target vulnerable opponents and finish
+  winning games.</li>
+  <li><b>Australian09</b> (<tt>australian09.trp</tt>) is a 2009-10 rewrite with
+  a different strategy from Australian; it is designed for games with many
+  players and combination-based card trading.</li>
+  <li><b>Balancer</b> (<tt>balancer.trp</tt>) takes a measured approach and
+  tries to balance its investments.</li>
+  <li><b>Basic</b> (<tt>Basic.trp</tt>) focuses on gaining territories rather
+  than completing continents.</li>
+  <li><b>BonusSaboteur</b> (<tt>bonussaboteur.trp</tt>) takes a cheap territory
+  from an opponent to break its continent bonus; otherwise, it targets a weak
+  border.</li>
+  <li><b>Borg</b> (<tt>borg.trp</tt>) cooperates with other players using the
+  same program.</li>
+  <li><b>Brainless V</b> (<tt>brainless V.trp</tt>) is Chiel ten Brinke's
+  Brainless-family player. Its source includes a <tt>ConquerArea</tt> routine
+  for finding a route through owned territories to reach an opponent, as well
+  as basic card and attack logic. The 2010 TurboRisk Group thread documents an
+  array-passing problem reported while using that routine; the author later
+  said the investigation was not continued.</li>
+  <li><b>Brainless vi</b> (<tt>brainless vi.trp</tt>) is a separate follow-up
+  created to investigate and correct array handling in Brainless V's
+  <tt>ConquerArea</tt> elimination path. It enables and allocates dynamic
+  arrays for that path and was compiled with the historical TRComp
+  interpreter. A same-seed game test also exposed and fixed an attack-output
+  case where a source territory could be returned without a target. The
+  original Brainless V script remains unchanged.</li>
+  <li><b>Brainless IV</b> (<tt>brainless_iv.trp</tt>) is a persistent,
+  power-seeking player intended for ten-player games with progression-based
+  card trading; its author notes it is less effective under other rules.</li>
+  <li><b>CardCollector</b> (<tt>cardcollector.trp</tt>) seeks one low-risk
+  conquest each turn to collect a card, then stops attacking for that turn.
+  It favors weak adjacent territories and avoids costly campaigns.</li>
+  <li><b>Chokepoint</b> (<tt>chokepoint.trp</tt>) values strategically connected
+  territories and continent entry points. It seeks control of routes between
+  regions when its local force ratio is favorable.</li>
+  <li><b>Comeback</b> (<tt>comeback.trp</tt>) targets weak opponents and
+  low-risk territories when behind. As its position improves, it raises its
+  attack threshold and invests in continent bonuses.</li>
+  <li><b>Constant</b> (<tt>constant.trp</tt>), originally named
+  <i>Constantin</i>, was written by Konstantin Schwarze and is based on
+  Simple. Its archived TurboRisk 1.2 source describes it as a "black box,"
+  but its code reveals a continent-focused strategy: placement weighs
+  continent bonuses against border counts and relative forces, reinforces
+  vulnerable borders of continents it owns, and places armies on the
+  pressured front best weighted by those priorities. Attacks favor valuable
+  continents and reduced-front routes, subject to a weighted force-ratio
+  threshold. After conquest it balances armies between two fronts or moves
+  forces forward from an interior territory; fortification sends the largest
+  eligible interior reserve to a neighboring front.</li>
+  <li><b>Crusader</b> (<tt>crusader.trp</tt>) follows a strict set of rules
+  without adapting its decisions.</li>
+  <li><b>Defender</b> (<tt>defender.trp</tt>) is a Digger offshoot that uses
+  continent bonuses to defend border territories and becomes more defensive
+  as it conquers. It uses focused "do or die" attacks.</li>
+  <li><b>Descartes</b> (<tt>descartes.trp</tt>) builds forces inconspicuously
+  before launching major attacks; its source describes it as designed for
+  games with nine other computer players. In the archived page, its author
+  called it a "stealth specialist" that could get into trouble if another
+  player became strong too quickly.</li>
+  <li><b>Descartes09</b> (<tt>descartes09.trp</tt>) is a 2009-10 rewrite of
+  Descartes with a different strategy, designed for games with many players
+  and combination-based card trading.</li>
+  <li><b>Digger</b> (<tt>digger.trp</tt>) tries to conquer at least one
+  territory per turn and is less focused on taking and holding continents
+  than Napoleon. It includes focused "do or die" attacks. Its author noted
+  that it was formerly named <tt>unsimple.trp</tt>.</li>
+  <li><b>Challenger</b> (<tt>challenger.trp</tt>) is the historical
+  pre-stalemate Doomstack strategy: it builds a concentrated army, takes
+  inexpensive territories for cards, plans eliminations, and pursues continents
+  in smaller games. It does not include the current Doomstack's giant-stack
+  stalemate breaker.</li>
+  <li><b>Doomstack</b> (<tt>doomstack.trp</tt>) builds a concentrated army,
+  takes inexpensive territories for cards, and saves strength for player
+  eliminations or a decisive sweep. It also plans elimination routes,
+  pursues continents in smaller games, and attacks giant stacks to break
+  stalemates. Inspired by brainless IV (Mattias Beimers) and Vexer's
+  elimination planning; independently implemented.</li>
+  <li><b>Endeavour09</b> (<tt>endeavour09.trp</tt>) starts with an open
+  Endeavour-style strategy and switches to Australian09 after taking a
+  continent. It tries to avoid rivals' likely starting continents.</li>
+  <li><b>Era$or-bot</b> (<tt>era$or-bot.trp</tt>) adapts to the number and
+  type of opponents, seeks continents, and works to protect them. Its author
+  described it as their first bot, based on Simple, and reported that it won
+  often in tests against the bots then included with TurboRisk.</li>
+  <li><b>Finisher</b> (<tt>finisher.trp</tt>) is an aggressive end-game
+  strategy intended to be combined with another TRP; it takes over when its
+  army exceeds the combined opposing armies and attempts to finish quickly.</li>
+  <li><b>Fluid</b> (<tt>Fluid.trp</tt>) tries to reduce the number of fronts
+  it must defend.</li>
+  <li><b>Frank</b> (<tt>frank.trp</tt>) is a Frankenstein-style combination
+  of attack, placement, occupation, and fortification routines from several
+  players, organized around a large rules framework. In the archived 1.2
+  description, its author specified Struggler or Wyrm attacks, Wyrm placement
+  and occupation, and Wyrm or Unsimple fortification, alongside behavior
+  controls, adaptation to player count and strength, bug control, smarter
+  Australia/Asia and South America/North America play, and an improved
+  "Floating Bubble" feature for concentrating armies on one territory.</li>
+  <li><b>Frank+</b> (<tt>frank+.trp</tt>) adds weak-player elimination code
+  to Frank so it can target vulnerable human players and finish winning games
+  more efficiently.</li>
   <li><b>Grudge</b> (<tt>grudge.trp</tt>) tracks who captures its former
   territories and favors attacking the opponent responsible for the most
   losses. Human players win ties. If the target is unavailable, it attacks
   other opponents only at a force ratio of at least 1.5. TRPs cannot observe
   failed attacks, so captured territories are used to measure hostile actions.</li>
+  <li><b>Hunter</b> (<tt>hunter.trp</tt>) chooses an opponent and directs its
+  play toward destroying that player, like pursuing a secret mission to
+  eliminate a specific color.</li>
+  <li><b>Kingmaker</b> (<tt>kingmaker.trp</tt>) scores opponents by military
+  and strategic strength, then directs attacks toward the leader.</li>
+  <li><b>Khorne</b> (<tt>Khorne.trp</tt>) is an intentionally more aggressive
+  adaptation of Rambo.</li>
+  <li><b>Napoleon</b> (<tt>napoleon.trp</tt>) tries to conquer and defend
+  continents, and is described as best suited to games with two or three
+  other computer players. Its author called it their first attempt to include
+  continents in a strategy, stronger than Rambo, Simple, and Piranha, but
+  still weak against experienced human players.</li>
   <li><b>OddsMaker</b> (<tt>oddsmaker.trp</tt>) estimates attack quality from
   force ratios and expected exchanges, avoids low-odds attacks, and
   concentrates armies at its best attack front.</li>
-  <li><b>BonusSaboteur</b> (<tt>bonussaboteur.trp</tt>) seeks a cheap conquest
-  that breaks an opponent's continent bonus; otherwise it targets a weak
-  border.</li>
-  <li><b>CardCollector</b> (<tt>cardcollector.trp</tt>) seeks one low-risk
-  conquest per turn for a card, then stops attacking for that turn.</li>
-  <li><b>Chokepoint</b> (<tt>chokepoint.trp</tt>) values connected territories
-  and continent entry points, seeking control of routes between regions.</li>
-  <li><b>Quartermaster</b> (<tt>quartermaster.trp</tt>) concentrates forces at
-  a favorable front and moves its largest interior reserve toward a front.</li>
-  <li><b>Turtle</b> (<tt>turtle.trp</tt>) favors survival and a compact
-  frontier, attacking only at a decisive advantage or for a low-risk card.</li>
-  <li><b>Kingmaker</b> (<tt>kingmaker.trp</tt>) scores opponents by military
-  and strategic strength, then directs attacks toward the leader.</li>
-  <li><b>Comeback</b> (<tt>comeback.trp</tt>) targets weak opponents and
-  low-risk territories when behind; when ahead, it raises its attack
-  threshold and invests in continent bonuses.</li>
   <li><b>Opportunist</b> (<tt>opportunist.trp</tt>) re-evaluates attack
-  opportunities using force ratio, eliminations, continent bonuses, and
+  opportunities using force ratios, eliminations, continent bonuses, and
   strategic access.</li>
+  <li><b>Piranha</b> (<tt>piranha.trp</tt>) is an aggressive player that
+  particularly targets human opponents. Its author described it as simple
+  and especially hostile to human players.</li>
+  <li><b>Pitbull</b> (<tt>pitbull.trp</tt>) focuses on retaking territories it
+  has lost, continuing its attack during that turn until it succeeds or runs
+  out of armies. Its author characterized it as a weak but focused opponent.</li>
+  <li><b>Quartermaster</b> (<tt>quartermaster.trp</tt>) builds a concentrated
+  striking force at a favorable front, moves its largest interior reserve
+  toward the front, and avoids spreading placements evenly.</li>
+  <li><b>Rambo</b> (<tt>rambo.trp</tt>) is a very aggressive, intentionally
+  simple TurboRisk program. Its author described it as a much more aggressive
+  program based on Simple.</li>
+  <li><b>Randy</b> (<tt>randy.trp</tt>) uses substantial randomness in
+  placement and target selection, with a preference for favorable force
+  ratios and an early conquest. Its author said it was made to test computer
+  opponents and hoped it could also stand up to human opponents.</li>
+  <li><b>Raptorbot</b> (<tt>raptorbot.trp</tt>) is an expanded Simple-based
+  player described as best suited to chaotic nine- or ten-player games. Its
+  author said it grew from repeatedly modifying Simple and was their first
+  attempt at a player; the author was still learning and expected to update
+  it.</li>
+  <li><b>Shy</b> (<tt>shy.trp</tt>) slowly expands, fortifies its frontiers,
+  and tries to complete continents. It tends to start in South America.</li>
+  <li><b>Shy2</b> (<tt>shy2.trp</tt>) uses Shy's general approach without a
+  fixed preference for South America.</li>
+  <li><b>Shy3</b> (<tt>shy3.trp</tt>) follows Shy's strategy but tends to
+  start in Australia.</li>
+  <li><b>Simple</b> (<tt>simple.trp</tt>) is a deliberately weak example
+  demonstrating how to code a TurboRisk computer player; its author offered
+  it as a starting point for creating other players.</li>
+  <li><b>Slave</b> (<tt>slave.trp</tt>) chooses a "master" it will not attack,
+  leaves the master's borders weakly defended, and attacks the master's
+  enemies. If the master is eliminated, it switches to Digger's style. Its
+  author described it as an experiment in this behavior, not a strategy
+  intended to win.</li>
+  <li><b>Struggler</b> (<tt>struggler.trp</tt>) is an early attempt at a
+  strong TurboRisk program; its author called it their first serious try.</li>
+  <li><b>Struggler+</b> (<tt>struggler+.trp</tt>) adds weak-human elimination
+  and an improved end game to Struggler.</li>
+  <li><b>Tectonic</b> (<tt>Tectonic.trp</tt>) is a hybrid of Plates and
+  Basic.</li>
+  <li><b>Turtle</b> (<tt>turtle.trp</tt>) favors survival and a small,
+  defensible frontier. It reinforces pressured positions and attacks only
+  with a decisive advantage or for a low-risk card.</li>
+  <li><b>Vexer</b> (<tt>vexer.trp</tt>) seeks weak-player eliminations under
+  progression-based card rules. Under combination-based rules, its source
+  describes it as a menace that eliminates weak players and attacks
+  continents to deny bonuses.</li>
+  <li><b>Walker2</b> (<tt>Walker2.trp</tt>) is a simple cooperative program
+  intended for testing other computer players; its source describes it as a
+  weak opponent.</li>
   <li><b>Washington</b> (<tt>washington.trp</tt>) uses a Fabian-inspired
   approach: preserves forces, avoids unnecessary battles, reinforces exposed
   fronts, and advances from favorable positions.</li>
-  <li><b>Doomstack</b> (<tt>doomstack.trp</tt>) builds one concentrated
-  attack army, takes inexpensive conquests for cards, and plans budgeted
-  eliminations of weak card-holding players. In games of four or fewer
-  players it also targets and defends continents. To break stalemates it
-  attacks giant stacks held on one or two territories. Inspired by brainless IV
-  (Mattias Beimers) and Vexer's elimination planning; independently
-  implemented.</li>
-  <li><b>Actuary</b> (<tt>actuary.trp</tt>) prices every decision with exact
-  dice odds. Each attack roll is re-evaluated as an expected value, so a
-  battle whose odds turn bad is abandoned. It plans chained eliminations of
-  weak card-holding players, reinforces continent entries that are likely to
-  fall, and builds one stack aimed at the most achievable continent. Draws on
-  common Risk strategy-guide advice and Doomstack's stack ideas.</li>
+  <li><b>Wyrm</b> (<tt>wyrm.trp</tt>) is described by its author as a
+  disorganized but cunning and ruthless opponent. The archived page says its
+  author found it especially effective against many players and was still
+  working on it; the current source describes it as best suited to four- or
+  five-player games.</li>
+  <li><b>Zotob</b> (<tt>zotob.trp</tt>) is a Wyrm/Descartes hybrid that changes
+  strategy according to player count and its board position.</li>
 </ul>
+
+<p><b>Documentation note:</b> Brainless V's source header lists possible
+improvements rather than explaining its full strategy. The array-passing
+discussion is in the
+<a href="https://groups.google.com/g/turborisk/c/v3BMVbMSeUU">TurboRisk Group
+thread</a>; its author reported that the investigation was not continued.
+Constant's original source and the programming reference are in the
+<a href="https://ia600905.us.archive.org/1/items/TurboRisk2.0.5/TurboRisk1.2.zip">TurboRisk
+1.2 archive</a>. Historical author descriptions, clearly identified as such,
+are also drawn from the <a href="https://web.archive.org/web/20070830041444/http://www.marioferrari.org/freeware.html">archived
+Freeware page</a>; they record the authors' descriptions and test impressions,
+not independent evaluations of current versions.</p>
 </body>
 </html>

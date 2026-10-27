@@ -2,8 +2,11 @@
 
 Development versions of the Actuary and Doomstack computer players, kept for
 reference and benchmarking. These files are not loaded by the game; the
-playable versions are `players\actuary.trp` and `players\doomstack.trp`.
-To test an old version, copy it into `players\` under a different file name.
+playable versions are `players\actuary.trp`, `players\doomstack.trp`, and
+`players\challenger.trp`.
+`challenger.trp` is the separately bundled pre-stalemate Doomstack baseline,
+copied from `doomstack-before-opt.trp`. To test other old versions, copy them
+into `players\` under a different file name.
 
 ## Actuary (exact dice-odds bot, 2026-10-23)
 
@@ -34,6 +37,11 @@ alternating seats; TRSimCLI time limit 120 s.
 | doomstack-current.trp | Version merged in PR #41; identical to before-opt. Baseline for v4 |
 | doomstack-v4-stalemate.trp | Stalemate breaker test: Factor 1 vs players with 30+ armies on <=2 territories, allowed without cards. 8p (51 opps x2, seed 9008): 51 wins/16 limited vs baseline 43/37. 2p vs 8 strong bots x60: 227 vs 228 wins |
 | doomstack-v4-release.trp | v4 with release header and description; released as `players\doomstack.trp` |
+
+In `bot-matrix.html`, historical results from `doomstack-current.trp` before
+the v4 stalemate breaker was introduced are attributed to `challenger`; the
+name `doomstack` is reserved for the stalemate-breaker version. `challenger`
+is the matching bundled TRP for that historical strategy.
 
 Earlier `vexerchallenger.trp` drafts (the bot later renamed Doomstack) were
 rewritten in place and no copies survive.
