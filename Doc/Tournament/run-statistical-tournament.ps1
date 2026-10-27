@@ -82,6 +82,20 @@ function Get-WilsonHalfWidth([double]$score, [int]$n) {
   return ($z95 / ($n + $z2)) * [Math]::Sqrt(($score * ($n - $score) / $n) + ($z2 / 4))
 }
 
+function Get-SharedFileLines([string]$path) {
+  $stream = [IO.File]::Open($path, [IO.FileMode]::Open, [IO.FileAccess]::Read, [IO.FileShare]::ReadWrite)
+  try {
+    $reader = [IO.StreamReader]::new($stream)
+    try {
+      while ($null -ne ($line = $reader.ReadLine())) { $line }
+    } finally {
+      $reader.Dispose()
+    }
+  } finally {
+    $stream.Dispose()
+  }
+}
+
 function Get-Statistics {
   $pairs = @{}
   $newValidCount = 0
@@ -114,7 +128,7 @@ function Get-Statistics {
     foreach ($workerDir in (Get-ChildItem $runPath -Directory -Filter 'w*')) {
       $log = Join-Path $workerDir.FullName "games-round$script:activeRound.sgl"
       if (-not (Test-Path $log)) { continue }
-      foreach ($line in [IO.File]::ReadLines($log)) {
+      foreach ($line in (Get-SharedFileLines $log)) {
         $x = $line.Split(',')
         if ($x.Count -lt 14 -or [int]$x[5] -ne 2 -or $x[2] -notin @('1','4')) { continue }
         $first = $x[6]; $second = $x[10]

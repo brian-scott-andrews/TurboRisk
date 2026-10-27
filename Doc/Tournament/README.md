@@ -11,15 +11,20 @@ deduplicated `master_results.sgl` data. It excludes games involving Actuary
 dated before 23 October 2026. Doomstack results from before that date are
 retained under the name `challenger` to distinguish the pre-stalemate version
 from the current `doomstack`; results from 23 October onward retain the
-`doomstack` name. The matching pre-stalemate player is bundled as
-`players\challenger.trp`. Historical results for other bots remain included.
+`doomstack` name. Brainless V results before 27 October 2026 11:00 are labeled
+`brainless V legacy`; the 2-player matrix similarly labels pre-route-planner
+VI samples `brainless vi legacy`. Their benchmark aliases are bundled in
+`players\`. The current VI route-planner results are included in the 2-player
+matrix and summarized across 2–10 players in
+`bot-archive\brainless\README.md`. Restored V has only incidental 2-player
+games against the route-planner VI from that run, not a dedicated V rerun.
 
 `bot-matrix-archive-2026-10-23.html` preserves the previous matrix as it was
 generated on 23 October 2026. It combines historical samples, including
 Actuary and Doomstack results from before their latest updates; unlike the
 current matrix, pre-stalemate Doomstack results there are still labeled
-`doomstack`. Those cells must not be interpreted as measurements of only the
-current versions.
+`doomstack`. Those cells must not be interpreted as measurements of only the current
+versions.
 
 Both files are self-contained pages (open them in any browser). Each cell
 shows the row bot's average score against the column bot by finish order, and
@@ -61,11 +66,15 @@ approximate 95% Wilson half-width of at most 20 percentage points by default.
 Each scheduled pair is joined by randomly selected opponents; seats are
 balanced across the run. Historical Actuary and Doomstack results use the same
 23 October cutoff as the current matrix; pre-stalemate Doomstack games are
-attributed to `challenger` when that bot is in the roster. The runner backs up
+attributed to `challenger` when that bot is in the roster. Brainless V/VI
+history before 27 October 2026 11:00 is attributed to the corresponding
+`legacy` player. The runner backs up
 the master before appending results and writes live progress to its run
 directory, including per-player-count matchup coverage in `progress.json` and
 per-size batch counts and historical-throughput ETAs in both the progress file
-and console output. At completion it generates the descriptive 2-player
+and console output. The optional `-FocusBot <name>` parameter restricts
+confidence sampling and progress coverage to that bot's matchups; other bots
+remain available as multiplayer roster fillers. At completion it generates the descriptive 2-player
 overperformance report from the same games; this final summary is not a second
 adaptive test.
 

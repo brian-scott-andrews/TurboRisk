@@ -103,6 +103,7 @@ if (-not $PlanOnly -and -not $FinalizeOnly) {
 }
 
 $pairStats = @{}
+$brainlessVersionCutoff = '20261027110000'
 $masterLines = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
 $completedGames = 0
 $timeouts = 0
@@ -155,6 +156,12 @@ function Add-ResultLine([string]$line, [bool]$isHistorical) {
     if ($a -eq 'actuary' -or $b -eq 'actuary') { return }
     if ($a -eq 'doomstack') { $a = 'challenger' }
     if ($b -eq 'doomstack') { $b = 'challenger' }
+  }
+  if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
+    if ($a -eq 'brainless V') { $a = 'brainless V legacy' }
+    if ($b -eq 'brainless V') { $b = 'brainless V legacy' }
+    if ($a -eq 'brainless vi') { $a = 'brainless vi legacy' }
+    if ($b -eq 'brainless vi') { $b = 'brainless vi legacy' }
   }
   if (-not $botSet.Contains($a) -or -not $botSet.Contains($b) -or $a -eq $b) { return }
   $key = Get-PairKey $a $b
@@ -374,23 +381,25 @@ $maxGames = 0
 $powerGames = 0
 $powerNotAchievable = 0
 $initialSignificantPairings = 0
-foreach ($pair in $allPairs) {
-  if ($pair.SignificantA -or $pair.SignificantB) {
-    $initialSignificantPairings++
-    continue
-  }
-  $aPower = Get-RequiredGames $pair.A $pair.B $pair.N
-  $bPower = Get-RequiredGames $pair.B $pair.A $pair.N
-  $pairPowerGames = 0
-  foreach ($estimate in @($aPower, $bPower)) {
-    if ($estimate.Games -eq [int]::MaxValue) { $powerNotAchievable++ }
-    else {
-      $needed = [Math]::Max(0, $estimate.Games - $pair.N)
-      $pairPowerGames = [Math]::Max($pairPowerGames, [int]([Math]::Ceiling($needed / $GamesPerCheckpoint) * $GamesPerCheckpoint))
+if (-not $FinalizeOnly) {
+  foreach ($pair in $allPairs) {
+    if ($pair.SignificantA -or $pair.SignificantB) {
+      $initialSignificantPairings++
+      continue
     }
+    $aPower = Get-RequiredGames $pair.A $pair.B $pair.N
+    $bPower = Get-RequiredGames $pair.B $pair.A $pair.N
+    $pairPowerGames = 0
+    foreach ($estimate in @($aPower, $bPower)) {
+      if ($estimate.Games -eq [int]::MaxValue) { $powerNotAchievable++ }
+      else {
+        $needed = [Math]::Max(0, $estimate.Games - $pair.N)
+        $pairPowerGames = [Math]::Max($pairPowerGames, [int]([Math]::Ceiling($needed / $GamesPerCheckpoint) * $GamesPerCheckpoint))
+      }
+    }
+    $powerGames += $pairPowerGames
+    $maxGames += $MaximumNewGamesPerPair
   }
-  $powerGames += $pairPowerGames
-  $maxGames += $MaximumNewGamesPerPair
 }
 $historicalMeanSeconds = 28.44
 $maxEtaDays = [Math]::Ceiling(($maxGames * $historicalMeanSeconds) / 86400)
@@ -508,6 +517,12 @@ foreach ($line in (Read-SharedLines $masterPath)) {
     if ($a -eq 'doomstack') { $a = 'challenger' }
     if ($b -eq 'doomstack') { $b = 'challenger' }
   }
+  if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
+    if ($a -eq 'brainless V') { $a = 'brainless V legacy' }
+    if ($b -eq 'brainless V') { $b = 'brainless V legacy' }
+    if ($a -eq 'brainless vi') { $a = 'brainless vi legacy' }
+    if ($b -eq 'brainless vi') { $b = 'brainless vi legacy' }
+  }
   if (-not $matrixBotSet.Contains($a) -or -not $matrixBotSet.Contains($b) -or $a -eq $b) { continue }
   $key = Get-PairKey $a $b
   if (-not $finalPairs.ContainsKey($key)) {
@@ -583,8 +598,10 @@ $reportLines.Add('descriptive frequency, not a calibrated probability for')
 $reportLines.Add('an arbitrary future opponent; small-sample matchups can make it noisy.')
 $reportLines.Add('')
 $reportLines.Add('The source matrix is deduplicated and excludes pre-2026-10-23 Actuary results.')
-$reportLines.Add('Pre-stalemate Doomstack results are labeled challenger. Matchup win rates')
-$reportLines.Add('include time-limit results as ties.')
+$reportLines.Add('Pre-stalemate Doomstack results are labeled challenger.')
+$reportLines.Add('Pre-restoration V and pre-route-planner VI results use the')
+$reportLines.Add('brainless V legacy and brainless vi legacy labels.')
+$reportLines.Add('Time-limit results count as ties.')
 $reportLines.Add('')
 $reportLines.Add('Bot                  Opponents overperforming')
 $reportLines.Add('-------------------  ------------------------')

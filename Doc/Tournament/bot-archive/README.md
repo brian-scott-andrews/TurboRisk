@@ -1,9 +1,8 @@
 # Bot archive
 
-Development versions of the Actuary and Doomstack computer players, kept for
-reference and benchmarking. These files are not loaded by the game; the
-playable versions are `players\actuary.trp`, `players\doomstack.trp`, and
-`players\challenger.trp`.
+Development and historical versions of selected computer players, kept for
+reference and benchmarking. The source snapshots in this folder are not loaded
+by the game; benchmark aliases are separately bundled under `players\`.
 `challenger.trp` is the separately bundled pre-stalemate Doomstack baseline,
 copied from `doomstack-before-opt.trp`. To test other old versions, copy them
 into `players\` under a different file name.
@@ -45,6 +44,17 @@ is the matching bundled TRP for that historical strategy.
 
 Earlier `vexerchallenger.trp` drafts (the bot later renamed Doomstack) were
 rewritten in place and no copies survive.
+
+## Brainless V and VI
+
+The Brainless V and VI source versions and the 27 October 2026 VI route-planner
+rerun are documented in [`brainless/README.md`](brainless/README.md).
+Historical pre-restoration V and pre-route-planner VI results use the explicit
+`brainless V legacy` and `brainless vi legacy` player aliases; the original
+result rows remain unchanged in the external master-results archive. The
+archive also preserves the earlier IV-derived elimination-helper snapshots
+that were tried in both bots before the user chose to keep V close to its
+original strategy and make VI the route-planning variant.
 
 ## Hashes (SHA-256, first 12 hex)
 

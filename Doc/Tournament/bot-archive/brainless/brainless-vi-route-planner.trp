@@ -1,0 +1,268 @@
+{
+Program: brainless vi
+
+Author: Chiel ten Brinke
+
+Description: Route-planning variant. Uses a bounded weighted search to find a
+first step toward a reachable weak opponent and replans after each attack.
+}
+
+
+{
+POSSIBLE IMPROVEMENTS:
+- Better kill player function
+- Smarter territory hopping - go to territories where the most other weak territories are bordering
+}
+
+function GetAttT: integer;
+var
+  T,A,MaxA: integer;
+begin
+  // Determine which T is your strongest front to attack with
+  Result:=0;
+  MaxA:=0;
+  for T:=1 to 42 do begin
+    A:=TArmies(T);
+    if (TIsFront(T)) and ( (A>MaxA) or ((A>=MaxA) and (T<39)) ) then begin
+      MaxA:=A;
+      result:=T;
+    end;
+  end;
+end;
+
+
+function FindEliminationRoute(Start: integer; var FirstStep: integer): boolean;
+var
+  P,T,B,Node,NextNode,Step,Cost,MinDist,CandidateCost,CandidateTarget,BestCost: integer;
+  Dist: array [1..42] of integer;
+  Parent: array [1..42] of integer;
+  Visited: array [1..42] of boolean;
+begin
+  FirstStep:=0;
+  Result:=False;
+  if (Start<1) or (Start>42) or (not TIsMine(Start)) then exit;
+  BestCost:=2147483647;
+
+  for P:=1 to 10 do begin
+    if (P=PMe) or (not PActive(P)) or
+      (PArmiesCount(P)>=TArmies(Start)) then continue;
+
+    for T:=1 to 42 do begin
+      Dist[T]:=2147483647;
+      Parent[T]:=0;
+      Visited[T]:=False;
+    end;
+    Dist[Start]:=0;
+    CandidateCost:=2147483647;
+    CandidateTarget:=0;
+
+    repeat
+      Node:=0;
+      MinDist:=2147483647;
+      for T:=1 to 42 do
+        if (not Visited[T]) and (Dist[T]<MinDist) then begin
+          MinDist:=Dist[T];
+          Node:=T;
+        end;
+      if Node=0 then break;
+      Visited[Node]:=True;
+
+      if (Node<>Start) and (TOwner(Node)=P) then begin
+        CandidateCost:=Dist[Node];
+        CandidateTarget:=Node;
+        break;
+      end;
+
+      for B:=1 to TBordersCount(Node) do begin
+        NextNode:=TBorder(Node,B);
+        if (NextNode<1) or (NextNode>42) or TIsMine(NextNode) then continue;
+        Cost:=Dist[Node]+TArmies(NextNode)+1;
+        if (not Visited[NextNode]) and (Cost<Dist[NextNode]) then begin
+          Dist[NextNode]:=Cost;
+          Parent[NextNode]:=Node;
+        end;
+      end;
+
+    until False;
+
+    if (CandidateCost<BestCost) and (CandidateCost<TArmies(Start)) then begin
+      if (CandidateTarget>=1) and (CandidateTarget<=42) then begin
+        Step:=CandidateTarget;
+        T:=0;
+        while (Parent[Step]<>Start) and (Parent[Step]>0) and (T<42) do begin
+          Step:=Parent[Step];
+          T:=T+1;
+        end;
+        if (Parent[Step]=Start) and (Step>=1) and (Step<=42) then begin
+          if CandidateCost<BestCost then begin
+            BestCost:=CandidateCost;
+            FirstStep:=Step;
+            Result:=True;
+          end;
+        end;
+      end;
+    end;
+  end;
+end;
+
+
+procedure Assignment(var TT: integer);
+var
+  T: integer;
+begin
+  // Prefers Asia so he can walk around freely
+  T:=0;
+  repeat
+    T:=T+1;
+    if TOwner(T)=0 then
+      TT:=T;
+  until ( (TT>0) and (T=38) ) or (T=42);
+end;
+
+
+procedure Placement(var TT: integer);
+begin
+  TT:=GetAttT;
+end;
+
+
+procedure Attack(var FT, TT: integer);
+var
+  A,N,ET,EA,F,MinF,P,TPA,AttackTerritory,FirstStep: integer;
+begin
+  FT:=0;
+  TT:=0;
+  AttackTerritory:=GetAttT;
+  if AttackTerritory=0 then exit;
+  A:=TArmies(AttackTerritory);
+
+  // Card-Attack
+  if (not SConquest) and (TIsFront(AttackTerritory)) then begin
+    TWeakestFront(AttackTerritory,ET,EA);
+    if ( (A>3*EA) and (EA<99) and (not(SCardsBasedOnCombo)) )
+    or ( (A>4*EA) and ( (EA<4) or ( (EA<5) and (A>99) ) ) and (SCardsBasedOnCombo) ) then TT:=ET;
+  end;
+
+  // Number of armies of all my enemies
+  TPA:=0;
+  for P:=1 to 10 do begin
+    if (PActive(P)) and (P<>PMe) then
+      TPA:=TPA+PArmiesCount(P);
+  end;
+
+  // Attack the whole world in one turn (if possible)
+  MinF:=11;
+  if (TIsFront(AttackTerritory)) and ( (A>TPA) or (SAlivePlayersCount=2) ) then begin
+    for N:=1 to TFrontsCount(AttackTerritory) do begin
+      ET:=TFront(AttackTerritory,N);
+      F:=TFrontsCount(ET);
+      if (MinF<>0) then begin
+        if (ET=31) then F:=-1;  // To Siam
+        if (AttackTerritory=31) and (ET=39) then F:=-1;  // From Siam to Indonesia
+        if (COwner(3)=PMe) and (COwner(5)=PMe) and (ET=16) then F:=-1;  // To E-Afrika
+        if (COwner(3)=PMe) and (COwner(4)=PMe) and (ET=29) then F:=-1;  // To Kazakhstan
+        if (COwner(1)=PMe) and (AttackTerritory=14) and (ET=12) then F:=-1;  // To Brazil
+      end;
+      if ( (F<MinF) or (F=0) or ( (F=MinF) and (not TIsEntry(ET)) ) ) and (A>TArmies(ET)) then begin
+        MinF:=F;
+        TT:=ET;
+      end;
+    end;
+  end;
+
+  if FindEliminationRoute(AttackTerritory,FirstStep) then
+    TT:=FirstStep;
+
+  if TT>0 then
+    FT:=AttackTerritory
+  else begin
+    FT:=0;
+    TT:=0;
+  end;
+
+end;
+
+
+procedure Occupation(FT, TT: integer; var A: integer);
+var
+  C,PT,PA,ET,EA,RA: integer;
+begin
+  A:=0;
+  if (TIsFront(TT)) or (not TIsFront(FT)) then
+    A:=TArmies(FT)-1;
+  if (FT=31) and (TT=39) then begin  // Australia
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+  if (COwner(1)=PMe) and ((COwner(4)<>PMe) or (COwner(3)<>PMe)) and (FT=14) and (TT=12) then begin  // S-America
+    RA:=0;
+    for C:=1 to 5 do begin
+      CAnalysis(C,PT,PA,ET,EA);
+      RA:=RA+EA;
+    end;
+    CAnalysis(6,PT,PA,ET,EA);
+    if (TArmies(FT)>RA+EA) and (RA>0) then
+      A:=2*EA+5;
+  end;
+end;
+
+
+procedure Fortification(var FT, TT, Armies: integer);
+var
+  T,AT,A,T1,PL,F,MaxF: integer;
+begin
+  FT:=0;
+  TT:=0;
+  Armies:=0;
+  AT:=GetAttT;
+  if AT=0 then exit;
+
+  A:=1;
+  for T:=1 to 42 do begin
+    TShortestPath(T,AT,T1,PL);
+    if (PL=0) then PL:=99;
+    if (TIsMine(T)) and ( (not TIsFront(T)) or (PL<5) ) then begin
+      if (TArmies(T)>A) then   // Strongest army
+      begin
+        A:=TArmies(T);
+        FT:=T;
+        TT:=TPathToFront(T);                     // Move to front
+        if (PL<5) and (TIsMine(T1)) then TT:=T1; // Or even better, move to attack territory
+        Armies:=TArmies(T)-1;
+      end;
+    end;
+  end;
+
+  if (not (SConquest)) and (TArmies(AT)>1) then begin // Move attack territory if it couldnt get cards
+    MaxF:=0;
+    PL:=0;
+    for A:=1 to TBordersCount(AT) do begin
+      T:=TBorder(AT,A);
+      F:=TFrontsCount(T);
+      if (TIsMine(T)) and ( (F>MaxF) or ((F>=MaxF) and (TBordersCount(T)>PL)) ) then begin
+        MaxF:=F;
+        PL:=TBordersCount(T);
+        FT:=AT;
+        TT:=T;
+        Armies:=TArmies(FT)-1;
+      end;
+    end;
+  end;
+  if (FT<1) or (FT>42) or (TT<1) or (TT>42) or (FT=TT) or (Armies<1) then begin
+    FT:=0;
+    TT:=0;
+    Armies:=0;
+  end;
+end;
+
+
+begin
+ULogOn;
+UMessageOn;
+end.

@@ -10,6 +10,7 @@ param(
   [int]$SeedBase = 20261026,
   [int]$BatchGamesPerSize = 500,
   [int]$MaxAttempts = 3,
+  [string]$FocusBot = '',
   [switch]$PlanOnly
 )
 
@@ -17,6 +18,7 @@ $ErrorActionPreference = 'Stop'
 $sizes = 2..10
 $z95 = 1.959963984540054
 $goal = $HalfWidthGoalPercent / 100
+$brainlessVersionCutoff = '20261027110000'
 $masterPath = (Resolve-Path $MasterResults).Path
 $playersPath = (Resolve-Path $PlayersDirectory).Path
 $snapshotPath = (Resolve-Path $SimulatorSnapshot).Path
@@ -28,6 +30,7 @@ if ($MaxAttempts -lt 1) { throw 'MaxAttempts must be positive.' }
 
 $bots = @(Get-ChildItem $playersPath -Filter '*.trp' | ForEach-Object BaseName | Sort-Object)
 if ($bots.Count -lt 10) { throw "Expected at least 10 current bot files in $playersPath." }
+if ($FocusBot -and $FocusBot -notin $bots) { throw "Focus bot '$FocusBot' is not in $playersPath." }
 $botSet = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
 foreach ($bot in $bots) { [void]$botSet.Add($bot) }
 
@@ -110,12 +113,17 @@ function Add-ResultLine([string]$line) {
       if ($names[$i] -eq 'actuary') { return }
       if ($names[$i] -eq 'doomstack') { $names[$i] = 'challenger' }
     }
+    if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
+      if ($names[$i] -eq 'brainless V') { $names[$i] = 'brainless V legacy' }
+      if ($names[$i] -eq 'brainless vi') { $names[$i] = 'brainless vi legacy' }
+    }
   }
   for ($i = 0; $i -lt $size; $i++) {
     if (-not $botSet.Contains($names[$i])) { continue }
     for ($j = $i + 1; $j -lt $size; $j++) {
       if (-not $botSet.Contains($names[$j])) { continue }
       $key = Get-PairKey $size $names[$i] $names[$j]
+      if ($FocusBot -and $names[$i] -ne $FocusBot -and $names[$j] -ne $FocusBot) { continue }
       if (-not $pairStats.ContainsKey($key)) {
         $pairStats[$key] = [pscustomobject]@{N=0;Score=0.0}
       }
@@ -143,6 +151,10 @@ function Test-EligibleHistoricalLine([string]$line) {
     if ($x[0] -lt '20261023') {
       if ($bot -eq 'actuary') { return $false }
       if ($bot -eq 'doomstack') { $bot = 'challenger' }
+    }
+    if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
+      if ($bot -eq 'brainless V') { $bot = 'brainless V legacy' }
+      if ($bot -eq 'brainless vi') { $bot = 'brainless vi legacy' }
     }
     if (-not $botSet.Contains($bot)) { return $false }
   }
@@ -228,6 +240,7 @@ function Get-RosterHalfWidth([int]$size, [string[]]$roster) {
   $maxWidth = 0.0
   foreach ($i in 0..($roster.Count - 2)) {
     for ($j = $i + 1; $j -lt $roster.Count; $j++) {
+      if ($FocusBot -and $roster[$i] -ne $FocusBot -and $roster[$j] -ne $FocusBot) { continue }
       $key = Get-PairKey $size $roster[$i] $roster[$j]
       $stat = $pairStats[$key]
       if (-not $stat -or $stat.N -lt $MinimumGamesPerPair) { return 1.0 }
@@ -253,6 +266,7 @@ function New-Batch([int]$firstId) {
     $deficit = New-Object 'int[]' $count
     for ($i = 0; $i -lt $count; $i++) {
       for ($j = $i + 1; $j -lt $count; $j++) {
+        if ($FocusBot -and $bots[$i] -ne $FocusBot -and $bots[$j] -ne $FocusBot) { continue }
         $key = Get-PairKey $size $bots[$i] $bots[$j]
         $stat = $pairStats[$key]
         $seen = if ($stat) { $stat.N } else { 0 }
@@ -356,6 +370,7 @@ function Write-Progress(
     $requiredGameDeficit = 0
     for ($i = 0; $i -lt $bots.Count; $i++) {
       for ($j = $i + 1; $j -lt $bots.Count; $j++) {
+        if ($FocusBot -and $bots[$i] -ne $FocusBot -and $bots[$j] -ne $FocusBot) { continue }
         $totalPairs++
         $sizeTotalPairs++
         $key = Get-PairKey $size $bots[$i] $bots[$j]
@@ -553,6 +568,7 @@ while ($true) {
         $rosterNames = [string[]]($job.Game.Roster -split ',')
         for ($i = 0; $i -lt $rosterNames.Count; $i++) {
           for ($j = $i + 1; $j -lt $rosterNames.Count; $j++) {
+            if ($FocusBot -and $rosterNames[$i] -ne $FocusBot -and $rosterNames[$j] -ne $FocusBot) { continue }
             $key = Get-PairKey $job.Game.N $rosterNames[$i] $rosterNames[$j]
             $pairFailures[$key] = [int]$pairFailures[$key] + 1
           }
