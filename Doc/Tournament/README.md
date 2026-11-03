@@ -13,8 +13,8 @@ retained under the name `challenger` to distinguish the pre-stalemate version
 from the current `doomstack`; results from 23 October onward retain the
 `doomstack` name. Brainless V results before 27 October 2026 11:00 are labeled
 `brainless V legacy`; the 2-player matrix similarly labels pre-route-planner
-VI samples `brainless vi legacy`. Their benchmark aliases are bundled in
-`players\`. The current VI route-planner results are included in the 2-player
+VI samples `brainless vi legacy`. Their benchmark aliases are preserved only in
+`bot-archive\brainless\`, not in `players\`. The current VI route-planner results are included in the 2-player
 matrix and summarized across 2–10 players in
 `bot-archive\brainless\README.md`. Restored V has only incidental 2-player
 games against the route-planner VI from that run, not a dedicated V rerun.
@@ -102,6 +102,10 @@ each tab. The tournament finalizer calls it automatically, including when
 using `-FinalizeOnly`; previously only the 2-player tab was refreshed.
 
 ## bot-archive
+
+`players\` contains current playable bots only. Keep legacy and archived
+versions here instead; do not include them in tournaments unless explicitly
+requested. Historical result labels remain unchanged.
 
 Development versions of Actuary and Doomstack, with their benchmark results.
 See `bot-archive\README.md`.
