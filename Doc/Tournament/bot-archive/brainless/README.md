@@ -14,8 +14,10 @@ October 2026 work:
 | `brainless-vi-route-rerun-2026-10-27.sgl` | VI benchmark | Raw valid result rows from the isolated route-planner rerun. |
 
 Historical results through 27 October 2026 10:59 are identified as
-`brainless V legacy` and `brainless vi legacy`; these are also available as
-playable benchmark aliases in `players\`. The IV-derived experiments were
+`brainless V legacy` and `brainless vi legacy`; their exact benchmark aliases
+are preserved here as `brainless V legacy.trp` and `brainless vi legacy.trp`,
+not in `players\`. Archived versions must not be run in tournaments unless
+explicitly requested. The IV-derived experiments were
 preserved from checkpoint `dba587b`; they were exploratory and not tournament
 benchmarked. The current versions keep the names
 `brainless V` and `brainless vi`. The original master-results file was not

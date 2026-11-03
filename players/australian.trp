@@ -1,9 +1,7 @@
-{ 
+{
 Program: Australian
-
 Author: Anthony Covey-Crump
-
-Description:  This program is Descartes with a different strategy. 
+Description: This program is Descartes with a different strategy.
 It is named after your typical australian who travels the world over, 
 but with an eventual view of getting back to australia. 
 

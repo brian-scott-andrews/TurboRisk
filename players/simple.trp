@@ -1,11 +1,8 @@
 {
 Program: Simple
-
 Author: Mario Ferrari
-
 Description: Purpose of this program is to demonstrate how to code a computer-player
 in TurboRisk. As simplicity was the main goal, the resulting strategy is very weak.
-
 }
 
 // History: Fortification Procedure updated for TurboRisk 2.0 by Nathan Scarbrough August 2009

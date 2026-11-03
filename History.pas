@@ -40,7 +40,6 @@ type
     lblAnalyze: TLabel;
     lblPlayer1: TLabel;
     lblPlayer2: TLabel;
-    function SplitStr(var theString: string; delimiter: string): string;
     procedure FormShow(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure grdRankingCaptionClick(Sender: TStringGrid;
@@ -52,14 +51,15 @@ type
     procedure lstHistoryColumnClick(Sender: TObject; Column: TListColumn);
     procedure lstHistoryCompare(Sender: TObject; Item1, Item2: TListItem;
       Data: integer; var Compare: integer);
+    procedure OpenHistoryClick(Sender: TObject);
   private
+    lblSource: TLabel;
     uHRanking: TObjectList;
     iColumnClicked, iSortCol, iTotGames: integer;
     bAscending: boolean;
-    procedure LoadHistoryFile;
     function SearchPlayer(const sKey: string; uList: TObjectList): integer;
   public
-    { Public declarations }
+    procedure LoadHistoryFile(const FileName: string);
   end;
 
 var
@@ -69,12 +69,29 @@ implementation
 
 {$R *.lfm}
 
-uses Globals{, StdPas};
+uses Globals, GameResults;
 
 procedure TfHistory.FormCreate(Sender: TObject);
 var
   i: integer;
+  Bar: TPanel;
+  OpenButton: TButton;
 begin
+  Bar := TPanel.Create(Self);
+  Bar.Parent := Self;
+  Bar.Align := alTop;
+  Bar.Height := 58;
+  Bar.BevelOuter := bvNone;
+  OpenButton := TButton.Create(Self);
+  OpenButton.Parent := Bar;
+  OpenButton.SetBounds(6, 4, 150, 25);
+  OpenButton.Caption := 'Open history / TRSim log...';
+  OpenButton.OnClick := OpenHistoryClick;
+  lblSource := TLabel.Create(Self);
+  lblSource.Parent := Bar;
+  lblSource.AutoSize := false;
+  lblSource.SetBounds(6, 33, ClientWidth - 12, 21);
+  lblSource.Anchors := [akLeft, akTop, akRight];
   with lstHistory.Columns.Add do begin
     Caption := 'Date';
     Width := 65;
@@ -120,75 +137,76 @@ begin
   iSortCol := 0;
 end;
 
-function TfHistory.SplitStr(var theString: string; delimiter: string): string;
-var
-  i: integer;
-begin
-  Result:= '';
-  if theString <> '' then
-  begin
-    i:= Pos(delimiter, theString);
-    if i > 0 then
-    begin
-       Result:= Copy(theString, 1, i-1);
-       theString:= Copy(theString, i+Length(delimiter), maxLongInt);
-    end
-    else
-    begin
-       Result:= theString;
-       theString:= '';
-    end;
-  end;
-end;
-
 procedure TfHistory.FormShow(Sender: TObject);
 begin
   Screen.Cursor := crHourGlass;
-  iColumnClicked := -1;
-  LoadHistoryFile;
-  bAscending := true;
-  panAnalyze.Visible := false;
+  try
+    iColumnClicked := -1;
+    if FileExists(sG_AppPath + 'history.txt') then
+      LoadHistoryFile(sG_AppPath + 'history.txt');
+    bAscending := true;
+    panAnalyze.Visible := false;
+  except
+    on E: Exception do
+      MessageDlg('Could not load history: ' + E.Message, mtError, [mbOK], 0);
+  end;
   Screen.Cursor := crDefault;
 end;
 
-procedure TfHistory.LoadHistoryFile;
+procedure TfHistory.OpenHistoryClick(Sender: TObject);
 var
-  fHistory: textfile;
-  iMaxRank, iP, iL: integer;
-  sRec, sTmp: string;
-  dDate: TDate;
+  OpenDialog: TOpenDialog;
 begin
-  iTotGames := 0;
-  // open history file
-  if not FileExists(sG_AppPath + 'history.txt') then
-    exit;
-  AssignFile(fHistory, sG_AppPath + 'history.txt');
-  Reset(fHistory);
-  // prepare list
-  lstHistory.Clear;
-  // create object for statistics
-  uHRanking := TObjectList.Create;
-  // load list
+  OpenDialog := TOpenDialog.Create(Self);
   try
-    // read history file
-    while not Eof(fHistory) do begin
-      Readln(fHistory, sRec);
+    OpenDialog.Title := 'Open game history or TRSim game log';
+    OpenDialog.Filter := 'History and TRSim logs|*.txt;*.sgl|All files|*.*';
+    OpenDialog.Options := OpenDialog.Options + [ofFileMustExist];
+    if OpenDialog.Execute then begin
+      try
+        LoadHistoryFile(OpenDialog.FileName);
+      except
+        on E: Exception do
+          MessageDlg('Could not load history: ' + E.Message, mtError, [mbOK], 0);
+      end;
+    end;
+  finally
+    OpenDialog.Free;
+  end;
+end;
+
+procedure TfHistory.LoadHistoryFile(const FileName: string);
+var
+  Games: TGameResults;
+  iMaxRank, iP, iL, LineIndex, Skipped: integer;
+  sTmp: string;
+begin
+  Games := ReadGameResults(FileName);
+  Skipped := 0;
+  for LineIndex := 0 to High(Games) do
+    if Games[LineIndex].Status <> RESULT_COMPLETE then Inc(Skipped);
+  uHRanking := TObjectList.Create;
+  try
+    iTotGames := 0;
+    lstHistory.Clear;
+    grdRanking.FixedRows := 0;
+    panAnalyze.Visible := false;
+    lblSource.Caption := Format('%s: %d completed; %d unfinished games excluded.',
+      [ExtractFileName(FileName), Length(Games) - Skipped, Skipped]);
+    lblSource.Hint := ExpandFileName(FileName);
+    lblSource.ShowHint := true;
+    for LineIndex := 0 to High(Games) do begin
+      if Games[LineIndex].Status <> RESULT_COMPLETE then Continue;
       inc(iTotGames);
-      // date
-      sTmp := SplitStr(sRec, ',');
-      dDate := EncodeDate(StrToInt(copy(sTmp, 1, 4)),
-        StrToInt(copy(sTmp, 5, 2)), StrToInt(copy(sTmp, 7, 2)));
-      // max rank
-      sTmp := SplitStr(sRec, ',');
-      iMaxRank := StrToInt(sTmp);
+      iMaxRank := Games[LineIndex].PlayerCount;
       // list item
       with lstHistory.Items.Add do begin
-        Caption := FormatDateTime('yyyy-mm-dd', dDate);
+        Caption := FormatDateTime('yyyy-mm-dd', Games[LineIndex].GameDate);
         SubItems.Add(IntToStr(iMaxRank));
         for iP := 1 to MAXPLAYERS do begin
           if iP <= iMaxRank then begin
             // add player to list item
-            sTmp := lowercase(SplitStr(sRec, ','));
+            sTmp := LowerCase(Games[LineIndex].Players[iP - 1].Name);
             SubItems.Add(sTmp);
             // search player in ranking list
             iL := SearchPlayer(sTmp, uHRanking);
@@ -253,7 +271,6 @@ begin
       cboPlayer2.Items.Add((uHRanking[iL] as TPStat).player);
     end;
   finally
-    CloseFile(fHistory);
     uHRanking.Free;
   end;
 end;

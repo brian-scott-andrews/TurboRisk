@@ -14,6 +14,14 @@ contributions; the author and source header are retained in each script.
 Strategies are heuristics, not guarantees, and actual behavior may differ from
 these summaries. The script source is the definitive reference.</p>
 
+<p>Each filename in parentheses identifies the bot being described, not a
+source from which another bot copied code. <b>Strategy inspiration</b> credits
+an idea; <b>code adaptation</b> or <b>code hybrid</b> identifies modified or
+combined routines from other bots. Original author credits are retained;
+later repository variants are identified separately. Statements about a bot
+being strong, weak, or best suited to particular games are historical author
+assessments, not guarantees or current tournament rankings.</p>
+
 <h2>Strategies</h2>
 <ul>
   <li><b>Actuary</b> (<tt>actuary.trp</tt>) evaluates attacks with exact dice
@@ -21,16 +29,18 @@ these summaries. The script source is the definitive reference.</p>
   plans eliminations, and concentrates forces toward a defensible continent.</li>
   <li><b>Alexander</b> (<tt>alexander.trp</tt>) assigns and attacks continents;
   its source recommends games with one or two other computer players.</li>
-  <li><b>Australian</b> (<tt>australian.trp</tt>) is a Descartes-based strategy
+  <li><b>Australian</b> (<tt>australian.trp</tt>) is a code adaptation of Descartes
   that travels widely while eventually aiming to return to Australia.</li>
-  <li><b>Australian+</b> (<tt>australian+.trp</tt>) adds weak-player elimination
-  behavior to Australian, helping it target vulnerable opponents and finish
-  winning games.</li>
+  <li><b>Australian+</b> (<tt>australian+.trp</tt>) modifies Australian with
+  Vexer's player-elimination code, as credited by its author. Unlike
+  Doomstack's strategy inspiration, this is documented code reuse.
+  It targets vulnerable human opponents and helps finish winning games.</li>
   <li><b>Australian09</b> (<tt>australian09.trp</tt>) is a 2009-10 rewrite with
   a different strategy from Australian; it is designed for games with many
   players and combination-based card trading.</li>
-  <li><b>Balancer</b> (<tt>balancer.trp</tt>) takes a measured approach and
-  tries to balance its investments.</li>
+  <li><b>Balancer</b> (<tt>balancer.trp</tt>) splits reinforcements between
+  offense and defense, strengthening favorable attack fronts and reinforcing
+  threatened borders.</li>
   <li><b>Basic</b> (<tt>Basic.trp</tt>) focuses on gaining territories rather
   than completing continents.</li>
   <li><b>BonusSaboteur</b> (<tt>bonussaboteur.trp</tt>) takes a cheap territory
@@ -38,19 +48,17 @@ these summaries. The script source is the definitive reference.</p>
   border.</li>
   <li><b>Borg</b> (<tt>borg.trp</tt>) cooperates with other players using the
   same program.</li>
-  <li><b>Brainless V</b> (<tt>brainless V.trp</tt>) is Chiel ten Brinke's
-  Brainless-family player. Its source includes a <tt>ConquerArea</tt> routine
-  for finding a route through owned territories to reach an opponent, as well
-  as basic card and attack logic. The 2010 TurboRisk Group thread documents an
-  array-passing problem reported while using that routine; the author later
-  said the investigation was not continued.</li>
-  <li><b>Brainless vi</b> (<tt>brainless vi.trp</tt>) is a separate follow-up
-  created to investigate and correct array handling in Brainless V's
-  <tt>ConquerArea</tt> elimination path. It enables and allocates dynamic
-  arrays for that path and was compiled with the historical TRComp
-  interpreter. A same-seed game test also exposed and fixed an attack-output
-  case where a source territory could be returned without a target. The
-  original Brainless V script remains unchanged.</li>
+  <li><b>Brainless V</b> (<tt>brainless V.trp</tt>) is a repository restoration
+  of Chiel ten Brinke's player, with safety guards around its near-original
+  <tt>ConquerArea</tt> elimination planner. That planner is incomplete and
+  diagnostic: it does not select attack targets. Normal attack selection
+  still operates independently of it. This is not an untouched original
+  release.</li>
+  <li><b>Brainless VI</b> (<tt>brainless vi.trp</tt>) is a later repository
+  variant derived from Chiel ten Brinke's Brainless V. It uses a bounded,
+  weighted route search to choose the first step toward a reachable weak
+  opponent and replans after each attack. The route planner is a later
+  modification, not a release by the original author.</li>
   <li><b>Brainless IV</b> (<tt>brainless_iv.trp</tt>) is a persistent,
   power-seeking player intended for ten-player games with progression-based
   card trading; its author notes it is less effective under other rules.</li>
@@ -95,13 +103,16 @@ these summaries. The script source is the definitive reference.</p>
   pre-stalemate Doomstack strategy: it builds a concentrated army, takes
   inexpensive territories for cards, plans eliminations, and pursues continents
   in smaller games. It does not include the current Doomstack's giant-stack
-  stalemate breaker.</li>
+  stalemate breaker. Like Doomstack, it credits Brainless IV and Vexer for
+  strategy ideas, not copied source code.</li>
   <li><b>Doomstack</b> (<tt>doomstack.trp</tt>) builds a concentrated army,
   takes inexpensive territories for cards, and saves strength for player
   eliminations or a decisive sweep. It also plans elimination routes,
   pursues continents in smaller games, and attacks giant stacks to break
-  stalemates. Inspired by brainless IV (Mattias Beimers) and Vexer's
-  elimination planning; independently implemented.</li>
+  stalemates. Brainless IV (Mattias Beimers) inspired the concentrated-stack
+  approach; Vexer inspired estimating elimination-route costs to capture
+  cards. These are strategy credits, not source-code reuse. Doomstack's
+  simpler greedy route search was independently implemented.</li>
   <li><b>Endeavour09</b> (<tt>endeavour09.trp</tt>) starts with an open
   Endeavour-style strategy and switches to Australian09 after taking a
   continent. It tries to avoid rivals' likely starting continents.</li>
@@ -122,21 +133,22 @@ these summaries. The script source is the definitive reference.</p>
   controls, adaptation to player count and strength, bug control, smarter
   Australia/Asia and South America/North America play, and an improved
   "Floating Bubble" feature for concentrating armies on one territory.</li>
-  <li><b>Frank+</b> (<tt>frank+.trp</tt>) adds weak-player elimination code
-  to Frank so it can target vulnerable human players and finish winning games
-  more efficiently.</li>
+  <li><b>Frank+</b> (<tt>frank+.trp</tt>) modifies Frank with Vexer's
+  player-elimination code, as credited by its author. This is documented code
+  reuse, not just strategy inspiration. It targets vulnerable human players
+  and helps finish winning games.</li>
   <li><b>Grudge</b> (<tt>grudge.trp</tt>) tracks who captures its former
   territories and favors attacking the opponent responsible for the most
   losses. Human players win ties. If the target is unavailable, it attacks
-  other opponents only at a force ratio of at least 1.5. TRPs cannot observe
-  failed attacks, so captured territories are used to measure hostile actions.</li>
+  other opponents only at a force ratio of at least 1.5. This bot uses board
+  snapshots rather than the action-history API, so captures measure hostile actions.</li>
   <li><b>Hunter</b> (<tt>hunter.trp</tt>) chooses an opponent and directs its
   play toward destroying that player, like pursuing a secret mission to
   eliminate a specific color.</li>
   <li><b>Kingmaker</b> (<tt>kingmaker.trp</tt>) scores opponents by military
   and strategic strength, then directs attacks toward the leader.</li>
   <li><b>Khorne</b> (<tt>Khorne.trp</tt>) is an intentionally more aggressive
-  adaptation of Rambo.</li>
+  code adaptation of Rambo.</li>
   <li><b>Napoleon</b> (<tt>napoleon.trp</tt>) tries to conquer and defend
   continents, and is described as best suited to games with two or three
   other computer players. Its author called it their first attempt to include
@@ -187,8 +199,8 @@ these summaries. The script source is the definitive reference.</p>
   strong TurboRisk program; its author called it their first serious try.</li>
   <li><b>Struggler+</b> (<tt>struggler+.trp</tt>) adds weak-human elimination
   and an improved end game to Struggler.</li>
-  <li><b>Tectonic</b> (<tt>Tectonic.trp</tt>) is a hybrid of Plates and
-  Basic.</li>
+  <li><b>Tectonic</b> (<tt>Tectonic.trp</tt>) is a code hybrid combining
+  routines from Plates and Basic, rather than just strategy inspiration.</li>
   <li><b>Turtle</b> (<tt>turtle.trp</tt>) favors survival and a small,
   defensible frontier. It reinforces pressured positions and attacks only
   with a decisive advantage or for a low-risk card.</li>
@@ -211,8 +223,7 @@ these summaries. The script source is the definitive reference.</p>
   strategy according to player count and its board position.</li>
 </ul>
 
-<p><b>Documentation note:</b> Brainless V's source header lists possible
-improvements rather than explaining its full strategy. The array-passing
+<p><b>Documentation note:</b> The historical Brainless V array-passing
 discussion is in the
 <a href="https://groups.google.com/g/turborisk/c/v3BMVbMSeUU">TurboRisk Group
 thread</a>; its author reported that the investigation was not continued.

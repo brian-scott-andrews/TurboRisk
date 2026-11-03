@@ -1,14 +1,12 @@
 {
 Program: Comeback
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-When behind in total army strength, it seeks weak opponents and low-risk
+Description: When behind in total army strength, it seeks weak opponents and low-risk
 territories while avoiding broad fronts. As its position improves, it raises
 its attack threshold and invests in continent bonuses.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

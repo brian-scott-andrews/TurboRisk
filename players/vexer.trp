@@ -1,8 +1,6 @@
 {
 Program: Vexer
 Author: Nathan Scarbrough
-Email: Nathan.Scarbrough@gmail.com (Please send error files directly to me)
-
 Description: Vexer's has two strategies:
 1. When Card Turn In Value (CTIV) is based on progression:
   - take out weak players for their cards
@@ -11,6 +9,8 @@ Description: Vexer's has two strategies:
 If the preset level "Very Hard" isn't hard enough, try adding another Vexer.
 
 History: Version 0.9 August 2010
+
+Email: Nathan.Scarbrough@gmail.com (Please send error files directly to me)
 }
 
 

@@ -1,9 +1,8 @@
 {
 Program: Khorne
-
 Author: Denahiro
-
-Description: Adaptation of the Rambo.trp to be even more stupid
+Description: A modified version of Rambo designed to be more aggressive.
+This is a code adaptation, not just a reference to Rambo's strategy.
 }
 
 procedure Assignment(var ToTerritory: integer);

@@ -577,14 +577,8 @@ foreach ($rowBot in $matrixBots) {
   }
 }
 
-$matrixData.'2' = [pscustomobject]@{
-  bots=$matrixBots; cells=$cellRows.ToArray(); avg=$averageScores.ToArray(); playerStats=$finalPlayerStats
-}
-$serializedMatrix = ConvertTo-Json -InputObject $matrixData -Depth 100 -Compress
-$prefixLength = $matrixMatch.Index
-$suffixStart = $matrixMatch.Index + $matrixMatch.Length
-$updatedHtml = $html.Substring(0,$prefixLength) + "const D=$serializedMatrix;const sizes=" + $html.Substring($suffixStart)
-[IO.File]::WriteAllText($htmlPath, $updatedHtml, (New-Object System.Text.UTF8Encoding($false)))
+& (Join-Path $PSScriptRoot 'update-bot-matrix.ps1') -MasterResults $masterPath `
+  -PlayersDirectory $playersPath -MatrixPath $htmlPath
 
 $reportLines = New-Object 'System.Collections.Generic.List[string]'
 $reportLines.Add('Opponent overperformance frequency in 2-player matchups')

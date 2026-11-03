@@ -58,7 +58,7 @@ implementation
 
 {$R *.lfm}
 
-uses Globals, Main, Territ, Stats;
+uses Globals, Main, Territ, Stats, ActionHistory;
 
 procedure TfAttack.FormShow(Sender: TObject);
 begin
@@ -134,8 +134,7 @@ procedure TfAttack.cmdAttackClick(Sender: TObject);
 begin
   if PerformAttack(iTf, iTt) then begin
     if chkAutoMoveAll.Checked then begin
-      inc(arTerritory[iTt].Army, arTerritory[iTf].Army - 1);
-      arTerritory[iTf].Army := 1;
+      TransferArmies(iTf, iTt, arTerritory[iTf].Army - 1, AK_OCCUPATION);
       DisplayTerritory(iTf);
       DisplayTerritory(iTt);
       UpdateStats;
@@ -158,8 +157,7 @@ begin
   until bConquista or (arTerritory[iTf].Army < 2);
   if bConquista then begin
     if chkAutoMoveAll.Checked then begin
-      inc(arTerritory[iTt].Army, arTerritory[iTf].Army - 1);
-      arTerritory[iTf].Army := 1;
+      TransferArmies(iTf, iTt, arTerritory[iTf].Army - 1, AK_OCCUPATION);
       DisplayTerritory(iTf);
       DisplayTerritory(iTt);
       UpdateStats;
@@ -186,8 +184,7 @@ begin
   end;
   if bConquista then begin
     if chkAutoMoveAll.Checked then begin
-      inc(arTerritory[iTt].Army, arTerritory[iTf].Army - 1);
-      arTerritory[iTf].Army := 1;
+      TransferArmies(iTf, iTt, arTerritory[iTf].Army - 1, AK_OCCUPATION);
       DisplayTerritory(iTf);
       DisplayTerritory(iTt);
       UpdateStats;
@@ -214,8 +211,7 @@ begin
   end;
   if bConquista then begin
     if chkAutoMoveAll.Checked then begin
-      inc(arTerritory[iTt].Army, arTerritory[iTf].Army - 1);
-      arTerritory[iTf].Army := 1;
+      TransferArmies(iTf, iTt, arTerritory[iTf].Army - 1, AK_OCCUPATION);
       DisplayTerritory(iTf);
       DisplayTerritory(iTt);
       UpdateStats;

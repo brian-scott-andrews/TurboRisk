@@ -1,5 +1,5 @@
 Opponent overperformance frequency in 2-player matchups
-Generated from the current-version bot matrix on 2026-10-27.
+Generated from the current-version bot matrix on 2026-11-02.
 
 For each bot, this is the percentage of its opponents whose win rate against
 that bot is higher than the opponent's overall win rate in the 2-player matrix.

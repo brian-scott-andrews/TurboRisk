@@ -1,18 +1,7 @@
 {
 Program: Actuary
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic and actual behavior may differ from the description below.
-
-Credits / inspiration:
-- Common Risk strategy guide advice: take a card every turn, eliminate weak
-  players for their cards, hold continents with few entries, defend only the
-  borders, keep armies concentrated and attack only with favourable odds.
-- Doomstack (doomstack.trp): concentrated stack and consolidation ideas.
-
-Description:
-Prices every decision with exact dice odds. A Markov-chain table gives the
+Description: Uses exact dice odds to evaluate attacks. A Markov-chain table gives the
 probability that A attacking armies conquer D defenders under TurboRisk's
 always-maximum-dice rule. Each attack roll is re-evaluated as an expected
 value: win probability times the value of the conquest (card, continent
@@ -28,6 +17,16 @@ one stack aimed at the most achievable continent. Occupation leaves only the
 garrison that keeps a continent entry safe, and fortification feeds the
 stack along owned paths.
 All opponents are evaluated by board position and cards, never by name.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic and actual behavior may differ from the description.
+
+Strategy inspiration:
+- Common Risk strategy guide advice: take a card every turn, eliminate weak
+  players for their cards, hold continents with few entries, defend only the
+  borders, keep armies concentrated and attack only with favourable odds.
+- Doomstack's strategy: concentrating armies in one stack and consolidating
+  reserves. This reference credits strategy ideas, not a source-code origin.
 }
 
 var

@@ -1,3 +1,12 @@
+{
+Program: Walker2
+Author: Rafal Smotrzyk
+Description: A simple cooperative player for testing other computer players.
+Use at least three Walkers together to exercise its cooperative behavior.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
 // Walker v2
 // =============
 

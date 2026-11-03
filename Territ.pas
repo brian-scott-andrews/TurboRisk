@@ -27,6 +27,8 @@ procedure FTFloodFill(Bitmap: TImage; InitX: Integer; InitY: Integer; FillColor:
 
 // Assign a territory to a player
 procedure AssegnaTerritorio(iT, iG: integer);
+procedure ClaimTerritory(iT, iG: integer);
+procedure TransferArmies(iFrom, iTo, Armies, Kind: integer);
 
 // Place n armies on a territory
 procedure CollocaArmata(iT, iG, iArmies: integer);
@@ -39,7 +41,30 @@ function Confine(iT: integer): boolean;
 
 implementation
 
+uses ActionHistory;
 
+procedure ClaimTerritory(iT, iG: integer);
+var
+  Before: Integer;
+begin
+  Before := arTerritory[iT].Army;
+  AssegnaTerritorio(iT, iG);
+  Inc(arTerritory[iT].Army);
+  Dec(arPlayer[iG].NewArmy);
+  RecordGameAction(AK_ASSIGNMENT, iG, 0, 0, iT, 1, 0, Before);
+end;
+
+procedure TransferArmies(iFrom, iTo, Armies, Kind: integer);
+var
+  FromBefore, ToBefore: Integer;
+begin
+  if Armies <= 0 then Exit;
+  FromBefore := arTerritory[iFrom].Army;
+  ToBefore := arTerritory[iTo].Army;
+  Inc(arTerritory[iTo].Army, Armies);
+  Dec(arTerritory[iFrom].Army, Armies);
+  RecordGameAction(Kind, iTurn, 0, iFrom, iTo, Armies, FromBefore, ToBefore);
+end;
 
 // Resize main window according to map and toolbar
 procedure ResizeMainWindow;
@@ -654,11 +679,16 @@ end;
 // Place n armies on a territory
 // Placement of armies on a territory
 procedure CollocaArmata(iT, iG, iArmies: integer);
+var
+  Before: Integer;
 begin
   if iArmies > arPlayer[iG].NewArmy then
     iArmies := arPlayer[iG].NewArmy;
+  Before := arTerritory[iT].Army;
   inc(arTerritory[iT].Army, iArmies);
   dec(arPlayer[iG].NewArmy, iArmies);
+  if iArmies > 0 then
+    RecordGameAction(AK_PLACEMENT, iG, 0, 0, iT, iArmies, 0, Before);
   // Log
   if arPlayer[iTurn].KeepLog then
     ScriviLog(IntToStr(iArmies) + ' army(s) placed in ' + arTerritory[iT]

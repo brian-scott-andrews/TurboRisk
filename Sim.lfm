@@ -4,7 +4,7 @@ object fSim: TfSim
   HelpContext = 3000
   BorderIcons = [biSystemMenu]
   Caption = 'TRSim - TurboRisk Simulator'
-  ClientHeight = 617
+  ClientHeight = 662
   ClientWidth = 461
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -20,7 +20,7 @@ object fSim: TfSim
     Left = 0
     Top = 0
     Width = 461
-    Height = 617
+    Height = 662
     ActivePage = tbsSim
     Align = alClient
     TabOrder = 0
@@ -191,7 +191,7 @@ object fSim: TfSim
       end
       object cmdStart: TBitBtn
         Left = 157
-        Top = 531
+        Top = 576
         Width = 139
         Height = 52
         Caption = 'Start simulation'
@@ -234,7 +234,7 @@ object fSim: TfSim
         Left = 3
         Top = 407
         Width = 296
-        Height = 118
+        Height = 163
         Caption = 'Simulation log'
         TabOrder = 10
         object Label4: TLabel
@@ -288,6 +288,20 @@ object fSim: TfSim
           Caption = '...'
           OnClick = txtCPULogFileCustomDlg
           Tag = 1
+        end
+        object lblActionLog: TLabel
+          Left = 6
+          Top = 91
+          Caption = 'Action log (optional JSONL)'
+        end
+        object txtActionLogFile: TEdit
+          Left = 6
+          Top = 109
+          Width = 269
+          Height = 21
+          TabOrder = 4
+          Hint = 'Leave blank to disable. Appends public actions to a separate JSONL file.'
+          ShowHint = True
         end
       end
       object GroupBox3: TGroupBox

@@ -1,14 +1,12 @@
 {
 Program: Chokepoint
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Values strategically connected territories and continent entry points.
+Description: Values strategically connected territories and continent entry points.
 It attacks high-connectivity positions when the local force ratio is sound,
 aiming to control routes between regions instead of completing continents.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

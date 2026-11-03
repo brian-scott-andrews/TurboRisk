@@ -1,3 +1,13 @@
+{
+Program: Defender
+Author: Martin Nehrdich
+Description: A Digger-derived player that uses continent bonuses to defend
+continent borders and becomes more defensive as it conquers territories.
+It uses focused attacks until the target is captured or losses are too high.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
  // Defender.trp  - a computer program for the Turborisk game by Mario Ferrari
  // written by Martin Nehrdich
  // Ported to 2.0.5 by Brian S. Andrews

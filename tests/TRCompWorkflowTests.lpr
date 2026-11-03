@@ -4,7 +4,8 @@ program TRCompWorkflowTests;
 
 uses
   Interfaces, Forms, Classes, SysUtils, Variants, Grids, StdCtrls, Controls,
-  uPSRuntime, Globals, ExpSubr, TRCompContextForm;
+  uPSRuntime, Globals, ExpSubr, TRCompContextForm, ActionHistory,
+  BrainlessMovementTests;
 
 procedure Check(ACondition: Boolean; const AMessage: string);
 begin
@@ -26,6 +27,10 @@ begin
     'procedure Fortification(var FromTerritory, ToTerritory, Armies: integer); begin Armies := 0; end;' +
     LineEnding +
     'function ReturnAnswer: integer; begin Result := 42; end;' +
+    LineEnding +
+    'function HistoryCount: integer; begin Result := HCount; end;' +
+    LineEnding +
+    'function ReadHistory: integer; begin Result := HGet(1, AF_KIND); end;' +
     LineEnding +
     'procedure AddFive(var Value: integer); begin Value := Value + 5; end;' +
     LineEnding +
@@ -169,7 +174,12 @@ var
   ExistingExec: TPSExec;
   ExpectedRandom, ActualRandom: Integer;
   bSuccess: Boolean;
+  Event: TActionEvent;
 begin
+  BeginActionHistory('{}');
+  FillChar(Event, SizeOf(Event), 0);
+  Event[AF_KIND] := AK_TURN_START;
+  RecordAction(Event);
   Source := ValidScript;
   bSuccess := ValidateTRPSource('workflow-test.trp', Source, Diagnostics);
   Check(bSuccess,
@@ -255,6 +265,15 @@ begin
       'TRP function execution failed: ' + Diagnostics);
     Check(ReturnValue = '42', 'TRP function return value was not captured.');
 
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'HistoryCount',
+      Context, Parameters, ReturnValue, Diagnostics);
+    Check(bSuccess and (ReturnValue = '0'),
+      'Synthetic context exposed a live game action history: ' + Diagnostics);
+    bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'ReadHistory',
+      Context, Parameters, ReturnValue, Diagnostics);
+    Check(not bSuccess, 'Synthetic context allowed reading a live game action');
+    Check(ActionCount = 1, 'Synthetic routine changed the live action history');
+
     bSuccess := RunTRPRoutine('workflow-test.trp', Source, 'TestArrayPassing',
       Context, Parameters, ReturnValue, Diagnostics);
     Check(bSuccess,
@@ -322,6 +341,7 @@ begin
     Application.Initialize;
     TestContextEditing;
     TestRoutineExecution;
+    RunBrainlessMovementTests;
     WriteLn('TRComp validation, context-editing, and routine-execution tests passed.');
   except
     on E: Exception do begin

@@ -1,8 +1,6 @@
 {
 Program: Crusader
-
 Author: Denahiro
-
 Description: Has a strict set of rules and follows them blindly.
 Updated to 2.0.5 Brian Andrews Removed Check command,
 2.0.6 modified placement routine to work without random

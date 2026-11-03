@@ -1,3 +1,14 @@
+{
+Program: Slave
+Author: Martin Nehrdich
+Description: A Digger-derived experiment that serves a chosen master.
+It avoids attacking the master, weakly defends shared borders and attacks
+the master's enemies. If the master is eliminated, it switches to Digger's
+style. It is not designed primarily to win.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
  // slave.trp (formerly unsimple.trp)
  // a computer program for the Turborisk game by Mario Ferrari
  // written by Martin Nehrdich

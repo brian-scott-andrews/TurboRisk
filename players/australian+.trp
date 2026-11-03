@@ -1,10 +1,6 @@
-{ 
+{
 Program: Australian+
-
 Author: Nathan Scarbrough
-Email: Nathan.Scarbrough@gmail.com
-Credit to Anthony Covey-Crump for the original Australian
-
 Description: This program is the same as Australian except I added Vexer's kill player code so that Australian would be able to recognize when human players are weak and be able to target and destroy them.
 The kill player code also helps Australian end the game more quickly and efficiently when he's winning.
 
@@ -12,6 +8,9 @@ Australian+ plays best with Card Turn In Value based on combination or a more gr
 Take a look at Australian.trp's description for more details.
 
 History: Version 2.0 March 2010
+
+Email: Nathan.Scarbrough@gmail.com
+Credit to Anthony Covey-Crump for the original Australian
 }
 
 {---------------------------------Kill Player Code---------------------------------------------------}

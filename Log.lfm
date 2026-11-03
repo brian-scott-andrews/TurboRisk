@@ -15,6 +15,15 @@ object fLog: TfLog
   OnClose = FormClose
   OnShow = FormShow
   PixelsPerInch = 96
+  object cmdActionLog: TButton
+    Align = alBottom
+    Height = 28
+    Caption = 'Log actions...'
+    Hint = 'Save the current action history and log future actions until stopped.'
+    ShowHint = True
+    TabOrder = 1
+    OnClick = cmdActionLogClick
+  end
   object txtLog: TMemo
     Left = 0
     Top = 0

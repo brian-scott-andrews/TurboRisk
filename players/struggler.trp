@@ -1,8 +1,6 @@
 {
 Program: Struggler
-
 Author: Mario Ferrari, March 2 1999
-
 Description: My first attempt to a strong TurboRisk program
 
 History: Bugs in AssignEval and PlaceEval fixed by Nathan Scarbrough.

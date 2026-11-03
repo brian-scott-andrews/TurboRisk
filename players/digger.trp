@@ -1,8 +1,6 @@
 {
 Program: digger.trp (formerly unsimple.trp)
-
 Author: Martin Nehrdich
-
 Description: Less focused on taking and maintaining continents than Napoleon.trp
 Tries hard to conquer at least one territory per turn.
 Features Do or Die attacks.  See the program file for a much more detailed description.
@@ -12,7 +10,6 @@ continued programming in the period 20.11.2000 - 30.12.2000
 (renamed to digger on 30.12.2000, digger is my favorite stuffed pet)
 
 Ported to TurboRisk 1.3 by Nathan Scarbrough June 09
-
 }
 // fixed bug - search for #*# to find it - Nathan Scarbrough July 09
  //

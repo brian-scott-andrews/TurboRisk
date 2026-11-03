@@ -5,5 +5,13 @@
 <!-- Sitemap 1.0 -->
 </HEAD><BODY>
 <UL>
+<LI><OBJECT type="text/sitemap">
+<param name="Name" value="HCount">
+<param name="Local" value="api_history.htm">
+</OBJECT>
+<LI><OBJECT type="text/sitemap">
+<param name="Name" value="HGet">
+<param name="Local" value="api_history.htm">
+</OBJECT>
 </UL>
 </BODY></HTML>

@@ -1,20 +1,17 @@
 {
 Program: Grudge
-
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Tracks territories Grudge owned at its previous observation and credits a loss
+Description: Tracks territories Grudge owned at its previous observation and credits a loss
 to the opponent who now owns that territory. It prefers reinforcing fronts
 against, and attacking, the opponent credited with the most lost territories;
 human players win ties. If that target is unavailable, it attacks other
 opponents only when its force ratio is at least 1.5. With no recorded losses,
-it attacks any opponent at that same ratio. The game script API does not report
-failed attacks, so captured territories are used as the observable measure of
-hostile actions.
+it attacks any opponent at that same ratio. This bot uses board snapshots,
+not the action-history API, so captured territories are used as its measure
+of hostile actions.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure UpdateGrudges;

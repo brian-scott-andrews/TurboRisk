@@ -45,7 +45,7 @@ implementation
 
 {$R *.lfm}
 
-uses Globals, Stats;
+uses Globals, Stats, ActionHistory;
 
 procedure TfCards.FormShow(Sender: TObject);
 begin
@@ -92,6 +92,7 @@ begin
       dec(Cards[caInf],iPInf); dec(Cards[caCav],iPCav);
       dec(Cards[caArt],iPArt); dec(Cards[caJok],iPJok);
       inc(NScambi);
+      RecordGameAction(AK_CARD_TRADE, iTurn, 0, 0, 0, iPBenefit);
       UpdateStats;
     end;
     // Exit when there are no more combinations in semi-automatic mode

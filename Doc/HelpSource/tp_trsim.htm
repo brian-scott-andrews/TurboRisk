@@ -57,6 +57,11 @@ Select the <i>Simulation</i> tab and specify the following parameters:
   about the played games, while the second is an ini-like file format containing some info about the execution of the TRPs.
   Everytime you run a simulation, the new data are appended to the log files, so you can use always the same log files. 
   However, you can also use different log files, for example for different set of rules or different simulation configurations.
+  An optional <b>Action log</b> records public human/bot actions as JSONL;
+  leave the field blank to disable it. Relative GUI paths are beside TRSim.
+  TRSimCLI uses <code>--action-log &lt;file&gt;</code>, relative to its working
+  directory. The action log must be separate from the game and CPU logs.
+  See <a href="api_history.htm">Public action history</a> for the schema and TRP access.
   <li>
   Game limits: the duration of each game can be limited, in number of turns, number of seconds, or both. 0 in one of these 
   parameters means "no limit".
@@ -73,6 +78,15 @@ and clicking the button again. This is intended to make comparing results from d
 
 <h3>Game log</h3>
 
+Use <b>Export as game history...</b> in the game-log viewer to save completed
+games in the legacy <code>history.txt</code> column layout. The export preserves
+player names and finishing order and reports the number of unfinished games
+excluded. It does not change the source log; overwriting another existing
+destination requires confirmation. You can also open a <code>.sgl</code>
+directly in the game's <a href="tr_view_history.htm">History window</a>.
+Legacy history lacks simulation timing and army details, so it must be opened
+in History rather than the detailed simulator viewer.
+<p>
 For each simulated game, the game log file contains the following information (<i>Games</i> tab):
 <ul>
   <li> 

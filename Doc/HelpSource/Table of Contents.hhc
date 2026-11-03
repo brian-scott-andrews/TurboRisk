@@ -404,6 +404,10 @@
 			</OBJECT>
 		<UL>
 			<LI> <OBJECT type="text/sitemap">
+				<param name="Name" value="Public action history (HCount / HGet)">
+				<param name="Local" value="api_history.htm">
+				</OBJECT>
+			<LI> <OBJECT type="text/sitemap">
 				<param name="Name" value="UAbortGame">
 				<param name="Local" value="api_uabortgame.htm">
 				</OBJECT>

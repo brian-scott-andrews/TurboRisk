@@ -1,10 +1,11 @@
 {
 Program: brainless vi
-
 Author: Chiel ten Brinke
-
 Description: Route-planning variant. Uses a bounded weighted search to find a
 first step toward a reachable weak opponent and replans after each attack.
+
+Version note: Derived from Chiel ten Brinke's Brainless V; the route planner
+is a later repository modification, not the original author's release.
 }
 
 
@@ -210,12 +211,14 @@ begin
     if (TArmies(FT)>RA+EA) and (RA>0) then
       A:=2*EA+5;
   end;
+  if A>TArmies(FT)-1 then A:=TArmies(FT)-1;
+  if A<0 then A:=0;
 end;
 
 
 procedure Fortification(var FT, TT, Armies: integer);
 var
-  T,AT,A,T1,PL,F,MaxF: integer;
+  T,AT,A,T1,PL,F,MaxF,Dest: integer;
 begin
   FT:=0;
   TT:=0;
@@ -230,11 +233,14 @@ begin
     if (TIsMine(T)) and ( (not TIsFront(T)) or (PL<5) ) then begin
       if (TArmies(T)>A) then   // Strongest army
       begin
-        A:=TArmies(T);
-        FT:=T;
-        TT:=TPathToFront(T);                     // Move to front
-        if (PL<5) and (TIsMine(T1)) then TT:=T1; // Or even better, move to attack territory
-        Armies:=TArmies(T)-1;
+        Dest:=TPathToFront(T);                     // Move to front
+        if (PL<5) and (TIsMine(T1)) then Dest:=T1; // Or even better, move to attack territory
+        if (Dest<>T) and TIsMine(Dest) and TIsBordering(T,Dest) then begin
+          A:=TArmies(T);
+          FT:=T;
+          TT:=Dest;
+          Armies:=A-1;
+        end;
       end;
     end;
   end;

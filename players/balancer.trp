@@ -1,9 +1,9 @@
 {
 Program: Balancer
-
 Author: Denahiro
-
-Description: A very calm player who tries to balance his investments
+Description: Splits reinforcement armies between offense and defense.
+Offensive placements strengthen a front with a favorable army-pressure
+difference; defensive placements reinforce threatened fronts.
 }
 
 {

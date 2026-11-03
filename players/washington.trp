@@ -1,15 +1,13 @@
 {
 Program: Washington
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Inspired by American Revolutionary War commanders, especially Washington's
+Description: Inspired by American Revolutionary War commanders, especially Washington's
 Fabian approach: preserve the army, avoid unnecessary decisive battles, and
 maneuver toward favorable positions. It reinforces exposed fronts, attacks
 only with a clear local advantage, and consolidates troops before advancing.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

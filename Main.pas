@@ -359,9 +359,7 @@ begin
     case GameState of
       gsAssigning: begin
           if arTerritory[iT].Owner = 0 then begin
-            AssegnaTerritorio(iT, iTurn);
-            inc(arTerritory[iT].Army);
-            dec(arPlayer[iTurn].NewArmy);
+            ClaimTerritory(iT, iTurn);
             DisplayTerritory(iT);
             if arPlayer[iTurn].KeepLog then
               ScriviLog(arTerritory[iT].Name + ' assigned.');

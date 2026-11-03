@@ -1,6 +1,5 @@
 {
 Program: Descartes09 v0.2
-
 Author: Anthony Covey-Crump (coveycrump@yahoo.com)
 Description: This was a complete re-write in 2009-10, and plays a different strategy than descartes.
 It is designed to play in games with lots of players, and cards trade based on combination.

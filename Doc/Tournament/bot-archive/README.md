@@ -7,6 +7,17 @@ by the game; benchmark aliases are separately bundled under `players\`.
 copied from `doomstack-before-opt.trp`. To test other old versions, copy them
 into `players\` under a different file name.
 
+The snapshots retain their historical headers unchanged, including old names
+and descriptions that may not distinguish strategy inspiration from code
+adaptation. For Doomstack and its Challenger baseline, the Brainless IV and
+Vexer references credit strategy concepts, not copied source code. Actuary's
+Doomstack reference likewise credits stack and consolidation ideas. The tables
+below and the Brainless version notes identify the actual variant; a snapshot
+named `current` means current when archived, not necessarily today's player.
+See the bundled scripts and the help's TRP Bot Strategies topic for clarified
+current descriptions. Historical snapshots are left intact to preserve hashes
+and benchmark provenance.
+
 ## Actuary (exact dice-odds bot, 2026-10-23)
 
 | File | Change from previous | 2p score vs top 6* | Notes |
