@@ -2061,6 +2061,11 @@ begin
   FResources.Clear;
   FExportedVars.Clear;
   FExceptionStack.Clear;
+  // RunProc must not restore a procedure or bytecode freed by this unload.
+  FCurrProc := nil;
+  FData := nil;
+  FDataLength := 0;
+  FCurrentPosition := 0;
   FCurrStackBase := InvalidVal;
 end;
 

@@ -8,6 +8,7 @@ Title=TurboRisk Help
 Language=0x409 English (United States)
 
 [FILES]
+api_history.htm
 api_canalysis.htm
 api_cbonus.htm
 api_cborder.htm

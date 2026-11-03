@@ -13,7 +13,7 @@ implementation
 
 uses LCLIntf, LCLType, LMessages, Forms, Controls, SysUtils, Dialogs,
   uPSRuntime, uPSUtils, {StdPas,}
-  Main, Globals, Territ, Stats, Log, TRPError, Sim, SimRun;
+  Main, Globals, Territ, Stats, Log, TRPError, Sim, SimRun, ActionHistory;
 
 var
 
@@ -123,6 +123,7 @@ begin
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ASSIGNMENT'));
+    CheckScriptAPIError;
     iEndTime := gettickcount64;
 //    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtAssignment, iEndTime - iStartTime);
@@ -151,9 +152,7 @@ begin
   if iTo > 0 then begin
     LogTRPDecision('Assignment: ' + arTerritory[iTo].Name);
     // Assign the territory
-    AssegnaTerritorio(iTo, iTurn);
-    inc(arTerritory[iTo].Army);
-    dec(arPlayer[iTurn].NewArmy);
+    ClaimTerritory(iTo, iTurn);
     // Log
     if arPlayer[iTurn].KeepLog then
       ScriviLog(arTerritory[iTo].Name + ' assigned.');
@@ -189,6 +188,7 @@ begin
       iStartTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('PLACEMENT'));
+      CheckScriptAPIError;
       iEndTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtPlacement, iEndTime - iStartTime);
@@ -258,6 +258,7 @@ begin
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('OCCUPATION'));
+    CheckScriptAPIError;
     iEndTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtOccupation, iEndTime - iStartTime);
@@ -294,8 +295,7 @@ begin
         + ') from ' + arTerritory[iFrom].Name + ' to ' + arTerritory[iTo]
         .Name);
     // Move the troops
-    inc(arTerritory[iTo].Army, iArmies);
-    dec(arTerritory[iFrom].Army, iArmies);
+    TransferArmies(iFrom, iTo, iArmies, AK_OCCUPATION);
     // Update the display
     DisplayTerritory(iFrom);
     DisplayTerritory(iTo);
@@ -335,6 +335,7 @@ begin
       iStartTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ATTACK'));
+      CheckScriptAPIError;
       iEndTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iEndTime); // get final time
       CPU_Call(rtAttack, iEndTime - iStartTime);
@@ -448,6 +449,7 @@ begin
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('FORTIFICATION'));
+    CheckScriptAPIError;
     iEndTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iEndTime); // get final time
     CPU_Call(rtFortification, iEndTime - iStartTime);
@@ -502,8 +504,7 @@ begin
         + ') from ' + arTerritory[iFrom].Name + ' to ' + arTerritory[iTo]
         .Name);
     // Move the troops
-    inc(arTerritory[iTo].Army, iArmies);
-    dec(arTerritory[iFrom].Army, iArmies);
+    TransferArmies(iFrom, iTo, iArmies, AK_FORTIFICATION);
     arPlayer[iTurn].FlMove := true;
     // Update the display
     DisplayTerritory(iFrom);
@@ -568,8 +569,9 @@ begin
     gsPlaying: begin
         if arPlayer[iTurn].NewArmy > 0 then
           CmpCollocaArmate(arPlayer[iTurn].NewArmy);
-        CmpAttacco;
-        if iNPlayers > 1 then
+        if not bStopASAP then
+          CmpAttacco;
+        if not bStopASAP and (iNPlayers > 1) then
           CmpTrasferimento;
       end;
   end;

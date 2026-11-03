@@ -20,6 +20,13 @@ territories conquered on the map
 and the changes in the <a href="tr_view_statistics.htm">Statistics</a> window.
 <p>
 The log trace is especially useful to test and debug TurboRisk players (TRPs).
+<p>
+<b>Log actions...</b> writes the current game's complete available public action
+history to a separate JSONL file and streams subsequent actions, independent of
+the players' Keep log settings. Use <b>Stop action log</b> to stop recording;
+closing the Log window does not stop it. Compatible existing action logs are
+appended, not overwritten. See <a href="api_history.htm">Public action history</a>
+for the format and the HCount / HGet script API.
 
 </body>
 </html>

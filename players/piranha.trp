@@ -1,3 +1,12 @@
+{
+Program: Piranha
+Author: Mario Ferrari
+Description: A simple aggressive player that specifically targets human
+opponents. The original author suggested playing against several Piranhas.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
 {PIRANHA - This TurboRisk program is still stupid but very aggressive against
  human players only. Try to play alone against 5 piranhas...
  Created by Mario Ferrari

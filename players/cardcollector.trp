@@ -1,13 +1,11 @@
 {
 Program: CardCollector
 Author: Brian S. Andrews
+Description: Seeks one low-risk conquest each turn to collect a card, then stops attacking
+for that turn. It favors weak adjacent territories and avoids costly campaigns.
 
 AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Seeks one low-risk conquest each turn to collect a card, then stops attacking
-for that turn. It favors weak adjacent territories and avoids costly campaigns.
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

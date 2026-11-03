@@ -1,0 +1,101 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<html>
+<head>
+<title>Public action history</title>
+<link href="tr_help.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<h1>Public action history</h1>
+<p><code>function HCount: integer;</code><br>
+<code>function HGet(Index, Field: integer): integer;</code></p>
+<p>HCount returns the number of recorded public actions in the current game.
+HGet reads one field of action Index, numbered from 1 through HCount.
+Invalid indices or fields raise a script runtime error; they do not return
+fabricated values. Actions are recorded after they occur and are available
+to every TRP, independent of the player's Keep log setting.</p>
+<p>History includes human and computer players, including unsuccessful attacks.
+Each attack event represents one dice exchange, not an entire battle.
+No private card identities, TRP buffers or internal reasoning are exposed.
+Declining to attack or move does not produce an action.</p>
+<h2>Action kinds</h2>
+<table border="1" cellpadding="4">
+<tr><th>Kind constant</th><th>Value</th><th>Meaning</th></tr>
+<tr><td>AK_ASSIGNMENT</td><td>1</td><td>Initial territory claim, including random assignment; armies = 1.</td></tr>
+<tr><td>AK_PLACEMENT</td><td>2</td><td>Initial or later placement; armies = actual number placed.</td></tr>
+<tr><td>AK_ATTACK</td><td>3</td><td>Dice exchange; casualties and capture flag describe the outcome. Armies = mandatory occupation move on capture, otherwise 0.</td></tr>
+<tr><td>AK_OCCUPATION</td><td>4</td><td>Additional movement into a conquered territory, including human auto-move; armies = number moved.</td></tr>
+<tr><td>AK_FORTIFICATION</td><td>5</td><td>Friendly troop movement; armies = number moved.</td></tr>
+<tr><td>AK_TURN_START</td><td>6</td><td>Beginning of a regular playing turn, before reinforcement and trades.</td></tr>
+<tr><td>AK_TURN_END</td><td>7</td><td>End of a regular playing turn.</td></tr>
+<tr><td>AK_REINFORCEMENT</td><td>8</td><td>Territory and continent income; armies = armies granted, excluding trades.</td></tr>
+<tr><td>AK_CARD_TRADE</td><td>9</td><td>Completed card trade; armies = armies granted. Card identities are omitted.</td></tr>
+<tr><td>AK_ELIMINATION</td><td>10</td><td>Player eliminated; player = attacker, opponent = eliminated player.</td></tr>
+<tr><td>AK_GAME_END</td><td>11</td><td>Player = winner, or 0 if unfinished. Armies holds the termination status: 1 complete, 2 error, 3 turn limit, 4 time limit, 5 aborted.</td></tr>
+</table>
+<h2>Fields</h2>
+<p>All fields are integers. Unused fields are 0. Player and territory numbers
+match the existing API. Territory army snapshots are taken immediately before
+and after the action, not at the next TRP turn.</p>
+<table border="1" cellpadding="4">
+<tr><th>Field constant</th><th>Value</th><th>Meaning / JSON key</th></tr>
+<tr><td>AF_KIND</td><td>1</td><td>Action kind / kind</td></tr>
+<tr><td>AF_TURN</td><td>2</td><td>Engine turn counter (includes setup rounds) / turn</td></tr>
+<tr><td>AF_PLAYER</td><td>3</td><td>Acting player / player</td></tr>
+<tr><td>AF_OPPONENT</td><td>4</td><td>Defender before attack, or eliminated player / opponent</td></tr>
+<tr><td>AF_FROM</td><td>5</td><td>Source territory, or 0 / from</td></tr>
+<tr><td>AF_TO</td><td>6</td><td>Destination territory, or 0 / to</td></tr>
+<tr><td>AF_ARMIES</td><td>7</td><td>Amount or status as specified above / armies</td></tr>
+<tr><td>AF_ATTACKER_LOSS</td><td>8</td><td>Attacker casualties in this exchange / attacker_loss</td></tr>
+<tr><td>AF_DEFENDER_LOSS</td><td>9</td><td>Defender casualties in this exchange / defender_loss</td></tr>
+<tr><td>AF_CAPTURED</td><td>10</td><td>1 if this attack captured the destination, otherwise 0 / captured</td></tr>
+<tr><td>AF_FROM_BEFORE</td><td>11</td><td>Source armies before action / from_before</td></tr>
+<tr><td>AF_TO_BEFORE</td><td>12</td><td>Destination armies before action / to_before</td></tr>
+<tr><td>AF_FROM_AFTER</td><td>13</td><td>Source armies after action / from_after</td></tr>
+<tr><td>AF_TO_AFTER</td><td>14</td><td>Destination armies after action / to_after</td></tr>
+</table>
+<h2>Incremental observation</h2>
+<p>Keep a cursor in an otherwise unused buffer, so each action is processed once.
+This example belongs inside a TRP procedure; declare I and LastSeen as integers.
+Reserve buffer 500 for the cursor.</p>
+<pre>
+LastSeen := Trunc(UBufferGet(500));
+for I := LastSeen + 1 to HCount do begin
+  if (HGet(I, AF_KIND) = AK_ATTACK) and
+     (HGet(I, AF_OPPONENT) = PMe) then begin
+    { Update an opponent model using HGet(I, AF_PLAYER) and the casualties. }
+  end;
+end;
+UBufferSet(500, HCount);
+</pre>
+<p>History is retained in memory for the whole game without truncation, and
+resets for a new game. Large games use proportionally more memory.
+New saved games preserve actions and buffer cursors together. Older saved games
+have no earlier history, so observation starts when they are loaded.
+TRComp's synthetic test contexts have no history (HCount = 0).
+History access does not provide persistent cross-game opponent profiles.</p>
+<h2>Logging</h2>
+<p>In TurboRisk's <a href="tr_view_log.htm">Log window</a>, use
+<b>Log actions...</b> to save the current history and stream future actions;
+<b>Stop action log</b> closes the file. Closing the window does not stop logging.
+Logging continues across new games until stopped or the application exits.</p>
+<p>In TRSim, enter an optional Action log filename; leave it blank to disable.
+In TRSimCLI, use <code>--action-log actions.jsonl</code>.
+These files are separate from history.txt, .sgl and .scl, whose formats remain
+unchanged. Existing compatible action logs are appended, not overwritten.
+Invalid files and write failures are reported as errors.</p>
+<p>Each UTF-8 JSONL segment begins with a game record containing
+format = "TurboRisk.actions", version = 1, type = "game", game and segment IDs,
+parent_game, history_from_start, and metadata (roster, engine version, map,
+assignment and card-value modes, and movement/trade flags).
+Roster entries contain id, name, human and program.
+Action records contain type = "action", game, segment, sequence (1-based),
+and all numeric fields listed above.</p>
+<p>Enabling logging midgame includes all available earlier actions. Restarting
+logging creates a new segment and may repeat the same game/sequence pairs;
+use those pairs to deduplicate observations across segments.
+Restoring a save creates a new game ID with parent_game referencing the saved
+game, then emits its available history. An older save is marked
+history_from_start = false. Use separate files for concurrent processes.
+Logging records observations, not a replay of private state or a trained model.</p>
+</body>
+</html>

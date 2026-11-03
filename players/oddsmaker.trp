@@ -1,14 +1,12 @@
 {
 Program: OddsMaker
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Estimates attack quality from the force ratio and expected exchange. It avoids
+Description: Estimates attack quality from the force ratio and expected exchange. It avoids
 low-odds attacks, prefers a clear numerical advantage, and concentrates new
 armies at the front with the best attack opportunity.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

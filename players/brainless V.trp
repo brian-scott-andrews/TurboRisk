@@ -1,11 +1,13 @@
 {
 Program: brainless V
-
 Author: Chiel ten Brinke
-
 Description: Restored near-original elimination planner with safety guards.
 The planner remains incomplete and diagnostic; it does not select attack
 targets.
+Normal attack selection still operates independently of that planner.
+
+Version note: This bundled restoration includes later repository changes;
+the author credit above identifies the original Brainless V author.
 }
 
 
@@ -267,12 +269,14 @@ begin
     if (TArmies(FT)>RA+EA) and (RA>0) then
       A:=2*EA+5;
   end;
+  if A>TArmies(FT)-1 then A:=TArmies(FT)-1;
+  if A<0 then A:=0;
 end;
 
 
 procedure Fortification(var FT, TT, Armies: integer);
 var
-  T,AT,A,T1,PL,F,MaxF: integer;
+  T,AT,A,T1,PL,F,MaxF,Dest: integer;
 begin
   FT:=0;
   TT:=0;
@@ -287,16 +291,19 @@ begin
     if (TIsMine(T)) and ( (not TIsFront(T)) or (PL<5) ) then begin
       if (TArmies(T)>A) then   // Strongest army
       begin
-        A:=TArmies(T);
-        FT:=T;
-        TT:=TPathToFront(T);                     // Move to front
-        if (PL<5) and (TIsMine(T1)) then TT:=T1; // Or even better, move to attack territory
-        Armies:=TArmies(T)-1;
+        Dest:=TPathToFront(T);                     // Move to front
+        if (PL<5) and (TIsMine(T1)) then Dest:=T1; // Or even better, move to attack territory
+        if (Dest<>T) and TIsMine(Dest) and TIsBordering(T,Dest) then begin
+          A:=TArmies(T);
+          FT:=T;
+          TT:=Dest;
+          Armies:=A-1;
+        end;
       end;
     end;
   end;
 
-  if not (SConquest) then begin // Move attack territory if it couldnt get cards
+  if (not (SConquest)) and (TArmies(AT)>1) then begin // Move attack territory if it couldnt get cards
     MaxF:=0;
     PL:=0;
     for A:=1 to TBordersCount(AT) do begin

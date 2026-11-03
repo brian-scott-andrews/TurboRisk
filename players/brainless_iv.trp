@@ -1,10 +1,6 @@
 {
 Program: brainless IV
-
 Author: Mattias Beimers
-
-Email: matheiusb+tr@gmail.com - If you can find a bug, please send a snapshot (dumpfile) to this emailadres
-
 Description: This AI looks very stupid, hence the name ;-)
 He can be very annoying, and has a surprisingly large desire of power and a lot of patience to get what he wants!
 He's made for a 10 player game with cards based on progression, and is not good anymore (but still anoying) when you take other rules.
@@ -18,6 +14,8 @@ this one just walked around getting strong, but had no world-conqueror algoritm.
 Attempts at brainless 2 and 3 were made, but they never became strong.
 This brainless version is a complete new AI, but with the same thought behind it.
 Later adds were made for TR 2.0 (mostly path and card functions)
+
+Email: matheiusb+tr@gmail.com - If you can find a bug, please send a snapshot (dumpfile) to this emailadres
 }
 
 

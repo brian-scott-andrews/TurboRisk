@@ -88,12 +88,18 @@ lift is 15 percentage points at 90% power using a normal approximation; up to
 500 new games are scheduled per unresolved pair, with either direction's
 significance ending that pair's sampling. Results are appended to the master
 as they are collected. On completion, the runner regenerates the two-player
-matrix data in `bot-matrix.html` and refreshes
+matrix data for all player counts in `bot-matrix.html` and refreshes
 `opponent-overperformance-2p.txt`. The runner also writes per-direction test
 results to its run directory. Confidence and power are approximations, not
 formal guarantees, and a non-significant result does not establish equivalence.
 Use its `-FinalizeOnly` mode to rebuild the descriptive matrix/report without
 starting another simulation run.
+
+`update-bot-matrix.ps1 -MasterResults <master_results.sgl>` rebuilds all
+2–10-player tabs from the same deduplicated, version-attributed master.
+It preserves the page controls and includes every current player script in
+each tab. The tournament finalizer calls it automatically, including when
+using `-FinalizeOnly`; previously only the 2-player tab was refreshed.
 
 ## bot-archive
 

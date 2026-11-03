@@ -1,14 +1,12 @@
 {
 Program: Turtle
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Prioritizes survival and a small, defensible frontier. It reinforces the most
+Description: Prioritizes survival and a small, defensible frontier. It reinforces the most
 pressured position and attacks only with a decisive numerical advantage or
 when a single weak territory offers a low-risk card capture.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

@@ -98,11 +98,12 @@ var
   sLine: string;
   bComment: boolean;
   i: integer;
+  Description: TStringList;
 begin
   if lstPrgFile.ItemIndex<0 then exit;
-  txtPrgDesc.Clear;
   AssignFile(fTRP,sG_AppPath+'players'+PathDelim+lstPrgFile.Items[lstPrgFile.ItemIndex]);
   Reset(fTRP);
+  Description := TStringList.Create;
   try
     // read initial comment delimited by { and }
     bComment := false;
@@ -121,11 +122,16 @@ begin
       if bComment then begin
         i := pos('}',sLine);
         if i>0 then sLine := StrTran(sLine,'}','');
-        txtPrgDesc.Lines.Add(sLine);
+        Description.Add(sLine);
         if i>0 then break;
       end;  
     end;
+    txtPrgDesc.Lines.Assign(Description);
+    txtPrgDesc.SelStart := 0;
+    txtPrgDesc.SelLength := 0;
+    txtPrgDesc.Perform(EM_SCROLLCARET, 0, 0);
   finally
+    Description.Free;
     CloseFile(fTRP);
   end;
 end;

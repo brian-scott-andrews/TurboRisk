@@ -1,14 +1,12 @@
 {
 Program: Quartermaster
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Builds a concentrated striking force at a front with favorable attack options.
+Description: Builds a concentrated striking force at a front with favorable attack options.
 It sends the largest interior reserve toward the nearest front and avoids
 spreading placements evenly across all exposed territories.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

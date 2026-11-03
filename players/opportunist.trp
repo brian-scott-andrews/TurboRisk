@@ -1,14 +1,12 @@
 {
 Program: Opportunist
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Re-evaluates all immediate attack opportunities every time it is called. It
+Description: Re-evaluates all immediate attack opportunities every time it is called. It
 weighs force ratio, continent bonuses, player elimination, and opening a
 position against the opponent with the best expected strategic payoff.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

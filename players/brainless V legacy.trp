@@ -1,10 +1,10 @@
 {
 Program: brainless V legacy
-
 Author: Chiel ten Brinke
-
 Description: Pre-restoration Brainless V baseline used for historical
 tournament results through 2026-10-27 10:59.
+This is the earlier repository version, not an untouched original release.
+Its elimination-planner caller was disabled; normal attack selection remains.
 }
 
 

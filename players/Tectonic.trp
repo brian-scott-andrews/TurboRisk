@@ -1,12 +1,9 @@
 {
-Program:
-Tectonic
-Author:
-Torkani
-Description:
-Hybrid of Plates and Basic
+Program: Tectonic
+Author: Torkani
+Description: Combines routines from Plates and Basic. This is a code hybrid, not just
+strategy inspiration.
 History:
-
 }
 
 program New;

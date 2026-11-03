@@ -1,8 +1,6 @@
 {
 Program: Descartes
-
 Author: Anthony Covey-Crump (coveycrump@yahoo.com), 30/12/2000
-
 Description: This program is designed to work against 9 other computer players.
 It is a stealth specialist and tries to build up forces unnoticed before launching 
 devastating attacks, but can get in trouble if one of the other players becomes strong too quickly. 

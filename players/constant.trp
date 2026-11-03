@@ -1,3 +1,12 @@
+{
+Program: Constant (originally Constantin)
+Author: Konstantin Schwarze
+Description: A Simple-based player that prioritizes continent bonuses,
+reinforces pressured borders and moves interior reserves toward the front.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
 {Constantin - a TurboRisk-program by Konstantin Schwarze
 (it is based on the program simple.trp)
 

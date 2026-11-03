@@ -1,12 +1,10 @@
 {
 Program: Struggler+
-
 Author: Nathan Scarbrough, March 2010
-Credit to  Mario Ferrari for the original Struggler
-
 Description: Plays just like Struggler except that if he see's an opportunity to kill a weak human player, he takes it.
 He also has the same improved end game that frank+ and australian+ have.  The fortification routine has also been improved using the new TPathtoFront function.
 
+Credit to  Mario Ferrari for the original Struggler
 }
 
 {---------------------------------Kill Player Code---------------------------------------------------}

@@ -1,14 +1,12 @@
 {
 Program: Kingmaker
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Identifies the leading opponent by armies, territories, cards, and continent
+Description: Identifies the leading opponent by armies, territories, cards, and continent
 bonuses, then directs attacks toward that player to prevent an uncontested
 runaway. When the leader is unreachable, it takes a safe alternative.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 function LeadingPlayer: integer;

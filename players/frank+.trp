@@ -1,9 +1,6 @@
 {
 Program: Frank+
-
 Author: Nathan Scarbrough
-Email: Nathan.Scarbrough@gmail.com
-
 Description: This program is the same as Frank except I added Vexer's kill player code so that Frank would be able to recognize when human players are weak and be able to target and destroy them.
 The kill player code also helps Frank end the game more quickly and efficiently when he's winning.
 
@@ -12,6 +9,8 @@ Take a look at Frank.trp's description for more details.
 Credit to Heitor Mansel for the original Frank
 
 History: Version 2.0 March 2010
+
+Email: Nathan.Scarbrough@gmail.com
 }
 
 // available UBuffers, 1-5, 18, 22, 23, 31, 48, 51-100 except 52, 56, 61, 63, 73, 74, 98, 99 which are used by the kill player code

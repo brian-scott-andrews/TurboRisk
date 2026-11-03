@@ -16,7 +16,7 @@ procedure UomoSposta(iTf, iTt: integer; bMove: boolean);
 implementation
 
 uses SysUtils, Controls,
-     Globals, Main, Attack, Move;
+     Globals, Main, Attack, Move, ActionHistory;
 
 // Show instructions to the human player
 procedure MostraIstruzioni;
@@ -74,12 +74,22 @@ end;
 
 // Human troop movement
 procedure UomoSposta(iTf, iTt: integer; bMove: boolean);
+var
+  FromBefore, ToBefore, Kind: Integer;
+  Completed: Boolean;
 begin
+  FromBefore := arTerritory[iTf].Army;
+  ToBefore := arTerritory[iTt].Army;
   fMove.iTf := iTf;
   fMove.iTt := iTt;
-  if (fMove.ShowModal=mrOK) and bMove then begin
-    arPlayer[iTurn].FlMove := true;
-  end else begin
+  Completed := fMove.ShowModal=mrOK;
+  if Completed then begin
+    if bMove then Kind := AK_FORTIFICATION else Kind := AK_OCCUPATION;
+    RecordGameAction(Kind, iTurn, 0, iTf, iTt,
+      arTerritory[iTt].Army - ToBefore, FromBefore, ToBefore);
+    if bMove then arPlayer[iTurn].FlMove := true;
+  end;
+  if not (Completed and bMove) then begin
     SetFromTerritory(0);
     SetToTerritory(0);
     MostraIstruzioni;

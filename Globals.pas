@@ -273,6 +273,11 @@ procedure RestoreGame(sFileName: string);
 // Save game to file
 procedure SaveGame(sFileName, sErrorMsg: string);
 
+procedure RecordGameAction(Kind, Player, Opponent, FromT, ToT, Armies: Integer;
+  FromBefore: Integer = 0; ToBefore: Integer = 0;
+  AttackerLoss: Integer = 0; DefenderLoss: Integer = 0; Captured: Integer = 0);
+procedure CheckScriptAPIError;
+
 // Find best contrast text color
 function BestTextColor(tBkgColor: TColor): TColor;
 
@@ -290,8 +295,91 @@ procedure SetHooverTerritory(iT: integer);
 implementation
 
 uses Forms, SysUtils, IniFiles, Dialogs, Math, DateUtils,
-  Variants, uPSCompiler,
+  Variants, uPSCompiler, ActionHistory, fpjson,
   Main, Territ, Computer, Stats, Human, Cards, Log, ExpSubr, History, SimRun;
+
+procedure RecordGameAction(Kind, Player, Opponent, FromT, ToT, Armies: Integer;
+  FromBefore: Integer; ToBefore: Integer; AttackerLoss: Integer;
+  DefenderLoss: Integer; Captured: Integer);
+var
+  Event: TActionEvent;
+begin
+  FillChar(Event, SizeOf(Event), 0);
+  Event[AF_KIND] := Kind;
+  Event[AF_TURN] := iTurnCounter;
+  Event[AF_PLAYER] := Player;
+  Event[AF_OPPONENT] := Opponent;
+  Event[AF_FROM] := FromT;
+  Event[AF_TO] := ToT;
+  Event[AF_ARMIES] := Armies;
+  Event[AF_FROM_BEFORE] := FromBefore;
+  Event[AF_TO_BEFORE] := ToBefore;
+  if FromT > 0 then Event[AF_FROM_AFTER] := arTerritory[FromT].Army;
+  if ToT > 0 then Event[AF_TO_AFTER] := arTerritory[ToT].Army;
+  Event[AF_ATTACKER_LOSS] := AttackerLoss;
+  Event[AF_DEFENDER_LOSS] := DefenderLoss;
+  Event[AF_CAPTURED] := Captured;
+  RecordAction(Event);
+end;
+
+function ActionMetadata: string;
+var
+  Obj, Player: TJSONObject;
+  Players: TJSONArray;
+  I: Integer;
+begin
+  Obj := TJSONObject.Create;
+  try
+    Obj.Add('engine_version', VERSION);
+    Obj.Add('map', sMapFile);
+    Obj.Add('assignment', Ord(RAssignmentType));
+    Obj.Add('card_values', Ord(RCardsValueType));
+    Obj.Add('final_move', RFinalMove);
+    Obj.Add('immediate_trade', RImmediateTrade);
+    Players := TJSONArray.Create;
+    Obj.Add('players', Players);
+    for I := 1 to MAXPLAYERS do
+      if arPlayer[I].Active then begin
+        Player := TJSONObject.Create;
+        Players.Add(Player);
+        Player.Add('id', I);
+        Player.Add('name', arPlayer[I].Name);
+        Player.Add('human', not arPlayer[I].Computer);
+        Player.Add('program', arPlayer[I].PrgFile);
+      end;
+    Result := Obj.AsJSON;
+  finally
+    Obj.Free;
+  end;
+end;
+
+function HCount: Integer;
+begin
+  if bTRCompRunning then Result := 0
+  else Result := ActionCount;
+end;
+
+function HGet(Index, Field: Integer): Integer;
+begin
+  Result := 0;
+  if bTRCompRunning then
+    ScriptExec.CMD_Err2(erCustomError, 'TRComp test contexts have no action history')
+  else if (Index < 1) or (Index > ActionCount) then
+    ScriptExec.CMD_Err2(erCustomError,
+      Format('Action index %d is outside 1..%d', [Index, ActionCount]))
+  else if (Field < 1) or (Field > ACTION_FIELD_COUNT) then
+    ScriptExec.CMD_Err2(erCustomError,
+      Format('Action field %d is outside 1..%d', [Field, ACTION_FIELD_COUNT]))
+  else
+    Result := ActionValue(Index, Field);
+end;
+
+procedure CheckScriptAPIError;
+begin
+  // API callbacks signal custom errors without unwinding the native call trampoline.
+  if ScriptExec.ExceptionCode = erCustomError then
+    ScriptExec.RaiseCurrentException;
+end;
 
 function ResolveSimPath(const sFileName: string): string;
 begin
@@ -403,8 +491,16 @@ function ScriptOnUses(Sender: TPSPascalCompiler;
   For example: uses ii1, ii2;
   This will call this function 3 times. First with 'SYSTEM' then 'II1' and then 'II2'.
 }
+var
+  I: Integer;
 begin
   if Name = 'SYSTEM' then begin
+    Sender.AddDelphiFunction('function HCount: integer');
+    Sender.AddDelphiFunction('function HGet(Index, Field: integer): integer');
+    for I := 1 to ACTION_FIELD_COUNT do
+      Sender.AddConstantN(ActionFieldConstants[I], 'Integer').Value.ts32 := I;
+    for I := 1 to ACTION_KIND_COUNT do
+      Sender.AddConstantN(ActionKindConstants[I], 'Integer').Value.ts32 := I;
     // register external functions
     Sender.AddDelphiFunction('function TName(T: integer): string');
     Sender.AddDelphiFunction('function TOwner(T: integer): integer');
@@ -937,6 +1033,8 @@ begin
   ScriptExec := TPSExec.Create;
 
   // Register the external functions to the executer
+  ScriptExec.RegisterDelphiFunction(@HCount, 'HCOUNT', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@HGet, 'HGET', cdRegister);
   // RegisterStandardLibrary_R(ScriptExec); // Register the standard library
   ScriptExec.RegisterDelphiFunction(@TName, 'TNAME', cdRegister);
   ScriptExec.RegisterDelphiFunction(@TOwner, 'TOWNER', cdRegister);
@@ -1266,6 +1364,7 @@ begin
       bStopASAP := False;
       bTRCompRunning := True;
       ScriptExec.RunScript;
+      ScriptExec.RaiseCurrentException;
 
       iProc := ScriptExec.GetProc(sRoutine);
       if iProc >= ScriptExec.GetProcCount then begin
@@ -1316,6 +1415,7 @@ var
 
 begin
 
+  BeginActionHistory(ActionMetadata);
   ScriptSetup; // create the script executer; will be destroyed in GameCleanup
   PrgTemp := TstringList.Create;
   // create input buffer for source code
@@ -1423,6 +1523,18 @@ begin
             end;
             iTurn := iP;
             ScriptExec.RunScript;
+            if ScriptExec.ExceptionCode = erCustomError then begin
+              sPPout := 'Player: ' + Name + LineEnding + 'Error: ' +
+                PSErrorToString(ScriptExec.ExceptionCode, ScriptExec.ExceptionString);
+              if bTRSimCLI then begin
+                fSimRun.SimLog(sPPout);
+                uSimStatus := ssError;
+                bStopASAP := True;
+              end
+              else
+                MessageDlg(sPPout, mtError, [mbOK], 0);
+              bCompErrors := True;
+            end;
           end;
         end;
       end;
@@ -1491,6 +1603,12 @@ end;
 // Game cleanup
 procedure GameCleanup;
 begin
+  if iNPlayers < 2 then
+    EndActionHistory(iTurnCounter, arTerritory[1].Owner, 1)
+  else if bG_TRSim then
+    EndActionHistory(iTurnCounter, 0, Ord(uSimStatus))
+  else
+    EndActionHistory(iTurnCounter, 0, 5);
   with fMain do begin
     HelpContext := 100;
     // context is "overview"
@@ -1517,9 +1635,7 @@ begin
   iT := Random(MAXTERRITORIES) + 1;
   while arTerritory[iT].Owner <> 0 do
     iT := iT mod MAXTERRITORIES + 1;
-  AssegnaTerritorio(iT, iTurn);
-  inc(arTerritory[iT].Army);
-  dec(arPlayer[iTurn].NewArmy);
+  ClaimTerritory(iT, iTurn);
   DisplayTerritory(iT);
   // Log
   if arPlayer[iTurn].KeepLog then
@@ -1531,6 +1647,8 @@ procedure PassTurn;
 var
   iTL: integer;
 begin
+  if GameState = gsPlaying then
+    RecordGameAction(AK_TURN_END, iTurn, 0, 0, 0, 0);
   // locate curren player in turn list
   for iTL := 1 to MAXPLAYERS do
     if iTurn = aiTurnList[iTL] then
@@ -1585,6 +1703,7 @@ begin
           inc(iArmyCon, arContinent[tCont].Bonus)
         end;
       inc(NewArmy, iArmyCon);
+      RecordGameAction(AK_REINFORCEMENT, iTurn, 0, 0, 0, iArmyTer + iArmyCon);
     end;
     // armies from owned cards
     if Computer or (CardsHandling = chAuto) then begin
@@ -1599,6 +1718,7 @@ begin
           dec(Cards[caArt], iArt);
           dec(Cards[caJok], iJok);
           inc(NScambi);
+          RecordGameAction(AK_CARD_TRADE, iTurn, 0, 0, 0, iArmy);
         end;
       until iArmy <= 0;
     end
@@ -1638,6 +1758,7 @@ var
   sMsg: string; // messagge about the result
   iOpp: integer; // opponent
   iArmA, iArmD: integer; // initial armies in the territories (attacker, defender)
+  iDefender, iMoved: integer;
   i: integer;
 
   procedure ThrowDice(iNDice: integer;
@@ -1665,6 +1786,8 @@ var
   end;
 
 begin
+  iDefender := arTerritory[iTD].Owner;
+  iMoved := 0;
   // Opponent is still alive
   bEliminatedPlayer := False;
   // Attacker
@@ -1729,6 +1852,7 @@ begin
       dec(iNDiceA);
     dec(arTerritory[iTA].Army, iNDiceA);
     inc(arTerritory[iTD].Army, iNDiceA);
+    iMoved := iNDiceA;
     arPlayer[iTurn].FlConq := True;
     // check is opponent has been eliminated
     if arPlayer[iOpp].Territ = 0 then begin
@@ -1758,6 +1882,10 @@ begin
   else begin
     Result := False;
   end;
+  RecordGameAction(AK_ATTACK, iTurn, iDefender, iTA, iTD, iMoved,
+    iArmA, iArmD, iLostA, iLostD, Ord(Result));
+  if bEliminatedPlayer then
+    RecordGameAction(AK_ELIMINATION, iTurn, iDefender, 0, iTD, 0);
   // log
   if arPlayer[iTurn].KeepLog then
     ScriviLog('Attack ' + arTerritory[iTD].Name + '(' + IntToStr(iArmD)
@@ -1951,6 +2079,7 @@ begin
       fMain.panTurn.Font.Color := BestTextColor(arPlayer[iTurn].Color);
       fMain.panTurn.Caption := arPlayer[iTurn].Name;
       // Initialize turn
+      RecordGameAction(AK_TURN_START, iTurn, 0, 0, 0, 0);
       arPlayer[iTurn].FlConq := False;
       arPlayer[iTurn].FlMove := False;
       // Assign new armies
@@ -2085,6 +2214,7 @@ begin
   IniFile := TIniFile.Create(sFileName);
   try
     with IniFile do begin
+      SaveActionHistory(IniFile);
       // Status of the game
       WriteInteger('Status', 'TurnCounter', iTurnCounter);
       WriteInteger('Status', 'Turn', iTurn);
@@ -2251,6 +2381,7 @@ begin
         arTerritory[iT].Army := ReadInteger('Territory', 'Army' + IntToStr(iT),
           0);
       end;
+      LoadActionHistory(IniFile, ActionMetadata);
     end;
   finally
     IniFile.Free;

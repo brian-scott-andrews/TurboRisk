@@ -1,8 +1,9 @@
 {
-Program: Finisher                 Author: Nathan Scarbrough
-                                                     Email: Nathan.Scarbrough@gmail.com
-
-Description: This is a super aggressive TRP that wins one on one games against most TRPs and sometimes wins 3 players games.
+Program: Finisher
+Author: Nathan Scarbrough
+Description: An aggressive end-game strategy intended for use in hybrid TRPs.
+The author's historical tests reported wins against most TRPs in one-on-one
+games and some wins in three-player games; this is not a current benchmark.
 
 Actually this player is meant to be combined with other TRPs to create hybrids that are stronger, more realistic players.
 
@@ -13,6 +14,8 @@ This drastic change of strategy mimics what humans do when they see the opportun
 To create a hybrid simply copy and paste the variable declarations and code from each of your 5 procedures into Finishers procedures.
 
 History: Version 1.0 June 2009
+
+Email: Nathan.Scarbrough@gmail.com
 }
 
 { INSTRUCTIONS:

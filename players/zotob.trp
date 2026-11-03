@@ -1,10 +1,6 @@
 {
 Program: Zotob
-
 Author: Nathan Scarbrough
-Credit to Anthony Covey-Crump for Descartes and
-Chrys Wurmse for Wyrm
-
 Description: This is a Wyrm + Descartes hybrid
 Zotob plays as Wyrm until he only has two territories left in which case Descartes takes over.
 He switches back to Wyrm when he owns at least 2 continents and more than 15 territories.
@@ -15,6 +11,8 @@ History: I made this TRP because Wyrm often gets defeated early on in games with
 
 June 2009
 
+Credit to Anthony Covey-Crump for Descartes and
+Chrys Wurmse for Wyrm
 }
 
 function TargetCplacement(Small: integer): integer;

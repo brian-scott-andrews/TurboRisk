@@ -1,16 +1,12 @@
 {
-Program:
-Basic
-Author:
-Torkani
-Description:
-A basic player that focuses on gaining territories rather than continents
+Program: Basic
+Author: Torkani
+Description: A basic player that focuses on gaining territories rather than continents
 History:
 v0.3 - Basic Attack Routine
 v0.5 - Basic occupation and fortification routine added
 v0.7 - Assignment routine added
 v1.00 - Release, fine tuning done
-
 }
 
 program New;

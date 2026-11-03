@@ -1,3 +1,12 @@
+{
+Program: Hunter
+Author: Martin Nehrdich
+Description: A Digger-derived player that chooses an opponent and directs
+its play toward eliminating that player, like a secret elimination mission.
+
+Ported to TurboRisk 2.0.5 by Brian S. Andrews.
+}
+
  // Hunter.trp  - a computer program for the Turborisk game by Mario Ferrari
  // written by Martin Nehrdich
  // Ported to 2.0.5 by Brian S. Andrews

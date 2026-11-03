@@ -34,6 +34,9 @@ object fPrograms: TfPrograms
     Top = 20
     Width = 386
     Height = 311
+    ReadOnly = True
+    ScrollBars = ssVertical
+    WordWrap = True
     TabOrder = 0
   end
   object lstPrgFile: TCheckListBox

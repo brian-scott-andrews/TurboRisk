@@ -1,14 +1,12 @@
 {
 Program: BonusSaboteur
 Author: Brian S. Andrews
-
-AI disclaimer: This script was created with AI assistance. Its strategy is
-heuristic, and actual behavior may differ from the description below.
-
-Description:
-Prioritizes taking a cheap territory from an opponent who currently owns that
+Description: Prioritizes taking a cheap territory from an opponent who currently owns that
 continent, breaking the bonus rather than attempting to conquer the whole
 continent. When no enemy bonus is available, it takes the weakest border.
+
+AI disclaimer: This script was created with AI assistance. Its strategy is
+heuristic, and actual behavior may differ from the description.
 }
 
 procedure Assignment(var ToTerritory: integer);

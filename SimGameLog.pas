@@ -6,8 +6,7 @@ interface
 
 uses
   LCLIntf, LCLType, LMessages, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, Globals, ComCtrls, ExtCtrls, StdCtrls, Buttons, Grids{, JvExGrids,
-  JvStringGrid};
+  Dialogs, Globals, ComCtrls, ExtCtrls, StdCtrls, Buttons, Grids, GameResults;
 
 type
 
@@ -55,7 +54,6 @@ type
     cboPlayer: TComboBox;
     Label1: TLabel;
     grdAnalysis: TStringGrid;
-    function  SplitStr(var theString: string; delimiter: string): string;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure FormDestroy(Sender: TObject);
     procedure FormShow(Sender: TObject);
@@ -73,7 +71,9 @@ type
     procedure grdAnalysisDrawCell(Sender: TObject; ACol, ARow: integer;
       Rect: TRect; State: TGridDrawState);
     procedure cboPlayerSelect(Sender: TObject);
+    procedure ExportHistoryClick(Sender: TObject);
   private
+    Results: TGameResults;
     aGameStats: array of TGameStats;
     aPlaySum: array of TPlayerSummary;
     iSortCol, // ranking grid sort column
@@ -88,6 +88,7 @@ type
     procedure SummarizePlayers(const sPlayer: string);
   public
     sLogFileName: string;
+    function ExportHistoryFile(const FileName: string; out Skipped: integer): integer;
   end;
 
 var
@@ -99,29 +100,21 @@ implementation
 
 {uses StdPas;}
 
-function TfSimGameLog.SplitStr(var theString: string; delimiter: string): string;
-var
-  i: integer;
-begin
-  Result:= '';
-  if theString <> '' then
-  begin
-    i:= Pos(delimiter, theString);
-    if i > 0 then
-    begin
-       Result:= Copy(theString, 1, i-1);
-       theString:= Copy(theString, i+Length(delimiter), maxLongInt);
-    end
-    else
-    begin
-       Result:= theString;
-       theString:= '';
-    end;
-  end;
-end;
-
 procedure TfSimGameLog.FormCreate(Sender: TObject);
+var
+  Bar: TPanel;
+  ExportButton: TButton;
 begin
+  Bar := TPanel.Create(Self);
+  Bar.Parent := Self;
+  Bar.Align := alTop;
+  Bar.Height := 33;
+  Bar.BevelOuter := bvNone;
+  ExportButton := TButton.Create(Self);
+  ExportButton.Parent := Bar;
+  ExportButton.SetBounds(6, 4, 170, 25);
+  ExportButton.Caption := 'Export as game history...';
+  ExportButton.OnClick := ExportHistoryClick;
   with grdRanking do begin
     RowCount := 1;
     ColCount := 10;
@@ -172,10 +165,68 @@ end;
 procedure TfSimGameLog.FormShow(Sender: TObject);
 begin
   Caption := 'Game log analysis: ' + sLogFileName;
-  LoadLogFile;
-  PopulateGamesList;
-  PopulateRankingGrid;
+  try
+    LoadLogFile;
+    PopulateGamesList;
+    PopulateRankingGrid;
+  except
+    on E: Exception do
+      MessageDlg('Could not load game log: ' + E.Message, mtError, [mbOK], 0);
+  end;
   pgcLog.ActivePage := tbsGames;
+end;
+
+procedure TfSimGameLog.ExportHistoryClick(Sender: TObject);
+var
+  SaveDialog: TSaveDialog;
+  Completed, Skipped, I: integer;
+begin
+  Completed := 0;
+  for I := 0 to High(Results) do
+    if Results[I].Status = RESULT_COMPLETE then Inc(Completed);
+  SaveDialog := TSaveDialog.Create(Self);
+  try
+    if Completed = 0 then begin
+      MessageDlg(Format('There are no completed games to export. Excluded %d unfinished games.',
+        [Length(Results)]), mtInformation, [mbOK], 0);
+      Exit;
+    end;
+    SaveDialog.Title := 'Export completed games as legacy game history';
+    SaveDialog.Filter := 'Game history (*.txt)|*.txt';
+    SaveDialog.DefaultExt := 'txt';
+    SaveDialog.FileName := 'exported-history.txt';
+    SaveDialog.Options := SaveDialog.Options + [ofOverwritePrompt];
+    if SaveDialog.Execute then begin
+      try
+        Completed := ExportHistoryFile(SaveDialog.FileName, Skipped);
+        MessageDlg(Format('Exported %d completed games. Excluded %d unfinished games.',
+          [Completed, Skipped]), mtInformation, [mbOK], 0);
+      except
+        on E: Exception do
+          MessageDlg('Could not export game history: ' + E.Message, mtError, [mbOK], 0);
+      end;
+    end;
+  finally
+    SaveDialog.Free;
+  end;
+end;
+
+function TfSimGameLog.ExportHistoryFile(const FileName: string;
+  out Skipped: integer): integer;
+var
+  Lines: TStringList;
+begin
+  if SameFileName(ExpandFileName(FileName), ExpandFileName(ResolveSimPath(sLogFileName))) then
+    raise Exception.Create('Choose a different file; the source log must not be overwritten.');
+  Lines := CompletedHistoryLines(Results, Skipped);
+  try
+    if Lines.Count = 0 then
+      raise Exception.Create('There are no completed games to export.');
+    Lines.SaveToFile(FileName);
+    Result := Lines.Count;
+  finally
+    Lines.Free;
+  end;
 end;
 
 procedure TfSimGameLog.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -359,82 +410,43 @@ begin
 end;
 
 procedure TfSimGameLog.LoadLogFile;
-const
-  ARRAY_INCR = 100;
 var
-  fHistory: textfile;
+  Loaded: TGameResults;
   iG, iP: integer;
-  sRec, sTmp: string;
 begin
+  Results := nil;
+  aGameStats := nil;
   iTotGames := 0;
-  // open history file
-  if not FileExists(sG_AppPath + sLogFileName) then begin
-    ShowMessage('Log file "' + sLogFileName + '" not found.');
-    exit;
-  end;
-  AssignFile(fHistory, sG_AppPath + sLogFileName);
-  Reset(fHistory);
-  // prepare array
-  SetLength(aGameStats, ARRAY_INCR);
-  // load list
-  try
-    // read history file into array
-    while not Eof(fHistory) do begin
-      Readln(fHistory, sRec);
-      inc(iTotGames);
-      if iTotGames > length(aGameStats) then begin
-        SetLength(aGameStats, length(aGameStats) + ARRAY_INCR);
-      end;
-      iG := iTotGames - 1;
-      with aGameStats[iG] do begin
-        // date
-        sTmp := SplitStr(sRec, ',');
-        GameDate := EncodeDate(StrToInt(copy(sTmp, 1, 4)),
-          StrToInt(copy(sTmp, 5, 2)), StrToInt(copy(sTmp, 7, 2)));
-        // time
-        sTmp := SplitStr(sRec, ',');
-        GameDate := GameDate + EncodeTime(StrToInt(copy(sTmp, 1, 2)),
-          StrToInt(copy(sTmp, 3, 2)), StrToInt(copy(sTmp, 5, 2)), 0);
-        // termination type
-        sTmp := SplitStr(sRec, ',');
-        GameEnd := TSimStatus(StrToInt(sTmp));
-        // time
-        sTmp := SplitStr(sRec, ',');
-        GameTime := StrToInt(sTmp);
-        // turns
-        sTmp := SplitStr(sRec, ',');
-        GameTurns := StrToInt(sTmp);
-        // number of players
-        sTmp := SplitStr(sRec, ',');
-        NumPl := StrToInt(sTmp);
-        // list item
-        for iP := 1 to NumPl do begin
-          // player's name
-          sTmp := lowercase(SplitStr(sRec, ','));
-          aPStats[iP].Name := sTmp;
-          // player's last turn
-          sTmp := SplitStr(sRec, ',');
-          aPStats[iP].LastTurn := StrToInt(sTmp);
-          // player's army
-          sTmp := SplitStr(sRec, ',');
-          aPStats[iP].Army := StrToInt(sTmp);
-          // player's territories
-          sTmp := SplitStr(sRec, ',');
-          aPStats[iP].Territ := StrToInt(sTmp);
-          // rank & points
-          if GameEnd = ssComplete then begin
-            aPStats[iP].Rank := iP;
-            aPStats[iP].Points := NumPl + 1 - iP;
-          end
-          else begin
-            aPStats[iP].Rank := 0;
-            aPStats[iP].Points := 0;
-          end;
+  Loaded := ReadGameResults(ResolveSimPath(sLogFileName));
+  for iG := 0 to High(Loaded) do
+    if not Loaded[iG].HasDetails then
+      raise EConvertError.Create('Legacy history has no simulation details. Open it in the game History window.');
+  Results := Loaded;
+  iTotGames := Length(Results);
+  SetLength(aGameStats, iTotGames);
+  for iG := 0 to iTotGames - 1 do begin
+    with aGameStats[iG] do begin
+      GameDate := Results[iG].GameDate;
+      GameEnd := TSimStatus(Results[iG].Status);
+      GameTime := Results[iG].Duration;
+      GameTurns := Results[iG].Turns;
+      NumPl := Results[iG].PlayerCount;
+      for iP := 1 to NumPl do begin
+        aPStats[iP].Name := LowerCase(Results[iG].Players[iP - 1].Name);
+        aPStats[iP].LastTurn := Results[iG].Players[iP - 1].LastTurn;
+        aPStats[iP].Army := Results[iG].Players[iP - 1].Army;
+        aPStats[iP].Territ := Results[iG].Players[iP - 1].Territ;
+        // rank & points
+        if GameEnd = ssComplete then begin
+          aPStats[iP].Rank := iP;
+          aPStats[iP].Points := NumPl + 1 - iP;
+        end
+        else begin
+          aPStats[iP].Rank := 0;
+          aPStats[iP].Points := 0;
         end;
       end;
     end;
-  finally
-    CloseFile(fHistory);
   end;
 end;
 

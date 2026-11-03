@@ -42,6 +42,8 @@ type
     txtGameLogFilebtn: TButton;
     txtCPULogFile: TEdit;
     txtCPULogFilebtn: TButton;
+    lblActionLog: TLabel;
+    txtActionLogFile: TEdit;
     GroupBox3: TGroupBox;
     txtTurnLimit: TEdit;
     Label10: TLabel;
@@ -91,7 +93,7 @@ implementation
 {$R *.lfm}
 
 uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
-  SimCPULog, SimGameLog, ExpSubr;
+  SimCPULog, SimGameLog, ExpSubr, ActionHistory;
 
 procedure TfSim.FormShow(Sender: TObject);
 begin
@@ -108,7 +110,7 @@ end;
 function TfSim.RunCLI: Integer;
 var
   iArg, iValue, iGame, iPlayer, iMinPlayers, iMaxPlayers: Integer;
-  sArg, sScheduleFile, sMapName, sGameLogFile, sCPULogFile: string;
+  sArg, sScheduleFile, sMapName, sGameLogFile, sCPULogFile, sActionLogFile: string;
   sLine, sPlayer, sNormalizedLine: string;
   Schedule, NormalizedSchedule, GamePlayers, UniquePlayers: TStringList;
   bErrorDump: Boolean;
@@ -145,6 +147,7 @@ var
     WriteLn('  --map <file.trm>       Map in maps (default: std_map_small.trm)');
     WriteLn('  --game-log <file>      Game log (default: TRSimCLI.sgl)');
     WriteLn('  --cpu-log <file>       CPU usage log (default: TRSimCLI.scl)');
+    WriteLn('  --action-log <file>    Optional public action history (JSONL, appended)');
     WriteLn('  --turn-limit <number>  Maximum turns per game (0: unlimited)');
     WriteLn('  --time-limit <seconds> Maximum seconds per game (0: unlimited)');
     WriteLn('  --seed <number>        Random-number-generator seed');
@@ -167,6 +170,7 @@ begin
   sMapName := 'std_map_small.trm';
   sGameLogFile := '';
   sCPULogFile := '';
+  sActionLogFile := '';
   bSeedSpecified := False;
   bStatSignificantSample := False;
   iSeed := 0;
@@ -189,6 +193,8 @@ begin
         sGameLogFile := NextArgument(sArg)
       else if sArg = '--cpu-log' then
         sCPULogFile := NextArgument(sArg)
+      else if sArg = '--action-log' then
+        sActionLogFile := NextArgument(sArg)
       else if sArg = '--turn-limit' then
         iSimTurnLimit := ReadNonNegativeInteger(sArg)
       else if sArg = '--time-limit' then
@@ -327,6 +333,11 @@ begin
         ExtractFileDir(sCPULogFile));
     txtGameLogFile.Text := sGameLogFile;
     txtCPULogFile.Text := sCPULogFile;
+    if (sActionLogFile <> '') and
+       SameFileName(ExpandFileName(sActionLogFile), ExpandFileName(sScheduleFile)) then
+      raise Exception.Create('Action log must not overwrite the schedule');
+    if sActionLogFile <> '' then sActionLogFile := ExpandFileName(sActionLogFile);
+    txtActionLogFile.Text := sActionLogFile;
     fCliErrorOccurred := False;
     WriteLn(Format('TRSimCLI: validated %d games, %d unique TRPs (%d-%d per game)',
       [fPlayerSchedule.Count, lstRandom.Count, iMinPlayers, iMaxPlayers]));
@@ -458,6 +469,7 @@ begin
       chkErrorAbort.Checked := ReadBool('Params', 'ErrorAbort', true);
       txtGameLogFile.Text := ReadString('Params', 'GameLog', 'game_log.sgl');
       txtCPULogFile.Text := ReadString('Params', 'CPULog', 'cpu_usage_log.scl');
+      txtActionLogFile.Text := ReadString('Params', 'ActionLog', '');
       txtGameLogFile2.Text := txtGameLogFile.Text;
       txtCPULogFile2.Text := txtCPULogFile.Text;
       txtTurnLimit.Text := IntToStr(ReadInteger('Params', 'TurnLimit', 0));
@@ -509,6 +521,7 @@ begin
       WriteBool('Params', 'ErrorAbort', chkErrorAbort.Checked);
       WriteString('Params', 'GameLog', txtGameLogFile.Text);
       WriteString('Params', 'CPULog', txtCPULogFile.Text);
+      WriteString('Params', 'ActionLog', txtActionLogFile.Text);
       WriteInteger('Params', 'TurnLimit', StrToIntDef(txtTurnLimit.Text,0));
       WriteInteger('Params', 'TimeLimit', StrToIntDef(txtTimeLimit.Text,0));
       // Players
@@ -734,6 +747,12 @@ begin
   // start simulation
   Screen.Cursor := crHourGlass;
   try
+    if Trim(txtActionLogFile.Text) <> '' then begin
+      if SameFileName(ResolveSimPath(txtActionLogFile.Text), ResolveSimPath(sSimGameLogFile)) or
+         SameFileName(ResolveSimPath(txtActionLogFile.Text), ResolveSimPath(sSimCPULogFile)) then
+        raise Exception.Create('Action log must be separate from game and CPU logs');
+      StartActionLog(ResolveSimPath(txtActionLogFile.Text), False);
+    end;
     // init vars
     iSimCurr := 0;
     iSimCompl := 0;
@@ -804,6 +823,10 @@ begin
       dtSimGameTime := Now;
       NewGameSetup;
       Supervisor;
+      if uSimStatus = ssComplete then
+        EndActionHistory(iTurnCounter, iSimWinner, Ord(uSimStatus))
+      else
+        EndActionHistory(iTurnCounter, 0, Ord(uSimStatus));
       iSimGameTime := SecondsBetween(Now, dtSimGameTime);
       // update log
       case uSimStatus of
@@ -855,6 +878,7 @@ begin
       (bUseStatSignificantSample and
        (bStatSignificantReached or (iSimCurr >= iMaxSampleGames)));
   finally
+    StopActionLog;
     // last update of stats
     fSimRun.UpdateSimStats;
     if bSimAbort then
