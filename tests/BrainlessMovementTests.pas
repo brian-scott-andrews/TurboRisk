@@ -114,9 +114,10 @@ begin
   SetupTerritories;
   Source := TStringList.Create;
   try
-    for Bot := 0 to 1 do begin
+    for Bot := 0 to 2 do begin
       if Bot = 0 then Name := 'players' + PathDelim + 'brainless V.trp'
-      else Name := 'players' + PathDelim + 'brainless vi.trp';
+      else if Bot = 1 then Name := 'players' + PathDelim + 'brainless vi.trp'
+      else Name := 'players' + PathDelim + 'brainless_iv.trp';
       Source.LoadFromFile(Name);
       for State := 0 to 3 do begin
         Initialize(Context);
@@ -126,8 +127,9 @@ begin
           Context.TerritoryOwner[I] := Owners[State, I];
           Context.TerritoryArmies[I] := Armies[State, I];
         end;
-        if State < 2 then
-          CheckFortification(Name, Source.Text, Context, False)
+        if State < 2 then begin
+          if Bot < 2 then CheckFortification(Name, Source.Text, Context, False);
+        end
         else begin
           if State = 2 then I := 56 else I := 6;
           CheckOccupation(Name, Source.Text, Context, 14, 12, I);
@@ -160,6 +162,27 @@ begin
       Context.TerritoryArmies[31] := 1;
       CheckOccupation(Name, Source.Text, Context, 31, 39, 0);
 
+      // Case 147: the saved Siam -> Indonesia capture leaves 15 source armies.
+      Initialize(Context);
+      Context.Conquest := True;
+      for I := 1 to MAXTERRITORIES do Context.TerritoryOwner[I] := 1;
+      Context.TerritoryOwner[10] := 2;
+      Context.TerritoryOwner[13] := 2;
+      Context.TerritoryOwner[40] := 2;
+      Context.TerritoryOwner[41] := 2;
+      Context.TerritoryOwner[42] := 2;
+      Context.TerritoryArmies[10] := 2;
+      Context.TerritoryArmies[13] := 2;
+      Context.TerritoryArmies[16] := 6;
+      Context.TerritoryArmies[28] := 3;
+      Context.TerritoryArmies[30] := 3;
+      Context.TerritoryArmies[31] := 15;
+      Context.TerritoryArmies[39] := 3;
+      Context.TerritoryArmies[40] := 7;
+      CheckOccupation(Name, Source.Text, Context, 31, 39, 14);
+      Context.TerritoryArmies[31] := 30;
+      CheckOccupation(Name, Source.Text, Context, 31, 39, 23);
+
       Initialize(Context);
       Context.TerritoryOwner[1] := 1;
       Context.TerritoryOwner[2] := 1;
@@ -172,10 +195,10 @@ begin
       Context.TerritoryOwner[3] := 2;
       Context.TerritoryOwner[4] := 2;
       Context.TerritoryOwner[5] := 2;
-      CheckFortification(Name, Source.Text, Context, True);
+      if Bot < 2 then CheckFortification(Name, Source.Text, Context, True);
       Context.Conquest := True;
       Context.TerritoryArmies[2] := 20;
-      CheckFortification(Name, Source.Text, Context, True);
+      if Bot < 2 then CheckFortification(Name, Source.Text, Context, True);
 
       Initialize(Context);
       Context.Conquest := True;
@@ -186,12 +209,12 @@ begin
       Context.TerritoryArmies[1] := 5;
       Context.TerritoryArmies[3] := 10;
       Context.TerritoryArmies[8] := 8;
-      CheckFortification(Name, Source.Text, Context, True, 1);
+      if Bot < 2 then CheckFortification(Name, Source.Text, Context, True, 1);
     end;
   finally
     Source.Free;
   end;
-  WriteLn('PASS: Brainless V/VI captured movement failures and legal-move preservation.');
+  WriteLn('PASS: Brainless IV/V/VI occupation and V/VI fortification regressions.');
 end;
 
 end.

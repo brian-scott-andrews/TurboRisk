@@ -39,6 +39,9 @@ archived tournament snapshots retain their historical behavior; games using
 the corrected scripts must not be presented as unchanged historical reruns.
 `tests\TRCompWorkflowTests.lpi` includes saved-state and synthetic movement
 regressions for both current scripts, including both special occupation routes.
+Current Brainless IV also caps additional occupation to leave one source army;
+the same regressions cover its Australia and South America branches, including
+the captured Siam-to-Indonesia overdraw from resumed tournament case 147.
 
 Every playable script in `players` starts with **Program**, **Author** and
 **Description**, in that order, with a value on each label's line.

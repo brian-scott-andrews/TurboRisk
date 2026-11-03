@@ -189,6 +189,8 @@ begin
     if (TArmies(FT)>RA+EA) and (RA>0) then
       A:=2*EA+5;
   end;
+  if A>TArmies(FT)-1 then A:=TArmies(FT)-1;
+  if A<0 then A:=0;
 end;
 
 
