@@ -8,7 +8,7 @@ Build the console executable with:
 C:\lazarus\lazbuild.exe .\TRSimCLI.lpi
 ```
 
-Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2?10 distinct player files.
+Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2–10 distinct player files.
 
 Run the CLI regression checks and one-game-per-player smoke sweep after building:
 

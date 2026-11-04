@@ -341,7 +341,8 @@ begin
     Application.Initialize;
     TestContextEditing;
     TestRoutineExecution;
-    RunBrainlessMovementTests, ZotobAttackTests;
+    RunBrainlessMovementTests;
+    RunZotobAttackTests;
     WriteLn('TRComp validation, context-editing, and routine-execution tests passed.');
   except
     on E: Exception do begin
