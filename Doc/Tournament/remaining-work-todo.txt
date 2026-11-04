@@ -1,0 +1,82 @@
+TurboRisk remaining-work TODO
+Reviewed: 2026-11-03
+
+Sources:
+- Doc\Tournament\bot-comment-improvement-notes.txt
+- Doc\TurboRisk-Google-Group-Archive-Review.html
+
+Scope:
+Current bundled bots only. Archived versions are excluded from routine fixes
+and tournaments unless explicitly requested.
+These sources include historical reports and suggestions, not just confirmed
+current bugs. Reproduce suspected defects before changing behavior.
+Era$or is excluded: it is not mentioned in either source.
+
+CURRENT-BOT IMPROVEMENTS
+
+[ ] Walker2: improve fortification.
+[ ] Walker2: add continent awareness.
+[ ] Walker2: improve attack efficiency.
+[ ] Brainless V: complete the currently diagnostic elimination planner.
+[ ] Brainless V: improve territory hopping.
+[ ] Brainless VI: assess further elimination and territory-hopping improvements.
+    Its bounded route planner is already implemented; do not treat the old
+    comments as evidence that the whole planner is missing.
+[ ] Brainless IV: broaden elimination planning beyond its limited local cases.
+[ ] Brainless IV: improve territory hopping.
+[ ] Brainless IV: assess cooperation between instances.
+[ ] Brainless IV: assess a combination-card-strategy hybrid.
+[ ] Wyrm and Zotob: implement safe player-elimination planning.
+[ ] Wyrm and Zotob: investigate comments about attack-source selection.
+[x] Zotob: investigate the author's infrequent attack-selection bug note.
+    Controlled valid-board reproduction on 2026-11-03: in Descartes mode,
+    the fallback can select a source but leave the destination at zero because
+    its target-score maximum starts at zero and all candidates score <= 0.
+    With Alaska holding 4 armies, Northwest Territory holding 1 enemy army,
+    and all other territories holding 2000 enemy armies, Placement followed
+    by Attack returns 1 -> 0. At 1999 enemy armies it returns 1 -> 2.
+    The engine rejects destination zero. This is a constructed board, not
+    an observed tournament failure.
+[x] Zotob: restore the author's destination-zero guard, preserving existing
+    scoring and thresholds. A targetless request now stops attacking.
+    Selecting negative-scoring targets instead was not adopted because it
+    would change attack behavior.
+
+HISTORICAL REPORTS TO REVALIDATE
+
+[ ] Reproduce and investigate all-Vexer runaway/stalemate games.
+    Doomstack's giant-stack fix does not establish that Vexer is fixed.
+[ ] Revalidate Tectonic's historical invalid-placement report.
+[ ] Identify the bots and reproduce any remaining compile, territory-zero, or
+    stalled-turn problems described in the historical ported-AI thread.
+[ ] Determine whether Digger/Pitbull's old fortification workaround notes still
+    describe reachable problems.
+[ ] Revalidate saved-game handoff limitations around card trades.
+
+FEATURE REQUESTS NOT ESTABLISHED AS DELIVERED
+
+[ ] Network multiplayer.
+[ ] Larger/custom territory topology beyond the current 42-territory limit.
+    Map artwork and SVG support do not remove this limit.
+[ ] Multiple adjacent fortification moves per turn.
+[ ] Blind play / hiding human-versus-AI identities.
+[ ] Supported switching of human/computer control mid-game.
+[ ] Game-history playback. Action-history recording is not playback.
+[ ] Hints.
+[ ] Sounds.
+
+REMOVED FROM THIS BACKLOG / ALREADY ADDRESSED
+
+- Log-format interoperability work.
+- TRComp context/routine regression coverage.
+- Ranking-help points documentation.
+- Brainless VI invalid-target fix.
+- Brainless IV/V/VI occupation safety fixes.
+- PascalScript Placement crash fix.
+
+Notes:
+- Strategy upgrades are not confirmed crash fixes.
+- Historical TRComp reports should be matched to the current regression cases
+  before claiming that every old failure is resolved.
+- The Google Groups review covers the exposed threads it surveyed; it is not
+  an exhaustive archive or a complete current-code audit.

@@ -8,7 +8,7 @@ Build the console executable with:
 C:\lazarus\lazbuild.exe .\TRSimCLI.lpi
 ```
 
-Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2–10 distinct player files.
+Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2?10 distinct player files.
 
 Run the CLI regression checks and one-game-per-player smoke sweep after building:
 
@@ -30,6 +30,12 @@ fpc -B -Mdelphi -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL -Fu.\Pa
 ```
 
 ## Bot strategy descriptions
+
+Zotob retains its existing attack scoring and thresholds. If its Descartes
+fallback selects a source but no destination, it now stops attacking instead
+of submitting an invalid destination-zero request. The compiler workflow tests
+compare guarded and unguarded attack decisions in both modes, before and after
+a conquest, including zero/negative destination-score boundaries.
 
 The current Brainless V and VI scripts include movement-safety corrections for
 issue #48: fortification candidates must have an owned adjacent destination and

@@ -5,7 +5,7 @@ program TRCompWorkflowTests;
 uses
   Interfaces, Forms, Classes, SysUtils, Variants, Grids, StdCtrls, Controls,
   uPSRuntime, Globals, ExpSubr, TRCompContextForm, ActionHistory,
-  BrainlessMovementTests;
+  BrainlessMovementTests, ZotobAttackTests;
 
 procedure Check(ACondition: Boolean; const AMessage: string);
 begin
@@ -341,7 +341,7 @@ begin
     Application.Initialize;
     TestContextEditing;
     TestRoutineExecution;
-    RunBrainlessMovementTests;
+    RunBrainlessMovementTests, ZotobAttackTests;
     WriteLn('TRComp validation, context-editing, and routine-execution tests passed.');
   except
     on E: Exception do begin

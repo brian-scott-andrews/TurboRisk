@@ -1238,8 +1238,8 @@ Descartes:
       end;
     end;
   end;
-//  if ToTerritory = 0 then FromTerritory:=0; { this is just masking an infrequent bug which I believe is
-//    somewhere in the last 32 lines of code but I don't have time right now to fix it. }
+  // Preserve target scoring; no selected destination means stop attacking.
+  if ToTerritory = 0 then FromTerritory:=0;
 
 gotoend:
 end;
