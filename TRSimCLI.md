@@ -171,6 +171,11 @@ regressions for both current scripts, including both special occupation routes.
 Current Brainless IV also caps additional occupation to leave one source army;
 the same regressions cover its Australia and South America branches, including
 the captured Siam-to-Indonesia overdraw from resumed tournament case 147.
+Current Era$or-bot caps additional occupation to the same legal range and uses
+enemy army counts, not territory IDs, when the source alone is a front. Equal
+strength leaves the armies in place. Its existing both-front distribution is
+preserved when legal. The compiler workflow tests cover these decisions,
+one-army boundaries, and independence from enemy territory numbering (#50).
 
 Every playable script in `players` starts with **Program**, **Author** and
 **Description**, in that order, with a value on each label's line.

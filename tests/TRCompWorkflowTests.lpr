@@ -5,7 +5,7 @@ program TRCompWorkflowTests;
 uses
   Interfaces, Forms, Classes, SysUtils, Variants, Grids, StdCtrls, Controls,
   uPSRuntime, Globals, ExpSubr, TRCompContextForm, ActionHistory,
-  BrainlessMovementTests, ZotobAttackTests,
+  BrainlessMovementTests, ErasorMovementTests, ZotobAttackTests,
   TectonicPlacementTests, PortedAIRegressionTests, BrainlessRouteTests,
   Walker3Tests, ShadowTests, CooperationRecognitionTests, IdentityAblationTests,
   KamikazeTests, TortoiseTests, VultureTests, CounterweightTests,
@@ -371,6 +371,7 @@ begin
     TestContextEditing;
     TestRoutineExecution;
     RunBrainlessMovementTests;
+    RunErasorMovementTests;
     RunZotobAttackTests;
     RunTectonicPlacementTests;
     RunRaptorPlacementTests;
