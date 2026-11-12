@@ -17,17 +17,35 @@ CURRENT-BOT IMPROVEMENTS
 [ ] Walker2: improve fortification.
 [ ] Walker2: add continent awareness.
 [ ] Walker2: improve attack efficiency.
-[ ] Brainless V: complete the currently diagnostic elimination planner.
-[ ] Brainless V: improve territory hopping.
-[ ] Brainless VI: assess further elimination and territory-hopping improvements.
-    Its bounded route planner is already implemented; do not treat the old
-    comments as evidence that the whole planner is missing.
-[ ] Brainless IV: broaden elimination planning beyond its limited local cases.
-[ ] Brainless IV: improve territory hopping.
-[ ] Brainless IV: assess cooperation between instances.
-[ ] Brainless IV: assess a combination-card-strategy hybrid.
+[x] NOT PLANNED: Brainless V elimination-planner completion and territory-hopping
+    upgrades. Maintainer decision on 2026-11-03: preserve V; assess current VI
+    instead of retrofitting these historical suggestions.
+[x] Brainless VI: current implementation checked on 2026-11-03; no further
+    upgrade planned from the generic historical elimination/hopping comments.
+    Weighted-route first-step selection, strict army budget and blocked-route
+    regressions passed, alongside existing occupation/fortification regressions.
+    Twelve games at two seeds all completed without script errors or limits:
+    duels against simple, defender, Brainless V, Brainless IV and actuary,
+    plus four-player games against simple/defender/actuary. VI won 9 of 12;
+    this is a smoke sample, not a statistically significant ranking.
+    The route planner chooses a path toward a weak opponent and replans after
+    attacks; it does not prove that the entire opponent can be eliminated.
+[x] NOT PLANNED: Brainless IV broader elimination, smarter hopping, cooperation
+    and combination-card hybrid suggestions. Maintainer decision on 2026-11-03:
+    preserve IV and assess its successor rather than add these upgrades.
 [ ] Wyrm and Zotob: implement safe player-elimination planning.
-[ ] Wyrm and Zotob: investigate comments about attack-source selection.
+[ ] Wyrm: investigate comments about attack-source selection.
+[x] Zotob: reproduced a separate stale-target attack defect in a real game,
+    cooperation-study case 826, seed 20261107: source 41 targeted non-adjacent 36.
+    Descartes reused TA between source candidates. Reset TA for every source
+    and require a selected adjacent target before retaining the source.
+    Controlled regression reproduces 41 -> 36 without the correction and stops
+    cleanly with it. Tournament frozen scripts/results remain unchanged.
+    Differential follow-up: 464 paired boards (128 seeded with Placement-built
+    buffers, 336 sentinel/stale-target boundary cases). All 72 legal attacks
+    and 236 stops unchanged; 156 invalid attacks changed; no strategy-buffer
+    differences. This is tested preservation, not exhaustive equivalence or
+    evidence of unchanged win rates.
 [x] Zotob: investigate the author's infrequent attack-selection bug note.
     Controlled valid-board reproduction on 2026-11-03: in Descartes mode,
     the fallback can select a source but leave the destination at zero because
@@ -44,11 +62,45 @@ CURRENT-BOT IMPROVEMENTS
 
 HISTORICAL REPORTS TO REVALIDATE
 
+[x] Raptorbot: study game 30866 returned Placement destination zero at turn 552.
+    All seven eligible front scores were below the fixed -100000 sentinel.
+    Accept the first eligible front before comparing scores; preserve scoring
+    and tie order. Exact saved-board and extreme-army regressions cover this.
+
 [ ] Reproduce and investigate all-Vexer runaway/stalemate games.
     Doomstack's giant-stack fix does not establish that Vexer is fixed.
-[ ] Revalidate Tectonic's historical invalid-placement report.
-[ ] Identify the bots and reproduce any remaining compile, territory-zero, or
-    stalled-turn problems described in the historical ported-AI thread.
+[x] Revalidate Tectonic's historical invalid-placement report.
+    Already hardened in commit 8ae785d (2026-10-08): Placement initializes its
+    output and falls back to the strongest owned territory if selection fails.
+    Conventional selection can otherwise return zero when every adjacent enemy
+    has at least 10000 armies. Current regression coverage passed 378 cases:
+    every sole-owned territory, all three strategy modes, and enemy strengths
+    1/10000/10001. In the 684-game resumed run, Tectonic appeared in 20 completed
+    games, one turn-limited game and two watchdogs, with no script-error result.
+    The historical report has no captured board establishing its exact trigger;
+    no new playable-script change was needed.
+[x] Identify the bots and check the historical ported-AI reports.
+    Thread: https://groups.google.com/g/turborisk/c/xNZ6fKMz1UM
+    Historical names -> current names:
+    defender14 -> defender; constant14 -> constant; randy12 -> randy;
+    slave14 -> slave; hunter14 -> hunter; walker2_14 -> Walker2;
+    Pitbull14 -> pitbull; Piranha14 -> piranha; digger -> digger.
+    Constant/Pitbull were the reported compile failures; both compile now.
+    Randy was the territory-zero placement report; its owned-territory fallback
+    was added in 8ae785d. All 84 current single-territory/all-but-one placement
+    cases returned owned territories.
+    Slave was reported capable of locking a game; the thread supplies no board
+    or exact cause. Current code detects an eliminated master even if the player
+    remains active, and that transition passed a controlled routine check.
+    Slave/Hunter both select and log their master/prey; log calls require
+    logging enabled, and are not unconditional popup announcements.
+    All nine current scripts compiled. Twelve current-bot games (nine duels
+    against simple and three mixed four-player games) produced no script error
+    or external watchdog: eleven completed and Piranha vs simple reached the
+    400-turn limit while continuing to process turns. This limited sample does
+    not prove that strategic stalemates are impossible.
+    No new playable-bot changes were needed. Historical attachments were not
+    executed, and byte identity with the original thread is not established.
 [ ] Determine whether Digger/Pitbull's old fortification workaround notes still
     describe reachable problems.
 [ ] Revalidate saved-game handoff limitations around card trades.

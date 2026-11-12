@@ -1,0 +1,32 @@
+Some TRPs select a particular player to pursue, while others recognize specific
+bot filenames and adjust their strategy.
+
+Hunter
+Chooses a "prey" player and favors attacks against that player.
+
+Grudge
+Targets the opponent responsible for capturing the most of its former
+territories; humans win ties.
+
+Kingmaker
+Targets the strongest opponent according to its strength score.
+
+Piranha
+Specifically favors attacking human players.
+
+Australian09, Descartes09, Endeavour09
+Have filename-aware rules involving Frank, Zotob, Australian and the other 09
+variants. These affect threat assessment and attack planning, not necessarily
+unconditional targeting.
+
+Frank / Frank+
+Recognize Australian-family opponents and change certain behavior. Frank+ also
+contains Vexer-specific checks.
+
+Australian+
+Recognizes Vexer and adjusts finishing thresholds and risk calculations.
+That is caution around Vexer, not simply "attack Vexer first."
+
+Renaming a bot can change how opponents treat it, even when its code is
+identical. That is why the renamed cooperation-OFF controls measure
+identity-dependent behavior, not a perfectly isolated cooperation switch.

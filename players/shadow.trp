@@ -1,0 +1,858 @@
+{
+Program: Shadow
+Author: Brian S. Andrews
+Description: Concentrates an army and follows Vexer across the map. Waits for
+an observed elimination by that Vexer before attempting to eliminate it.
+Also seeks one low-risk conquest per turn for a card, choosing the best
+available force ratio even against Vexer before its first kill.
+Requires a conservative, affordable continuous route through all its remaining
+territories, and replans after each dice exchange. Does not choose turn order.
+Recognizes vexer.trp exactly, not arbitrary filenames containing "vexer".
+With multiple Vexers, each must earn its own first-kill trigger.
+After the last Vexer is eliminated (by anyone), switches to Actuary's
+odds-based attacks, elimination planning, continent defense and consolidation.
+Without any Vexer in the starting roster, retains low-risk card collection.
+AI assistance: Created with AI assistance. Route costs are heuristics, not
+guaranteed combat outcomes. No cooperation or private opponent state is used.
+In games that start with two players, uses Doomstack's duel methods: concentrated
+rolling attacks, budgeted elimination routes and owned-path consolidation.
+Games that start with more players retain Shadow's method while a Vexer lives.
+Buffers: 1..2 duel elimination plan; 101..110 observed Vexer kills;
+500 public-history cursor.
+}
+
+// Embedded methods from this repository's Actuary; TRPs are standalone.
+var
+  OddsTable: array [0..860] of double;
+  OddsReady: boolean;
+
+procedure BuildOdds;
+var A,D,I: integer;
+begin
+  for A:=0 to 40 do
+    for D:=0 to 20 do begin
+      I:=A*21+D;
+      if D=0 then OddsTable[I]:=1.0
+      else if A=0 then OddsTable[I]:=0.0
+      else if (A>=3) and (D>=2) then
+        OddsTable[I]:=(2890.0*OddsTable[A*21+D-2]+2611.0*OddsTable[(A-1)*21+D-1]+
+          2275.0*OddsTable[(A-2)*21+D])/7776.0
+      else if (A>=3) and (D=1) then
+        OddsTable[I]:=(855.0*OddsTable[A*21]+441.0*OddsTable[(A-1)*21+1])/1296.0
+      else if (A=2) and (D>=2) then
+        OddsTable[I]:=(295.0*OddsTable[A*21+D-2]+420.0*OddsTable[(A-1)*21+D-1]+
+          581.0*OddsTable[D])/1296.0
+      else if (A=2) and (D=1) then
+        OddsTable[I]:=(125.0*OddsTable[A*21]+91.0*OddsTable[22])/216.0
+      else if (A=1) and (D>=2) then
+        OddsTable[I]:=55.0*OddsTable[21+D-1]/216.0
+      else OddsTable[I]:=15.0*OddsTable[21]/36.0;
+    end;
+  OddsReady:=true;
+end;
+
+function Win(A,D: integer): double;
+begin
+  if D<=0 then begin Result:=1.0; exit end;
+  if A<=0 then begin Result:=0.0; exit end;
+  if not OddsReady then BuildOdds;
+  if D>20 then begin
+    A:=(A*20+D div 2) div D; D:=20;
+    if A<=0 then begin Result:=0.0; exit end;
+  end;
+  if A>40 then A:=40;
+  Result:=OddsTable[A*21+D];
+end;
+
+function ExpLoss(D: integer): double;
+begin
+  if D<=1 then Result:=0.55 else Result:=0.86*D;
+end;
+
+function Defense(T: integer): integer;
+begin
+  if TArmies(T)<1 then Result:=1 else Result:=TArmies(T);
+end;
+
+function Alive: integer;
+begin
+  Result:=SAlivePlayersCount;
+end;
+
+function SmallMode: boolean;
+begin
+  Result:=(Alive<=4) and (SPlayersCount<=4);
+end;
+
+function AttritionWeight: double;
+begin
+  if Alive=2 then Result:=0.05
+  else if SmallMode then Result:=0.30
+  else Result:=0.45;
+end;
+
+function CardValue: double;
+begin
+  if SCardsBasedOnCombo then Result:=4.0
+  else Result:=3.0+PCardTurnInValue(PMe)/3.0;
+end;
+
+function EnemyArmies: integer;
+var P: integer;
+begin
+  Result:=0;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) then Result:=Result+PArmiesCount(P);
+end;
+
+function CompletesContinent(E: integer): boolean;
+var T,C: integer;
+begin
+  Result:=true; C:=TContinent(E);
+  for T:=1 to 42 do
+    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then begin
+      Result:=false; exit;
+    end;
+end;
+
+function CheapestFront(T: integer): integer;
+var F,E: integer;
+begin
+  Result:=100000;
+  for F:=1 to TFrontsCount(T) do begin
+    E:=TFront(T,F);
+    if Defense(E)<Result then Result:=Defense(E);
+  end;
+end;
+
+function StrongestFront: integer;
+var T,Best: integer;
+begin
+  Result:=0; Best:=0;
+  for T:=1 to 42 do
+    if TIsMine(T) and TIsFront(T) and (TArmies(T)>Best) then begin
+      Result:=T; Best:=TArmies(T);
+    end;
+end;
+
+function MaxAttacker(T: integer): integer;
+var F,E: integer;
+begin
+  Result:=0;
+  for F:=1 to TBordersCount(T) do begin
+    E:=TBorder(T,F);
+    if not TIsMine(E) and (TOwner(E)>0) and (TArmies(E)-1>Result) then
+      Result:=TArmies(E)-1;
+  end;
+end;
+
+function FallRisk(T: integer): double;
+var M: integer;
+begin
+  M:=MaxAttacker(T);
+  if M<=0 then Result:=0.0 else Result:=Win(M+3,Defense(T));
+end;
+
+function TargetContinent: integer;
+var C,PT,PA,ET,EA: integer; Score,Best: double;
+begin
+  Result:=0; Best:=-100000.0;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)<>PMe) and (CBonus(C)>0) then begin
+      CAnalysis(C,PT,PA,ET,EA);
+      if PT>0 then begin
+        Score:=CBonus(C)*8.0/(CEntriesCount(C)+1)+PT*6.0/CTerritoriesCount(C)*4.0
+          +PA*0.5-EA*1.0-ET*2.0;
+        if Score>Best then begin Best:=Score; Result:=C end;
+      end;
+    end;
+end;
+
+function PlanKill(S,P,Extra: integer; var First: integer; var Prob: double): boolean;
+var Done: array[1..42] of boolean;
+  T,D,Cur,Left,TT,PL,EA,BestT,BestFirst,BestPL,BestEA,Cost,BestCost,
+  TotalEA,TotalPL,Avail: integer;
+begin
+  Result:=false; First:=0; Prob:=0.0;
+  if (S<1) or (S>42) or (P<1) or (P>10) or (P=PMe) or not PActive(P) then exit;
+  Left:=PTerritoriesCount(P);
+  if Left<1 then exit;
+  for T:=1 to 42 do Done[T]:=false;
+  Cur:=S; TotalEA:=0; TotalPL:=0;
+  while Left>0 do begin
+    BestT:=0; BestCost:=100000; BestFirst:=0; BestPL:=0; BestEA:=0;
+    for D:=1 to 42 do
+      if (TOwner(D)=P) and not Done[D] then
+        if TWeakestPath(Cur,D,TT,PL,EA) then begin
+          Cost:=EA+PL;
+          if (PL>0) and (Cost<BestCost) then begin
+            BestCost:=Cost; BestT:=D; BestFirst:=TT; BestPL:=PL; BestEA:=EA;
+          end;
+        end;
+    if BestT=0 then exit;
+    if First=0 then First:=BestFirst;
+    TotalEA:=TotalEA+BestEA; TotalPL:=TotalPL+BestPL;
+    Done[BestT]:=true; Left:=Left-1; Cur:=BestT;
+  end;
+  if (First<1) or TIsMine(First) or not TIsBordering(S,First) then exit;
+  Avail:=TArmies(S)-1+Extra-TotalPL+1;
+  Prob:=Win(Avail,TotalEA);
+  Result:=true;
+end;
+
+function KillValue(P: integer): double;
+var Cards: integer;
+begin
+  Cards:=PCardCount(P);
+  Result:=6.0+Cards*4.0;
+  if not SCardsBasedOnCombo and (Cards>0) then Result:=Result+PCardTurnInValue(PMe)*0.5;
+  if PCardCount(PMe)+Cards>=5 then Result:=Result+8.0;
+  if Alive=2 then Result:=Result+1000.0;
+end;
+
+function BestKill(Extra: integer; var From,First,Victim: integer): double;
+var Tops: array[1..3] of integer;
+  T,I,J,P,F,Limit: integer; Prob,EV,W: double;
+begin
+  Result:=0.0; From:=0; First:=0; Victim:=0;
+  for I:=1 to 3 do Tops[I]:=0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) and (TArmies(T)>1) then
+    for I:=1 to 3 do
+      if (Tops[I]=0) or (TArmies(T)>TArmies(Tops[I])) then begin
+        for J:=3 downto I+1 do Tops[J]:=Tops[J-1];
+        Tops[I]:=T; break;
+      end;
+  Limit:=7;
+  if SmallMode then Limit:=12;
+  W:=AttritionWeight;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) and (PTerritoriesCount(P)<=Limit) and
+        ((PCardCount(P)>0) or (Alive<=3)) then
+      for I:=1 to 3 do if Tops[I]>0 then
+        if PlanKill(Tops[I],P,Extra,F,Prob) then
+          if Prob>=0.6 then begin
+            EV:=Prob*KillValue(P)-W*ExpLoss(PArmiesCount(P)+PTerritoriesCount(P));
+            if EV>Result then begin
+              Result:=EV; From:=Tops[I]; First:=F; Victim:=P;
+            end;
+          end;
+end;
+
+function DefensePlacement: integer;
+var C,B,E: integer; Risk,Score,Best: double;
+begin
+  Result:=0; Best:=0.0;
+  for C:=1 to 6 do
+    if (CTerritoriesCount(C)>0) and (COwner(C)=PMe) and (CBonus(C)>0) then
+      for B:=1 to CEntriesCount(C) do begin
+        E:=CEntry(C,B);
+        if TIsMine(E) and TIsFront(E) then begin
+          Risk:=FallRisk(E);
+          if (Risk>0.3) and (MaxAttacker(E)<=TArmies(E)+PNewArmies(PMe)*2+4) then begin
+            Score:=Risk*CBonus(C);
+            if Score>Best then begin Best:=Score; Result:=E end;
+          end;
+        end;
+      end;
+end;
+
+function StagingTerritory(TC: integer): integer;
+var T,F,E: integer; Score,Best: double;
+begin
+  Result:=0; Best:=-100000.0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
+    Score:=TArmies(T)*1.0-CheapestFront(T)*0.3;
+    if TC>0 then
+      for F:=1 to TBordersCount(T) do begin
+        E:=TBorder(T,F);
+        if not TIsMine(E) and (TContinent(E)=TC) then begin
+          Score:=Score+20.0; break;
+        end;
+      end;
+    if Score>Best then begin Best:=Score; Result:=T end;
+  end;
+end;
+
+procedure ACPlacement(var ToTerritory: integer);
+var T,From,First,Victim: integer;
+begin
+  ToTerritory:=0;
+  if BestKill(PNewArmies(PMe),From,First,Victim)>0.0 then ToTerritory:=From;
+  if ToTerritory=0 then ToTerritory:=DefensePlacement;
+  if ToTerritory=0 then begin
+    if SmallMode then T:=StagingTerritory(TargetContinent)
+    else T:=StagingTerritory(0);
+    ToTerritory:=T;
+  end;
+  if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
+end;
+
+procedure ACAttack(var FromTerritory,ToTerritory: integer);
+var T,F,E,H,Owner,A,D,Onward,TC,Stack,From,First,Victim,Force: integer;
+  P,V,EV,Best,W: double;
+begin
+  FromTerritory:=0; ToTerritory:=0;
+  if BestKill(0,From,First,Victim)>0.0 then
+    if (From>0) and (First>0) and TIsBordering(From,First) and not TIsMine(First) then begin
+      FromTerritory:=From; ToTerritory:=First; exit;
+    end;
+  W:=AttritionWeight; Best:=0.0; TC:=TargetContinent;
+  Stack:=StrongestFront; Force:=EnemyArmies;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); Owner:=TOwner(E);
+      A:=TArmies(T)-1; D:=Defense(E);
+      P:=Win(A,D);
+      if P>=0.5 then begin
+        V:=0.5;
+        if not SConquest then V:=V+CardValue;
+        if (CBonus(TContinent(E))>0) and CompletesContinent(E) then
+          V:=V+CBonus(TContinent(E))*3.0;
+        if (Owner>0) and (COwner(TContinent(E))=Owner) then
+          V:=V+CBonus(TContinent(E))*2.0;
+        if (TC>0) and (TContinent(E)=TC) then V:=V+1.5;
+        if (Owner>0) and (PTerritoriesCount(Owner)=1) then begin
+          V:=V+6.0+PCardCount(Owner)*4.0;
+          if Alive=2 then V:=V+1000.0;
+        end;
+        Onward:=0;
+        for H:=1 to TBordersCount(E) do
+          if not TIsMine(TBorder(E,H)) then Onward:=Onward+1;
+        if Onward=0 then V:=V+1.0;
+        if (T=Stack) and ((Alive=2) or (A>Force*2)) then V:=V+2.0;
+        EV:=P*V-W*(P*ExpLoss(D)+(1.0-P)*A);
+        if EV>Best then begin Best:=EV; FromTerritory:=T; ToTerritory:=E end;
+      end;
+    end;
+end;
+
+procedure ACOccupation(FromTerritory,ToTerritory: integer; var Armies: integer);
+var Guard,M: integer;
+begin
+  Armies:=0;
+  if TArmies(FromTerritory)<=1 then exit;
+  if not TIsFront(ToTerritory) and TIsFront(FromTerritory) then exit;
+  Armies:=TArmies(FromTerritory)-1;
+  if TIsFront(FromTerritory) then begin
+    M:=MaxAttacker(FromTerritory); Guard:=1;
+    if (COwner(TContinent(FromTerritory))=PMe) and TIsEntry(FromTerritory) and (M>0) then
+      while (Guard<TArmies(FromTerritory)-1) and (Win(M+3,Guard)>0.35) do Guard:=Guard+1;
+    Armies:=TArmies(FromTerritory)-Guard;
+  end;
+  if Armies<0 then Armies:=0;
+end;
+
+function OwnedStep(Start,Destination: integer): integer;
+var Queue,Previous: array[1..42] of integer;
+  Head,Tail,T,E,F: integer;
+begin
+  Result:=0;
+  if Start=Destination then exit;
+  for T:=1 to 42 do Previous[T]:=0;
+  Head:=1; Tail:=1; Queue[1]:=Start; Previous[Start]:=Start;
+  while Head<=Tail do begin
+    T:=Queue[Head]; Head:=Head+1;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) and (Previous[E]=0) then begin
+        Previous[E]:=T;
+        if E=Destination then begin
+          while Previous[E]<>Start do E:=Previous[E];
+          Result:=E; exit;
+        end;
+        Tail:=Tail+1; Queue[Tail]:=E;
+      end;
+    end;
+  end;
+end;
+
+procedure ACFortification(var FromTerritory,ToTerritory,Armies: integer);
+var T,Dest,Best,Stack,Guard: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  Dest:=DefensePlacement;
+  if Dest>0 then
+    for T:=1 to 42 do
+      if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) and TIsBordering(T,Dest) then begin
+        Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+      end;
+  if Armies>0 then exit;
+  Stack:=StrongestFront;
+  if Stack=0 then exit;
+  Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and (T<>Stack) and (TArmies(T)>Best) then begin
+    Guard:=1;
+    if TIsFront(T) then begin
+      if (COwner(TContinent(T))=PMe) and TIsEntry(T) then continue;
+      if FallRisk(T)>0.5 then continue;
+    end;
+    Dest:=OwnedStep(T,Stack);
+    if (Dest=0) and not TIsFront(T) then Dest:=TPathToFront(T);
+    if Dest>0 then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-Guard;
+    end;
+  end;
+  if Armies<1 then begin FromTerritory:=0; ToTerritory:=0; Armies:=0 end;
+end;
+
+// Embedded duel methods from this repository's Doomstack; TRPs are standalone.
+function DSDefense(T: integer): integer;
+begin
+  if TArmies(T)<1 then Result:=1 else Result:=TArmies(T);
+end;
+
+function DSFront: integer;
+var T,Best: integer;
+begin
+  Result:=0; Best:=0;
+  for T:=1 to 42 do
+    if TIsMine(T) and TIsFront(T) and (TArmies(T)>Best) then begin
+      Result:=T; Best:=TArmies(T);
+    end;
+end;
+
+function DSCheapest(T: integer): integer;
+var F,E: integer;
+begin
+  Result:=100000;
+  for F:=1 to TFrontsCount(T) do begin
+    E:=TFront(T,F);
+    if DSDefense(E)<Result then Result:=DSDefense(E);
+  end;
+end;
+
+function DSRoute(Start,P,Budget: integer; var First,Cost: integer): boolean;
+var Used,Closed: array[1..42] of boolean;
+  Distance,Previous: array[1..42] of integer;
+  T,E,F,Current,Next,Remaining,N,Cheapest,StepCost,Factor: integer;
+begin
+  Result:=false; First:=0; Cost:=0;
+  if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;
+  if not TIsMine(Start) or (P=PMe) or not PActive(P) then exit;
+  Remaining:=PTerritoriesCount(P);
+  if (Remaining<1) or (Remaining>10) then exit;
+  Factor:=2;
+  if SCardsBasedOnCombo then Factor:=3;
+  if (Remaining<=2) and (PArmiesCount(P)>=30) then Factor:=1;
+  if Factor*PArmiesCount(P)+Remaining+4>Budget then exit;
+  for T:=1 to 42 do Used[T]:=false;
+  Used[Start]:=true; Current:=Start;
+  while Remaining>0 do begin
+    for T:=1 to 42 do begin
+      Distance[T]:=100000; Previous[T]:=0; Closed[T]:=false;
+    end;
+    Distance[Current]:=0; Next:=0;
+    for N:=1 to 42 do begin
+      E:=0; Cheapest:=100000;
+      for T:=1 to 42 do
+        if not Closed[T] and (Distance[T]<Cheapest) then begin
+          E:=T; Cheapest:=Distance[T];
+        end;
+      if E=0 then break;
+      Closed[E]:=true;
+      if (E<>Current) and (TOwner(E)=P) then begin Next:=E; break end;
+      for F:=1 to TBordersCount(E) do begin
+        T:=TBorder(E,F);
+        if not TIsMine(T) and not Used[T] and not Closed[T] then begin
+          StepCost:=Distance[E]+Factor*DSDefense(T)+1;
+          if StepCost<Distance[T] then begin
+            Distance[T]:=StepCost; Previous[T]:=E;
+          end;
+        end;
+      end;
+    end;
+    if Next=0 then exit;
+    Cost:=Cost+Distance[Next];
+    if Cost+4>Budget then exit;
+    T:=Next;
+    while T<>Current do begin
+      if TOwner(T)=P then Remaining:=Remaining-1;
+      Used[T]:=true;
+      E:=Previous[T];
+      if E=0 then exit;
+      if (Current=Start) and (E=Start) then First:=T;
+      T:=E;
+    end;
+    Current:=Next;
+  end;
+  Result:=First>0;
+end;
+
+function DSChoose(Start,Budget: integer; var Target,Next: integer): integer;
+var P,E,Cost,Cards,Reward: integer;
+begin
+  Result:=0; Target:=0; Next:=0;
+  for P:=1 to 10 do if (P<>PMe) and PActive(P) then begin
+    Cards:=PCardCount(P);
+    if DSRoute(Start,P,Budget,E,Cost) then begin
+      Reward:=100020+Cards*12-Cost;
+      if PCardCount(PMe)+Cards>=5 then Reward:=Reward+40
+      else if PCardCount(PMe)+Cards>=3 then Reward:=Reward+15;
+      if not SCardsBasedOnCombo and (Cards>0) then
+        Reward:=Reward+PCardTurnInValue(PMe);
+      if Reward>Result then begin Result:=Reward; Target:=P; Next:=E end;
+    end;
+  end;
+end;
+
+function DSCompletes(E: integer): boolean;
+var T,C: integer;
+begin
+  Result:=true; C:=TContinent(E);
+  for T:=1 to 42 do
+    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then Result:=false;
+end;
+
+procedure DSAssignment(var TT: integer);
+var T,F,E,C,PT,PA,ET,EA,Score,Best: integer;
+begin
+  TT:=0; Best:=-100000;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    C:=TContinent(T); CAnalysis(C,PT,PA,ET,EA);
+    Score:=TBordersCount(T)*3+PT*3-ET*2;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) then Score:=Score+8;
+    end;
+    if SCardsBasedOnCombo then Score:=Score+CBonus(C)*2;
+    if Score>Best then begin Best:=Score; TT:=T end;
+  end;
+end;
+
+procedure DSPlacement(var TT: integer);
+var T,Score,Best,Reward,Target,Next: integer;
+begin
+  UBufferSet(1,0); UBufferSet(2,0);
+  TT:=0; Best:=-100000;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) then begin
+    Reward:=DSChoose(T,TArmies(T)+PNewArmies(PMe)-1,Target,Next);
+    Score:=TArmies(T)*10+Reward*3-DSCheapest(T);
+    if Score>Best then begin Best:=Score; TT:=T end;
+  end;
+  if TT=0 then for T:=1 to 42 do if TIsMine(T) then begin TT:=T; break end;
+end;
+
+procedure DSAttack(var FT,TT: integer);
+var T,F,E,P,Next,Cost,Target,Reward,BestReward,S,
+  Available,Score,Best,H,Neighbor,Onward,Cheapest: integer;
+  Need: double; Allowed: boolean;
+begin
+  FT:=0; TT:=0; S:=DSFront;
+  if S=0 then exit;
+  P:=trunc(UBufferGet(1)); T:=trunc(UBufferGet(2));
+  if (P>=1) and (P<=10) and (T>=1) and (T<=42) then
+    if DSRoute(T,P,TArmies(T)-1,Next,Cost) then begin
+      FT:=T; TT:=Next; exit;
+    end;
+  UBufferSet(1,0); UBufferSet(2,0); BestReward:=0;
+  for T:=1 to 42 do if TIsMine(T) and TIsFront(T) and (TArmies(T)>1) then begin
+    Reward:=DSChoose(T,TArmies(T)-1,Target,Next);
+    if Reward>BestReward then begin
+      BestReward:=Reward; FT:=T; TT:=Next;
+      UBufferSet(1,Target); UBufferSet(2,T);
+    end;
+  end;
+  if TT>0 then exit;
+  Best:=-100000;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); Available:=TArmies(T)-1;
+      Need:=1.8; Allowed:=not SConquest;
+      if T=S then begin Need:=1.0; Allowed:=true end;
+      if Allowed and (Available>=Need*DSDefense(E)) then begin
+        Onward:=0; Cheapest:=100000;
+        for H:=1 to TBordersCount(E) do begin
+          Neighbor:=TBorder(E,H);
+          if not TIsMine(Neighbor) then begin
+            Onward:=Onward+1;
+            if DSDefense(Neighbor)<Cheapest then Cheapest:=DSDefense(Neighbor);
+          end;
+        end;
+        Score:=Available-DSDefense(E)*3+Onward*4;
+        if Cheapest<100000 then Score:=Score-Cheapest;
+        if DSCompletes(E) then Score:=Score+CBonus(TContinent(E))*12;
+        if COwner(TContinent(E))=TOwner(E) then
+          Score:=Score+CBonus(TContinent(E))*4;
+        if Score>Best then begin Best:=Score; FT:=T; TT:=E end;
+      end;
+    end;
+end;
+
+procedure DSOccupation(FT,TT: integer; var A: integer);
+begin
+  A:=0;
+  if trunc(UBufferGet(1))>0 then UBufferSet(2,TT);
+  if TArmies(FT)<=1 then exit;
+  if TIsFront(TT) or not TIsFront(FT) then A:=TArmies(FT)-1;
+end;
+
+function DSStep(Start,Destination: integer): integer;
+var Queue,Previous: array[1..42] of integer;
+  Head,Tail,T,E,F: integer;
+begin
+  Result:=0;
+  if Start=Destination then exit;
+  for T:=1 to 42 do Previous[T]:=0;
+  Head:=1; Tail:=1; Queue[1]:=Start; Previous[Start]:=Start;
+  while Head<=Tail do begin
+    T:=Queue[Head]; Head:=Head+1;
+    for F:=1 to TBordersCount(T) do begin
+      E:=TBorder(T,F);
+      if TIsMine(E) and (Previous[E]=0) then begin
+        Previous[E]:=T;
+        if E=Destination then begin
+          while Previous[E]<>Start do E:=Previous[E];
+          Result:=E; exit;
+        end;
+        Tail:=Tail+1; Queue[Tail]:=E;
+      end;
+    end;
+  end;
+end;
+
+procedure DSFortification(var FT,TT,A: integer);
+var T,Dest,Best,S,F,E,Cheapest: integer;
+begin
+  FT:=0; TT:=0; A:=0; Best:=1; S:=DSFront;
+  if S=0 then exit;
+  for T:=1 to 42 do if TIsMine(T) and (T<>S) and (TArmies(T)>Best) then begin
+    Dest:=DSStep(T,S);
+    if (Dest=0) and not TIsFront(T) then Dest:=TPathToFront(T);
+    if Dest>0 then begin Best:=TArmies(T); FT:=T; TT:=Dest; A:=Best-1 end;
+  end;
+  if (A=0) and not SConquest then begin
+    Cheapest:=DSCheapest(S);
+    for F:=1 to TBordersCount(S) do begin
+      E:=TBorder(S,F);
+      if TIsMine(E) and TIsFront(E) then
+        if DSCheapest(E)<Cheapest then begin
+          Cheapest:=DSCheapest(E); FT:=S; TT:=E; A:=TArmies(S)-1;
+        end;
+    end;
+  end;
+  if A<1 then begin FT:=0; TT:=0; A:=0 end;
+end;
+
+function IsVexer(P: integer): boolean;
+begin
+  Result:=false;
+  if (P>0) and (P<>PMe) then
+    Result:=lowercase(PProgram(P))='vexer.trp';
+end;
+
+procedure Observe;
+var I,P,Last: integer;
+begin
+  Last:=trunc(UBufferGet(500));
+  if Last>HCount then begin
+    Last:=0;
+    for P:=1 to 10 do UBufferSet(100+P,0);
+  end;
+  for I:=Last+1 to HCount do
+    if HGet(I,AF_KIND)=AK_ELIMINATION then begin
+      P:=HGet(I,AF_PLAYER);
+      if IsVexer(P) then UBufferSet(100+P,1);
+    end;
+  UBufferSet(500,HCount);
+end;
+
+function Stack: integer;
+var T: integer;
+begin
+  Result:=0;
+  for T:=1 to 42 do if TIsMine(T) then begin
+    if Result=0 then Result:=T
+    else if TArmies(T)>TArmies(Result) then Result:=T;
+  end;
+end;
+
+function LiveVexer: integer;
+var P: integer;
+begin
+  Result:=0;
+  for P:=1 to 10 do
+    if IsVexer(P) and PAlive(P) then begin
+      Result:=P;
+      exit;
+    end;
+end;
+
+function AfterVexer: boolean;
+var P: integer; HadVexer: boolean;
+begin
+  Result:=false; HadVexer:=false;
+  for P:=1 to 10 do if IsVexer(P) and PActive(P) then begin
+    HadVexer:=true;
+    if PAlive(P) then exit;
+  end;
+  Result:=HadVexer;
+end;
+
+function Distance(Start,Target: integer): integer;
+var D: array[1..42] of integer; Pass,T,B,N: integer;
+begin
+  for T:=1 to 42 do begin
+    D[T]:=99;
+    if TOwner(T)=Target then D[T]:=0;
+  end;
+  for Pass:=1 to 42 do
+    for T:=1 to 42 do
+      for B:=1 to TBordersCount(T) do begin
+        N:=TBorder(T,B);
+        if D[N]+1<D[T] then D[T]:=D[N]+1;
+      end;
+  Result:=D[Start];
+end;
+
+function EliminationStep(Start,Target: integer): integer;
+var
+  Used,Closed: array[1..42] of boolean;
+  D,Prev: array[1..42] of integer;
+  T,B,N,Pass,Current,Best,Goal,Remaining,Cost,Step,First,Budget: integer;
+begin
+  Result:=0;
+  if Start=0 then exit;
+  if UBufferGet(100+Target)=0 then exit;
+  Remaining:=PTerritoriesCount(Target);
+  Budget:=TArmies(Start)-1;
+  Cost:=5;
+  First:=0;
+  Current:=Start;
+  for T:=1 to 42 do Used[T]:=TIsMine(T);
+  while Remaining>0 do begin
+    for T:=1 to 42 do begin
+      D[T]:=1000000000; Prev[T]:=0; Closed[T]:=false;
+    end;
+    D[Current]:=0;
+    for Pass:=1 to 42 do begin
+      Best:=0;
+      for T:=1 to 42 do if not Closed[T] then begin
+        if Best=0 then Best:=T
+        else if D[T]<D[Best] then Best:=T;
+      end;
+      if Best=0 then break;
+      if D[Best]=1000000000 then break;
+      Closed[Best]:=true;
+      for B:=1 to TBordersCount(Best) do begin
+        N:=TBorder(Best,B);
+        if not Used[N] and not Closed[N] and
+          (not IsVexer(TOwner(N)) or (TOwner(N)=Target)) then
+          if double(D[Best])+2.2*TArmies(N)+2<D[N] then begin
+            D[N]:=D[Best]+trunc(2.2*TArmies(N))+2;
+            Prev[N]:=Best;
+          end;
+      end;
+    end;
+    Goal:=0;
+    for T:=1 to 42 do if (TOwner(T)=Target) and not Used[T] then begin
+      if Goal=0 then Goal:=T
+      else if D[T]<D[Goal] then Goal:=T;
+    end;
+    if Goal=0 then exit;
+    if D[Goal]=1000000000 then exit;
+    Cost:=Cost+D[Goal];
+    if Cost>Budget then exit;
+    Step:=Goal;
+    while Step<>Current do begin
+      if Prev[Step]=0 then exit;
+      Used[Step]:=true;
+      if TOwner(Step)=Target then Remaining:=Remaining-1;
+      N:=Step;
+      Step:=Prev[Step];
+    end;
+    if First=0 then First:=N;
+    Current:=Goal;
+  end;
+  Result:=First;
+end;
+
+procedure Assignment(var TT: integer);
+var T,B,Score,Best: integer;
+begin
+  if SPlayersCount=2 then begin DSAssignment(TT); exit end;
+  TT:=0; Best:=-1;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    Score:=CBonus(TContinent(T));
+    for B:=1 to TBordersCount(T) do
+      if TIsMine(TBorder(T,B)) then Score:=Score+10;
+    if Score>Best then begin Best:=Score; TT:=T; end;
+  end;
+end;
+
+procedure Placement(var TT: integer);
+begin
+  if SPlayersCount=2 then begin DSPlacement(TT); exit end;
+  if AfterVexer then begin ACPlacement(TT); exit end;
+  Observe;
+  TT:=Stack;
+end;
+
+procedure Attack(var FT,TT: integer);
+var S,P,T,B,N,Target: integer; Ratio,Best: double;
+begin
+  if SPlayersCount=2 then begin DSAttack(FT,TT); exit end;
+  if AfterVexer then begin ACAttack(FT,TT); exit end;
+  Observe;
+  FT:=0; TT:=0;
+  S:=Stack;
+  if S=0 then exit;
+  Target:=LiveVexer;
+  if Target>0 then begin
+    for P:=1 to 10 do if IsVexer(P) and PAlive(P) then begin
+      N:=EliminationStep(S,P);
+      if N>0 then begin
+        if double(TArmies(S)-1)/TArmies(N)>=2.2 then begin
+          FT:=S; TT:=N; exit;
+        end;
+      end;
+    end;
+  end;
+  if SConquest then exit;
+  Best:=2.2;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for B:=1 to TFrontsCount(T) do begin
+      N:=TFront(T,B);
+      Ratio:=double(TArmies(T)-1)/TArmies(N);
+      if Ratio>=Best then begin Best:=Ratio; FT:=T; TT:=N; end;
+    end;
+end;
+
+procedure Occupation(FT,TT: integer; var A: integer);
+begin
+  if SPlayersCount=2 then begin DSOccupation(FT,TT,A); exit end;
+  if AfterVexer then begin ACOccupation(FT,TT,A); exit end;
+  A:=TArmies(FT)-1;
+  if A<0 then A:=0;
+end;
+
+procedure Fortification(var FT,TT,A: integer);
+var S,Target,T,B,N,D,ND: integer; Score,Best: double;
+begin
+  if SPlayersCount=2 then begin DSFortification(FT,TT,A); exit end;
+  if AfterVexer then begin ACFortification(FT,TT,A); exit end;
+  Observe;
+  FT:=0; TT:=0; A:=0;
+  S:=Stack;
+  if S=0 then exit;
+  Target:=LiveVexer;
+  Best:=-1;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+    for B:=1 to TBordersCount(T) do begin
+      N:=TBorder(T,B);
+      if TIsMine(N) then begin
+        D:=Distance(T,PMe); ND:=Distance(N,PMe);
+        if Target>0 then begin
+          D:=Distance(T,Target); ND:=Distance(N,Target);
+        end;
+        Score:=0;
+        if (T=S) and (ND<D) then Score:=1000000+TArmies(T);
+        if (T<>S) and (N=S) then Score:=TArmies(T);
+        if Score>Best then if Score>0 then begin
+          Best:=Score; FT:=T; TT:=N; A:=TArmies(T)-1;
+        end;
+      end;
+    end;
+end;
+begin
+  OddsReady:=false;
+end.

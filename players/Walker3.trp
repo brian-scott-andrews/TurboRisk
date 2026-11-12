@@ -1,0 +1,177 @@
+{
+Program: Walker3
+Author: Brian S. Andrews
+Description: Cooperative successor to Rafal Smotrzyk's Walker2. Concentrates
+on outsider fronts, continent opportunities and adjacent reserve movement.
+Created with AI assistance. Strategy heuristics are not guarantees.
+Derived from Walker2 by Rafal Smotrzyk; Walker2 remains unchanged.
+Only identical program names cooperate. The territory-23 coalition endgame
+convention is retained from Walker2.
+}
+
+function Friend(P: integer): boolean;
+begin
+  Result:=(P>0) and (PProgram(P)=PProgram(PMe));
+end;
+
+function Outsiders: boolean;
+var P: integer;
+begin
+  Result:=false;
+  for P:=1 to 10 do
+    if PActive(P) and (PTerritoriesCount(P)>0) and not Friend(P) then
+      Result:=true;
+end;
+
+function Pressure(T: integer): integer;
+var B,N: integer;
+begin
+  Result:=0;
+  for B:=1 to TBordersCount(T) do begin
+    N:=TBorder(T,B);
+    if not Friend(TOwner(N)) then Result:=Result+TArmies(N);
+  end;
+end;
+
+function Opportunity(T: integer): double;
+var C,PT,PA,ET,EA: integer;
+begin
+  C:=TContinent(T);
+  CAnalysis(C,PT,PA,ET,EA);
+  Result:=double(CBonus(C))*PT/CTerritoriesCount(C);
+  if PT=CTerritoriesCount(C)-1 then Result:=Result+10*CBonus(C);
+  if (COwner(C)>0) and not Friend(COwner(C)) then
+    Result:=Result+5*CBonus(C);
+end;
+
+procedure Assignment(var TT: integer);
+var T,B,PT,PA,ET,EA: integer; Score,Best: double;
+begin
+  TT:=0; Best:=-1;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    CAnalysis(TContinent(T),PT,PA,ET,EA);
+    Score:=double(PT+1)*CBonus(TContinent(T))/CTerritoriesCount(TContinent(T));
+    for B:=1 to TBordersCount(T) do
+      if TIsMine(TBorder(T,B)) then Score:=Score+10;
+    if Score>Best then begin Best:=Score; TT:=T; end;
+  end;
+end;
+
+procedure Placement(var TT: integer);
+var T,B,N,Weak,MaxA: integer; Score,Best: double;
+begin
+  TT:=0; Best:=-1;
+  if Outsiders then begin
+    for T:=1 to 42 do if TIsMine(T) then begin
+      if TT=0 then TT:=T;
+      if Pressure(T)>0 then begin
+        Weak:=2147483647;
+        for B:=1 to TBordersCount(T) do begin
+          N:=TBorder(T,B);
+          if not Friend(TOwner(N)) and (TArmies(N)<Weak) then Weak:=TArmies(N);
+        end;
+        Score:=double(TArmies(T))/Weak+Opportunity(T)+
+          double(Pressure(T))/(TArmies(T)+1);
+        if Score>Best then begin Best:=Score; TT:=T; end;
+      end;
+    end;
+  end else if TIsMine(23) then begin
+    for T:=1 to 42 do if TIsFront(T) then TT:=T;
+  end else begin
+    MaxA:=2147483647;
+    for T:=1 to 42 do if TIsMine(T) and (TArmies(T)<MaxA) then begin
+      MaxA:=TArmies(T); TT:=T;
+    end;
+  end;
+  if TT=0 then for T:=1 to 42 do if TIsMine(T) then TT:=T;
+end;
+
+procedure Attack(var FT,TT: integer);
+var T,B,N,ET,EA: integer; Ratio,Score,Best: double;
+begin
+  FT:=0; TT:=0; Best:=-1;
+  if Outsiders then begin
+    for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
+      for B:=1 to TBordersCount(T) do begin
+        N:=TBorder(T,B);
+        if not Friend(TOwner(N)) then begin
+          Ratio:=double(TArmies(T)-1)/TArmies(N);
+          if Ratio>=2.2 then begin
+            Score:=Ratio+Opportunity(N);
+            if Score>Best then begin Best:=Score; FT:=T; TT:=N; end;
+          end;
+        end;
+      end;
+  end else if TIsMine(23) then begin
+    for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>1) then begin
+      TWeakestFront(T,ET,EA);
+      if ET>0 then begin FT:=T; TT:=ET; end;
+    end;
+  end else begin
+    for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>1) then
+      for B:=1 to TBordersCount(T) do begin
+        N:=TBorder(T,B);
+        if (TOwner(N)<>TOwner(23)) and not TIsMine(N) then begin FT:=T; TT:=N; end;
+      end;
+  end;
+end;
+
+procedure Occupation(FT,TT: integer; var A: integer);
+var Reserve: integer;
+begin
+  A:=0;
+  if Outsiders then begin
+    if Pressure(TT)>0 then begin
+      Reserve:=1;
+      if Pressure(FT)>0 then begin
+        Reserve:=TArmies(FT) div 4;
+        if Reserve>Pressure(FT)+1 then Reserve:=Pressure(FT)+1;
+        if Reserve<1 then Reserve:=1;
+      end;
+      A:=TArmies(FT)-Reserve;
+    end;
+  end;
+end;
+
+function Distance(T: integer): integer;
+var D: array[1..42] of integer; Pass,N,B: integer; Changed: boolean;
+begin
+  for N:=1 to 42 do begin
+    D[N]:=99;
+    if TIsMine(N) and (Pressure(N)>0) then D[N]:=0;
+  end;
+  for Pass:=1 to 42 do begin
+    Changed:=false;
+    for N:=1 to 42 do if TIsMine(N) then
+      for B:=1 to TBordersCount(N) do
+        if TIsMine(TBorder(N,B)) and (D[TBorder(N,B)]+1<D[N]) then begin
+          D[N]:=D[TBorder(N,B)]+1; Changed:=true;
+        end;
+    if not Changed then break;
+  end;
+  Result:=D[T];
+end;
+
+procedure Fortification(var FT,TT,A: integer);
+var T,B,N,Reserve,Move,D,ND: integer; Score,Best: double;
+begin
+  FT:=0; TT:=0; A:=0; Best:=-1;
+  if not Outsiders then exit;
+  for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then begin
+    D:=Distance(T);
+    Reserve:=Pressure(T)+1;
+    Move:=TArmies(T)-Reserve;
+    if Move>0 then for B:=1 to TBordersCount(T) do begin
+      N:=TBorder(T,B);
+      if TIsMine(N) then begin
+        ND:=Distance(N);
+        if (ND<D) or ((D=0) and (ND=0) and (Pressure(N)>Pressure(T))) then begin
+          Score:=double(Move)/(ND+1);
+          if Score>Best then begin Best:=Score; FT:=T; TT:=N; A:=Move; end;
+        end;
+      end;
+    end;
+  end;
+end;
+begin
+end.

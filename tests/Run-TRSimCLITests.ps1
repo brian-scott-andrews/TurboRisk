@@ -291,6 +291,30 @@ end;
   }
   Write-Output 'PASS: invalid TRP history access is explicit and logging protects unrelated files.'
 
+  $duplicateSchedule = Join-Path $testRoot 'duplicate.csv'
+  Set-Content -LiteralPath $duplicateSchedule -Value 'simple,simple,simple,simple' -Encoding ASCII
+  $duplicateArgs = @(
+    '--schedule', $duplicateSchedule, '--turn-limit', '1', '--seed', '123',
+    '--game-log', (Join-Path $runA 'duplicate.sgl'),
+    '--cpu-log', (Join-Path $runA 'duplicate.scl')
+  )
+  $duplicateRejected = Invoke-TRSimCLI $cli $duplicateArgs $runA
+  Assert-ExitCode $duplicateRejected 2 'Duplicate roster without opt-in'
+  if (($duplicateRejected.StdOut + $duplicateRejected.StdErr) -notmatch 'Duplicate player') {
+    throw "Duplicate roster did not report the expected error.`n$($duplicateRejected.StdOut)`n$($duplicateRejected.StdErr)"
+  }
+  $duplicateAllowed = Invoke-TRSimCLI $cli ($duplicateArgs + '--allow-duplicate-players') $runA
+  Assert-ExitCode $duplicateAllowed 0 'Explicit duplicate roster'
+  $duplicateLine = Get-Content -LiteralPath (Join-Path $runA 'duplicate.sgl') |
+    Where-Object { $_ -match '^\d{8},' } | Select-Object -Last 1
+  $duplicateFields = $duplicateLine -split ','
+  if ($duplicateFields[5] -ne '4' -or
+      @($duplicateFields[6], $duplicateFields[10], $duplicateFields[14], $duplicateFields[18] |
+        Where-Object { $_ -ne 'simple' }).Count -ne 0) {
+    throw "Explicit duplicate roster did not run with four simple players: $duplicateLine"
+  }
+  Write-Output 'PASS: duplicate rosters are rejected by default and run with explicit opt-in.'
+
   $sampleSchedule = Join-Path $testRoot 'sample.csv'
   Set-Content -LiteralPath $sampleSchedule -Value 'simple,randy' -Encoding ASCII
   $sampleResult = Invoke-TRSimCLI $cli @(

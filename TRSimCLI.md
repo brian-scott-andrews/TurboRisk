@@ -8,7 +8,7 @@ Build the console executable with:
 C:\lazarus\lazbuild.exe .\TRSimCLI.lpi
 ```
 
-Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2–10 distinct player files.
+Keep `TRSimCLI.exe` beside the `players` and `maps` directories. The schedule file contains one comma-separated roster per game. Player names may include or omit the `.trp` extension. Blank lines and lines beginning with `#` are ignored. Every roster must contain 2–10 players; files must be distinct unless `--allow-duplicate-players` is specified.
 
 Run the CLI regression checks and one-game-per-player smoke sweep after building:
 
@@ -31,11 +31,134 @@ fpc -B -Mdelphi -dBorland -dVer150 -dDelphi7 -dCompiler6_Up -dPUREPASCAL -Fu.\Pa
 
 ## Bot strategy descriptions
 
+Shadow (`shadow.trp`) uses Doomstack's duel methods only in games that start
+with exactly two players. This mode applies
+to all five routines: assignment, reinforcement, attack, occupation and
+fortification. It concentrates on a strong front, keeps the main stack
+attacking after a conquest, estimates affordable elimination routes and
+consolidates through owned paths. The duel routines are embedded so the TRP
+remains standalone; Doomstack itself is unchanged.
+
+In games that start with three or more players, Shadow remains an experimental
+Vexer hunter while any Vexer survives, even when only two players remain.
+It builds a mobile stack
+and follows Vexer geographically, not in turn order. Public `AK_ELIMINATION`
+events arm a separate first-kill trigger for each player using `vexer.trp`.
+Only after that trigger does it consider a full elimination route, budgeting
+2.2 armies per defender plus garrisons and a reserve. Its bounded greedy route
+search avoids traversing already owned territories that the attacking stack
+cannot cross through combat; it may miss feasible routes. It replans after each
+exchange and can abort when losses make the route unaffordable. Each turn it
+also seeks a card by choosing the highest adjacent available-army force ratio
+of at least 2.2 across all its territories. This can target Vexer even before
+its first kill. Ordinary attacks stop after the first conquest; triggered,
+affordable elimination attempts remain allowed. Following uses adjacent
+friendly fortification rather than extra ordinary attacks after earning a card.
+Once the last Vexer is eliminated, regardless of who eliminates it, Shadow
+switches to embedded Actuary methods for reinforcement, attack, occupation
+and fortification. These use dice odds and expected value, plan eliminations
+of other opponents, defend continents and consolidate reserves. The switch
+can occur during the same turn; it does not require Shadow to receive another
+turn or observe the elimination event. Starting two-player games still use
+Doomstack. With no Vexer in the starting roster, Shadow retains its low-risk
+ordinary-conquest fallback. Actuary itself is unchanged. No tournament
+advantage is established, and existing studies retain their frozen bot pools.
+
+Shadow2 (`shadow2.trp`) is a replacement experimental candidate based on Actuary,
+not an extension of original Shadow. It retains the Actuary foundation for
+expansion, card collection, continent defense and occupation. It does not wait
+for Vexer's first kill; profitable eliminations of any opponent remain eligible.
+
+This revision targets incrementing (progressive) card trade values, with the
+standard immediate trading of captured cards. Elimination reward is a conservative
+estimate of additional trades enabled by the captured cards, valued at our own
+next trade value, not the victim's. Five cards guarantee a valid set; three or
+four do not. The maximum sets already possible in our hand are subtracted so
+existing cards are not credited again. Later guaranteed sets use the same next
+value as a lower bound rather than guessing future increases. This can miss
+profitable combinations because scripts know card counts, not card types.
+
+A bounded search at each route step selects the cheapest reachable victim
+territory without crossing owned or already captured territories. Estimated
+losses include every enemy on the complete route, including other opponents;
+intermediate captures also tie up one army each as a garrison. Successful-route
+costs and the risk of losing the attacking stack are charged in army units,
+without Actuary's attrition discount. The minimum estimated elimination success
+is 60%, with a five-army multiplayer reserve budget. Captured-card rewards cannot
+fund their own capture; only armies already available and actual pending
+reinforcements can fund the plan. Winning against the final opponent is valued
+separately, without requiring card repayment or an extra reserve.
+
+Single-territory eliminations in ordinary attack selection use the same card
+valuation, full attrition and reserve checks, while still valuing the ordinary
+card conquest and territorial benefits. Plans are recalculated from the current
+board on each call, so losses, captures and post-kill opportunities are reassessed.
+
+The Vexer preference is deliberately bounded: an already-positive attack or
+elimination score gets a 5% increase against exact, case-insensitive `vexer.trp`
+only when estimated success is at least 75%. Staging adds a nearest-Vexer distance
+preference worth at most one army on an owned front; equal strongest fronts favor
+the nearer one. Placement staging and the Vexer preferences are unchanged from
+the preceding Actuary-based candidate; no dedicated border-defense priority is
+added. The revised elimination economics apply even without a surviving Vexer.
+Starting duels retain the Actuary foundation, not Doomstack. Route selection,
+odds, losses and reserve estimates are heuristics, not guarantees against losses
+or counter-elimination.
+
+Original Shadow and Actuary are unchanged. The retired Shadow2 and all previous
+experiment inputs remain frozen in their separate study records. This includes
+the preceding Actuary-based candidate: its results do not describe this revised
+card-payback candidate, whose performance is not yet established.
+
+The [bot strategy help](Doc/HelpSource/bot_strategies.htm#cooperation) explains
+cooperation and its limits. Borg, Walker2 and Walker3 have built-in
+same-program cooperation. Digger, Defender, Hunter, Pitbull and Slave instead
+multiply their attack force-ratio score by 0.90 against same-program targets:
+this is mild favoritism, not immunity from attack. Slave's separate
+master-following behavior does not require the master to use the same script.
+
+Frank and Frank+ each have a source-code `Cooperative` Boolean, defaulting to
+`False` and saved in buffer 29. It changes selected bubble/continent attack
+branches, not all attacks; some same-program protection remains when it is off.
+It is not a GUI setting or a cross-version Frank/Frank+ alliance.
+Recognition uses script filename (`PProgram`), not player display name.
+
+Walker3 is a cooperative successor derived from Rafal Smotrzyk's Walker2.
+Only identical Walker3 program names cooperate; Walker2 remains unchanged and
+is not an ally. Walker3 adds compact assignment, continent-aware front
+reinforcement, a 2.2 available-army attack threshold, defensive occupation
+reserves and adjacent owned-path fortification toward outsider fronts.
+It retains Walker2's territory-23 coalition endgame attack convention.
+
+Use `--allow-duplicate-players` to explicitly permit multiple instances of the
+same script in one scheduled game. Instances have independent state but share
+their program identity for scripts' cooperation checks. Duplicate filenames
+remain rejected by default. Per-seat outcomes must be distinguished from
+coalition outcomes when analyzing these games.
+
 Zotob retains its existing attack scoring and thresholds. If its Descartes
 fallback selects a source but no destination, it now stops attacking instead
 of submitting an invalid destination-zero request. The compiler workflow tests
 compare guarded and unguarded attack decisions in both modes, before and after
 a conquest, including zero/negative destination-score boundaries.
+
+Zotob's Descartes source scan also resets its adjacent-target candidate for
+each territory and only retains sources with a selected target. This prevents
+a large interior stack inheriting a non-adjacent destination from an earlier
+source (observed as 41 -> 36 in cooperation-study case 826).
+An isolated before/after comparison covers 464 boards: 128 seeded boards with
+Placement-generated buffers and 336 sentinel/stale-target boundary cases.
+All 72 previously legal attacks and 236 stop decisions stayed identical;
+156 invalid attacks changed, and no strategy buffers changed. These cases
+support decision preservation outside the defect, not exhaustive equivalence
+or unchanged tournament win rates.
+
+The compiler workflow also checks the nine current counterparts of the
+historical "Ported AI's" thread for compilation, Randy's placement destinations,
+Slave's eliminated-master transition, and Slave/Hunter target log messages with
+logging enabled. Tectonic placement checks cover every sole-owned territory in
+all three strategy modes and enemy strengths around its 10000-army selector
+boundary.
 
 The current Brainless V and VI scripts include movement-safety corrections for
 issue #48: fortification candidates must have an owned adjacent destination and
@@ -100,6 +223,36 @@ internal reasoning; use TRP `ULog` messages for bot-specific rationale.
 Run multiple instances concurrently by assigning different `--game-log` and `--cpu-log` paths to each process.
 
 ## Options
+
+`players\vulture.trp` combines cheap card collection with small-player
+elimination. Ordinary attacks require at most two defenders and at least
+3:1 available-army superiority, and stop after one conquest. Elimination
+hunts require a victim with at least four cards and at most four territories,
+a continuous route of at most eight captures, enough existing armies for
+three times all route defenders plus garrisons and a three-army reserve,
+and guaranteed progressive card rewards exceeding the heuristic route cost.
+Routes are greedy and replanned after every roll; owned/already captured
+territories cannot be crossed. Captured rewards never fund their own capture.
+It ignores continents and does not identify historical third-party damage.
+
+`players\tortoise.trp` implements a two-phase defensive wall strategy.
+For twelve personal turns (counted from public turn-start history, not
+per-army callbacks), it reinforces an owned chokepoint and attacks only
+to recover previously held territory in its defended continent.
+Later it balances border army deficits and attempts one conquest from
+the wall when that stack exceeds thirty armies, then migrates the wall
+to the conquered territory. It has no combat-odds or early card-taking
+exception. Region selection prefers owned compact continents and entry
+territories; it is not hardcoded to Australia. New bots do not change
+the inputs of already-frozen studies.
+
+The bundled `players\kamikaze.trp` is a high-risk one-conquest card collector.
+It reinforces its strongest front but selects the weakest enemy adjacent to
+any owned stack above three armies. It commits to that fight until conquest
+or exhaustion, stops after one conquest, and pushes all available occupation
+armies forward. It ignores continents and combat odds and consolidates
+interior armies toward a reachable front. Adapted from a Gemini-generated
+proposal to the real TRP callbacks, it is not included in already-frozen studies.
 
 | Option | Description |
 | --- | --- |

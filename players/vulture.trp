@@ -1,0 +1,133 @@
+{
+Program: Vulture
+Author: Brian S. Andrews
+Description: Collects one cheap card from territories with at most two defenders,
+or pursues an affordable continuous elimination route against a small card-rich
+opponent. Replans after each roll; captured cards cannot fund their own capture.
+
+AI disclaimer: Adapted with AI assistance from two Gemini-generated proposals.
+Army budgets and progressive card rewards are conservative heuristics, not
+combat probability guarantees. Weak defenders do not prove third-party damage.
+}
+
+function Reward(P: integer): integer;
+var Mine,Cards,Trades: integer;
+begin
+  Result:=0; Mine:=PCardCount(PMe); Cards:=PCardCount(P);
+  if not SCardsBasedOnCombo and (Mine+Cards>=5) then begin
+    Trades:=(Mine+Cards-2) div 3-Mine div 3;
+    if Trades>0 then Result:=Trades*PCardTurnInValue(PMe);
+  end;
+end;
+
+function Route(S,P: integer; var First,Cost: integer): boolean;
+var Captured: array[1..42] of boolean;
+  Cur,Left,F,E,Next,Weakest,Steps,Enemies: integer;
+begin
+  Result:=False; First:=0; Cost:=0;
+  for E:=1 to 42 do Captured[E]:=False;
+  Cur:=S; Left:=PTerritoriesCount(P); Steps:=0; Enemies:=0;
+  while (Left>0) and (Steps<8) do begin
+    Next:=0; Weakest:=2147483647;
+    for F:=1 to TBordersCount(Cur) do begin
+      E:=TBorder(Cur,F);
+      if not TIsMine(E) and not Captured[E] and (TOwner(E)>0) then
+        if (TOwner(E)=P) and (TArmies(E)<Weakest) then begin
+          Next:=E; Weakest:=TArmies(E);
+        end;
+    end;
+    // Allow a cheap intervening enemy, but never owned-territory backtracking.
+    if Next=0 then
+      for F:=1 to TBordersCount(Cur) do begin
+        E:=TBorder(Cur,F);
+        if not TIsMine(E) and not Captured[E] and (TOwner(E)>0) and
+           (TArmies(E)<=2) and (TArmies(E)<Weakest) then begin
+          Next:=E; Weakest:=TArmies(E);
+        end;
+      end;
+    if Next=0 then exit;
+    if First=0 then First:=Next;
+    Captured[Next]:=True;
+    if TOwner(Next)=P then Left:=Left-1;
+    Enemies:=Enemies+TArmies(Next); Steps:=Steps+1; Cur:=Next;
+    Cost:=2*Enemies+Steps-1;
+    if TArmies(S)-1<3*Enemies+Steps-1+3 then exit;
+  end;
+  Result:=Left=0;
+end;
+
+function Hunt(var Source,Target: integer): boolean;
+var S,P,F,Cost,Value,Best: integer;
+begin
+  Result:=False; Source:=0; Target:=0; Best:=0;
+  for P:=1 to 10 do
+    if (P<>PMe) and PActive(P) and (PTerritoriesCount(P)>0) and
+       (PTerritoriesCount(P)<=4) and (PCardCount(P)>=4) then begin
+      Value:=Reward(P);
+      for S:=1 to 42 do if TIsFront(S) and (TArmies(S)>3) then
+        if Route(S,P,F,Cost) then
+          if (Value>Cost) and (Value-Cost>Best) then begin
+            Best:=Value-Cost; Source:=S; Target:=F; Result:=True;
+          end;
+    end;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T: integer;
+begin
+  ToTerritory:=0;
+  for T:=1 to 42 do if TOwner(T)=0 then begin ToTerritory:=T; break end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T,Target,Best: integer;
+begin
+  if Hunt(ToTerritory,Target) then exit;
+  ToTerritory:=0; Best:=-1;
+  for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>Best) then begin
+    Best:=TArmies(T); ToTerritory:=T;
+  end;
+  if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>Best) then begin
+    Best:=TArmies(T); ToTerritory:=T;
+  end;
+end;
+
+procedure Attack(var FromTerritory,ToTerritory: integer);
+var T,F,E,Weakest,Best: integer;
+begin
+  if Hunt(FromTerritory,ToTerritory) then exit;
+  FromTerritory:=0; ToTerritory:=0;
+  if SConquest then exit;
+  Weakest:=3; Best:=0;
+  for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>3) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F);
+      if (TOwner(E)>0) and (TArmies(E)<=2) and
+         (TArmies(T)-1>=3*TArmies(E)) then
+        if (TArmies(E)<Weakest) or
+           ((TArmies(E)=Weakest) and (TArmies(T)>Best)) then begin
+          Weakest:=TArmies(E); Best:=TArmies(T);
+          FromTerritory:=T; ToTerritory:=E;
+        end;
+    end;
+end;
+
+procedure Occupation(FromTerritory,ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=TArmies(FromTerritory)-1;
+end;
+
+procedure Fortification(var FromTerritory,ToTerritory,Armies: integer);
+var T,Dest,Best: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) then begin
+    Dest:=TPathToFront(T);
+    if Dest>0 then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+    end;
+  end;
+end;
+
+begin
+end.

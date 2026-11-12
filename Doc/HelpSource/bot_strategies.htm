@@ -22,6 +22,37 @@ later repository variants are identified separately. Statements about a bot
 being strong, weak, or best suited to particular games are historical author
 assessments, not guarantees or current tournament rankings.</p>
 
+<h2><a name="cooperation">Cooperation and program identity</a></h2>
+<p>Cooperation is implemented by individual scripts, not by a game-wide
+alliance setting. These scripts compare <tt>PProgram</tt>, the script filename,
+not the player's display name. Copies using the same filename recognize each
+other; differently named scripts do not become allies merely because they
+share code. In particular, Walker2 and Walker3 are not allies, and Frank and
+Frank+ do not form a cross-version alliance.</p>
+
+<p><b>Borg, Walker2 and Walker3</b> have built-in same-program cooperation,
+without an on/off flag. Their normal play favors the coalition against
+outsiders, but cooperation does not guarantee permanent nonaggression:
+endgame behavior can allow attacks between copies. Walker2 and Walker3 retain
+a special territory-23 coalition endgame attack convention.</p>
+
+<p><b>Digger, Defender, Hunter, Pitbull and Slave</b> have mild same-program
+favoritism, not a nonaggression pact. Their attack evaluation multiplies the
+force-ratio score by <tt>0.90</tt> when the target belongs to another copy of
+the same program. This makes that target less attractive but still allows an
+attack. There is no cooperation toggle for this preference. Slave's separate
+master-following behavior can support a player using any program; it does not
+require another Slave.</p>
+
+<p><b>Frank and Frank+</b> each declare a source-code Boolean
+<tt>Cooperative</tt>, set to <tt>False</tt> in the standard scripts and stored
+in buffer 29 during initialization. Changing it to <tt>True</tt> changes
+selected floating-bubble and continent-breaking attack branches, including
+Australia and North America. It is not a blanket alliance switch: some
+same-program continent protection exists even with the flag off, and some
+flag-controlled branches also change attacks against outsiders. This is a
+script setting, not a checkbox in the game interface.</p>
+
 <h2>Strategies</h2>
 <ul>
   <li><b>Actuary</b> (<tt>actuary.trp</tt>) evaluates attacks with exact dice
@@ -47,7 +78,8 @@ assessments, not guarantees or current tournament rankings.</p>
   from an opponent to break its continent bonus; otherwise, it targets a weak
   border.</li>
   <li><b>Borg</b> (<tt>borg.trp</tt>) cooperates with other players using the
-  same program.</li>
+  same program; see <a href="#cooperation">cooperation and program identity</a>
+  for recognition and endgame limitations.</li>
   <li><b>Brainless V</b> (<tt>brainless V.trp</tt>) is a repository restoration
   of Chiel ten Brinke's player, with safety guards around its near-original
   <tt>ConquerArea</tt> elimination planner. That planner is incomplete and
@@ -65,6 +97,32 @@ assessments, not guarantees or current tournament rankings.</p>
   <li><b>CardCollector</b> (<tt>cardcollector.trp</tt>) seeks one low-risk
   conquest each turn to collect a card, then stops attacking for that turn.
   It favors weak adjacent territories and avoids costly campaigns.</li>
+  <li><b>Vulture</b> (<tt>vulture.trp</tt>) collects one cheap card from
+  adjacent territories with at most two defenders and at least 3:1 available
+  army superiority. It also hunts opponents with at least four cards and
+  at most four territories when a continuous route of at most eight captures
+  fits its conservative army budget and guaranteed progressive card reward
+  exceeds its estimated cost. It replans after each roll, counts intervening
+  enemies, and never budgets captured cards before the elimination.
+  It ignores continents and does not infer third-party damage from weak
+  defenders. Adapted with AI assistance from two Gemini-generated proposals.</li>
+  <li><b>Tortoise</b> (<tt>tortoise.trp</tt>) holds an owned chokepoint
+  for twelve personal turns, attacking only to recover previously held
+  territory in its defended continent. Afterwards it balances exposed
+  borders against adjacent enemy armies and advances its wall by one
+  conquest per turn when the wall has more than thirty armies. It leaves
+  two armies behind where occupation rules permit, consolidates interior
+  troops one adjacent step at a time along owned paths, and has no early card-taking or combat-odds
+  exception. It selects a region heuristically, without a fixed Australia
+  preference. Adapted with AI assistance from a Gemini-generated proposal.</li>
+  <li><b>Kamikaze</b> (<tt>kamikaze.trp</tt>) concentrates reinforcements
+  on its strongest front, selects the weakest enemy bordering any stack
+  above three armies, and commits until conquest or exhaustion. It stops
+  after one conquest and moves all available occupation armies forward.
+  It ignores continents, combat odds and elimination payback; interior
+  armies are consolidated toward a reachable front. Adapted with AI
+  assistance from a Gemini-generated proposal, it is a high-risk
+  CardCollector-like variant, not a proven competitive strategy.</li>
   <li><b>Chokepoint</b> (<tt>chokepoint.trp</tt>) values strategically connected
   territories and continent entry points. It seeks control of routes between
   regions when its local force ratio is favorable.</li>
@@ -86,7 +144,8 @@ assessments, not guarantees or current tournament rankings.</p>
   without adapting its decisions.</li>
   <li><b>Defender</b> (<tt>defender.trp</tt>) is a Digger offshoot that uses
   continent bonuses to defend border territories and becomes more defensive
-  as it conquers. It uses focused "do or die" attacks.</li>
+  as it conquers. It uses focused "do or die" attacks and mild
+  <a href="#cooperation">same-program attack favoritism</a>.</li>
   <li><b>Descartes</b> (<tt>descartes.trp</tt>) builds forces inconspicuously
   before launching major attacks; its source describes it as designed for
   games with nine other computer players. In the archived page, its author
@@ -98,7 +157,8 @@ assessments, not guarantees or current tournament rankings.</p>
   <li><b>Digger</b> (<tt>digger.trp</tt>) tries to conquer at least one
   territory per turn and is less focused on taking and holding continents
   than Napoleon. It includes focused "do or die" attacks. Its author noted
-  that it was formerly named <tt>unsimple.trp</tt>.</li>
+  that it was formerly named <tt>unsimple.trp</tt>. It has mild
+  <a href="#cooperation">same-program attack favoritism</a>.</li>
   <li><b>Challenger</b> (<tt>challenger.trp</tt>) is the historical
   pre-stalemate Doomstack strategy: it builds a concentrated army, takes
   inexpensive territories for cards, plans eliminations, and pursues continents
@@ -132,11 +192,15 @@ assessments, not guarantees or current tournament rankings.</p>
   and occupation, and Wyrm or Unsimple fortification, alongside behavior
   controls, adaptation to player count and strength, bug control, smarter
   Australia/Asia and South America/North America play, and an improved
-  "Floating Bubble" feature for concentrating armies on one territory.</li>
+  "Floating Bubble" feature for concentrating armies on one territory.
+  Its <a href="#cooperation"><tt>Cooperative</tt> flag</a> defaults to
+  <tt>False</tt> and controls only selected attack branches.</li>
   <li><b>Frank+</b> (<tt>frank+.trp</tt>) modifies Frank with Vexer's
   player-elimination code, as credited by its author. This is documented code
   reuse, not just strategy inspiration. It targets vulnerable human players
-  and helps finish winning games.</li>
+  and helps finish winning games. Like Frank, its
+  <a href="#cooperation"><tt>Cooperative</tt> flag</a> defaults to
+  <tt>False</tt>; it does not create an alliance with Frank.</li>
   <li><b>Grudge</b> (<tt>grudge.trp</tt>) tracks who captures its former
   territories and favors attacking the opponent responsible for the most
   losses. Human players win ties. If the target is unavailable, it attacks
@@ -144,7 +208,8 @@ assessments, not guarantees or current tournament rankings.</p>
   snapshots rather than the action-history API, so captures measure hostile actions.</li>
   <li><b>Hunter</b> (<tt>hunter.trp</tt>) chooses an opponent and directs its
   play toward destroying that player, like pursuing a secret mission to
-  eliminate a specific color.</li>
+  eliminate a specific color. It also has mild
+  <a href="#cooperation">same-program attack favoritism</a>.</li>
   <li><b>Kingmaker</b> (<tt>kingmaker.trp</tt>) scores opponents by military
   and strategic strength, then directs attacks toward the leader.</li>
   <li><b>Khorne</b> (<tt>Khorne.trp</tt>) is an intentionally more aggressive
@@ -165,7 +230,8 @@ assessments, not guarantees or current tournament rankings.</p>
   and especially hostile to human players.</li>
   <li><b>Pitbull</b> (<tt>pitbull.trp</tt>) focuses on retaking territories it
   has lost, continuing its attack during that turn until it succeeds or runs
-  out of armies. Its author characterized it as a weak but focused opponent.</li>
+  out of armies. Its author characterized it as a weak but focused opponent.
+  It has mild <a href="#cooperation">same-program attack favoritism</a>.</li>
   <li><b>Quartermaster</b> (<tt>quartermaster.trp</tt>) builds a concentrated
   striking force at a favorable front, moves its largest interior reserve
   toward the front, and avoids spreading placements evenly.</li>
@@ -181,6 +247,57 @@ assessments, not guarantees or current tournament rankings.</p>
   author said it grew from repeatedly modifying Simple and was their first
   attempt at a player; the author was still learning and expected to update
   it.</li>
+  <li><b>Shadow</b> (<tt>shadow.trp</tt>) uses Doomstack's duel methods only
+  in games that start with exactly two players.
+  It concentrates on a strong front, keeps its main stack attacking after
+  a conquest, plans affordable elimination routes, and consolidates through
+  owned paths. All five routines switch to duel mode.
+  Games that start with three or more players retain the Shadow method while
+  any Vexer survives, even when only two players remain.
+  In this mode it concentrates an army and follows
+  Vexer across the map, without controlling turn order. It recognizes
+  <tt>vexer.trp</tt> case-insensitively and uses public elimination history
+  to wait until that Vexer has killed a player. It then attempts an
+  elimination only if its stack can afford an estimated continuous route
+  through all of that Vexer's remaining territories. The estimate budgets
+  roughly 2.2 armies per defender, garrisons and a reserve, and is recomputed
+  after each exchange; it is not a guarantee of victory. It also seeks one
+  conquest per turn for a card, choosing the highest adjacent available-army
+  ratio of at least 2.2, including Vexer before the trigger. After a conquest
+  it stops ordinary attacks; affordable triggered eliminations remain allowed.
+  It follows using adjacent friendly fortification.
+  Multiple Vexers have independent triggers;
+  after the last Vexer is eliminated by anyone, it switches immediately to
+  Actuary's odds-based attacks, elimination planning, continent defense and
+  reserve consolidation. Starting two-player games still use Doomstack.
+  With no Vexer in the starting roster, it retains low-risk ordinary conquests.
+  Shadow is an
+  experimental repository bot created with AI assistance, not a proven
+  counter to Vexer.</li>
+  <li><b>Shadow2</b> (<tt>shadow2.trp</tt>) is a replacement candidate based on
+  Actuary, not the retired Shadow extension. It grows, takes cards, defends
+  continents and considers profitable eliminations of either opponent without
+  waiting for Vexer's first kill. It targets progressive card values with immediate
+  captured-card trading. Elimination rewards conservatively count additional
+  guaranteed sets at its own next trade value, subtracting sets already possible
+  in its hand; unknown card types and later trade increases can make this an
+  underestimate. Full continuous routes count losses against intervening opponents
+  too, cannot cross owned or already captured territories, and charge garrisons
+  and failure risk without an attrition discount. Planned kills need at least 60%
+  estimated success and budget a five-army multiplayer reserve; captured cards
+  cannot pay for their own capture. Single-territory kills use the same economics,
+  while ordinary conquest benefits still count. Winning against the final opponent
+  does not require card repayment or an extra reserve. Already-positive attack and elimination scores
+  receive a 5% preference against exact, case-insensitive <tt>vexer.trp</tt> only
+  with at least 75% estimated success. Staging mildly favors proximity to Vexer,
+  worth at most one army on an owned front; equal strongest fronts favor the
+  nearer one. Staging and these preferences are unchanged from the preceding
+  Actuary-based candidate; no special border-defense priority is added.
+  Elimination economics apply without Vexer too. Starting duels retain the Actuary
+  foundation, not Doomstack. Route, odds, loss and reserve estimates are heuristics,
+  not safety guarantees. Original Shadow and Actuary remain unchanged. Previous
+  frozen Shadow2 experiments, including the preceding Actuary-based candidate,
+  do not describe this unproven revision.</li>
   <li><b>Shy</b> (<tt>shy.trp</tt>) slowly expands, fortifies its frontiers,
   and tries to complete continents. It tends to start in South America.</li>
   <li><b>Shy2</b> (<tt>shy2.trp</tt>) uses Shy's general approach without a
@@ -194,7 +311,9 @@ assessments, not guarantees or current tournament rankings.</p>
   leaves the master's borders weakly defended, and attacks the master's
   enemies. If the master is eliminated, it switches to Digger's style. Its
   author described it as an experiment in this behavior, not a strategy
-  intended to win.</li>
+  intended to win. It also has mild
+  <a href="#cooperation">same-program attack favoritism</a>, separate from
+  its master selection.</li>
   <li><b>Struggler</b> (<tt>struggler.trp</tt>) is an early attempt at a
   strong TurboRisk program; its author called it their first serious try.</li>
   <li><b>Struggler+</b> (<tt>struggler+.trp</tt>) adds weak-human elimination
@@ -210,7 +329,15 @@ assessments, not guarantees or current tournament rankings.</p>
   continents to deny bonuses.</li>
   <li><b>Walker2</b> (<tt>Walker2.trp</tt>) is a simple cooperative program
   intended for testing other computer players; its source describes it as a
-  weak opponent.</li>
+  weak opponent. It recognizes copies by script filename, not display name;
+  see <a href="#cooperation">cooperation and program identity</a>.</li>
+  <li><b>Walker3</b> (<tt>Walker3.trp</tt>) is a repository successor derived
+  from Rafal Smotrzyk's Walker2. It cooperates only with other Walker3 copies,
+  not Walker2. It adds compact assignment, continent-aware front reinforcement,
+  a 2.2 available-army attack threshold, defensive occupation reserves, and
+  adjacent owned-path fortification toward outsider fronts. It retains
+  Walker2's territory-23 coalition endgame attack convention; see
+  <a href="#cooperation">cooperation and program identity</a>.</li>
   <li><b>Washington</b> (<tt>washington.trp</tt>) uses a Fabian-inspired
   approach: preserves forces, avoids unnecessary battles, reinforces exposed
   fronts, and advances from favorable positions.</li>

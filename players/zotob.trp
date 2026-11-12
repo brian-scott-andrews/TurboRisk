@@ -1141,6 +1141,7 @@ Descartes:
   if (FromTerritory=0) then begin
     for T:=1 to 42 do begin
       D:=1000;
+      TA:=0;
       if TIsMine(T) then begin
         Y:=TBordersCount(T);
         for Z:=1 to Y do begin
@@ -1155,7 +1156,7 @@ Descartes:
         end;
         if (KillPlayer>0) then begin
           if (((TArmies(T)-(25+D))>MaxTerritoryValue)
-          and (TArmies(T)>3)) then begin
+          and (TArmies(T)>3) and (TA>0)) then begin
             MaxTerritoryValue:=TArmies(T)-(5+D);
             FromTerritory:=T;
             ToTerritory:=TA;
@@ -1163,7 +1164,7 @@ Descartes:
         end
         else begin
           if (((TArmies(T)-(25+(trunc(UBufferGet(T)))+D))>MaxTerritoryValue)
-          and (TArmies(T)>3)) then begin
+          and (TArmies(T)>3) and (TA>0)) then begin
             MaxTerritoryValue:=TArmies(T) - (25+(trunc(UBufferGet(T)))+D);
             FromTerritory:=T;
             ToTerritory:=TA;

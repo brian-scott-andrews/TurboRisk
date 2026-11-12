@@ -1,0 +1,214 @@
+{
+Program: Counterweight
+Author: Brian S. Andrews
+Description: Duel-focused mobile campaigns. Searches three consecutive captures
+for territory-income gains, continent completion and enemy bonus denial.
+Uses exact small-battle dice odds and a large-battle approximation, re-evaluates
+after every roll, and consolidates interior armies onto productive fronts.
+
+AI disclaimer: Independently implemented with AI assistance. Ideas inspired by
+Digger's income pressure, Challenger's concentrated campaigns, and Actuary's
+dice-aware decisions; no wholesale source copied. Performance against Vexer
+is experimental. No opponent-name checks, alliances or future-card borrowing.
+}
+
+var
+  Prob,Loss: array[0..40] of array[0..40] of double;
+  Owned: array[1..42] of boolean;
+  Counts: array[1..10] of integer;
+  Ready: boolean;
+  SearchSource,FirstTarget: integer;
+  BestScore: double;
+
+procedure PrepareOdds;
+var A,D,I,J: integer; W,L,S: double;
+begin
+  for A:=0 to 40 do begin Prob[A][0]:=1; Loss[A][0]:=0 end;
+  for D:=1 to 40 do begin Prob[0][D]:=0; Loss[0][D]:=0 end;
+  for A:=1 to 40 do for D:=1 to 40 do begin
+    I:=A; if I>3 then I:=3;
+    J:=D; if J>2 then J:=2;
+    if J=1 then begin
+      W:=5.0/12.0;
+      if I=2 then W:=125.0/216.0;
+      if I=3 then W:=855.0/1296.0;
+      Prob[A][D]:=W*Prob[A][D-1]+(1-W)*Prob[A-1][D];
+      Loss[A][D]:=W*Loss[A][D-1]+(1-W)*(1+Loss[A-1][D]);
+    end else if I=1 then begin
+      W:=55.0/216.0;
+      Prob[A][D]:=W*Prob[A][D-1]+(1-W)*Prob[A-1][D];
+      Loss[A][D]:=W*Loss[A][D-1]+(1-W)*(1+Loss[A-1][D]);
+    end else begin
+      if I=2 then begin W:=295.0/1296.0; L:=581.0/1296.0 end
+      else begin W:=2890.0/7776.0; L:=2275.0/7776.0 end;
+      S:=1-W-L;
+      Prob[A][D]:=W*Prob[A][D-2]+L*Prob[A-2][D]+S*Prob[A-1][D-1];
+      Loss[A][D]:=W*Loss[A][D-2]+L*(2+Loss[A-2][D])+S*(1+Loss[A-1][D-1]);
+    end;
+  end;
+  Ready:=True;
+end;
+
+function Odds(A,D: integer): double;
+var Z: double;
+begin
+  if D<=0 then begin Result:=1; exit end;
+  if A<=0 then begin Result:=0; exit end;
+  if (A<=40) and (D<=40) then begin Result:=Prob[A][D]; exit end;
+  Z:=(A-0.86*D-1.5)/Sqrt(0.7*D+1);
+  if Z>20 then Result:=1 else if Z< -20 then Result:=0
+  else Result:=0.5+0.5*Z/Sqrt(Z*Z+2);
+end;
+
+function Casualties(A,D: integer): double;
+begin
+  if (A<=40) and (D<=40) then Result:=Loss[A][D]
+  else begin
+    Result:=0.86*D;
+    if Result>A then Result:=A;
+  end;
+end;
+
+function Income(N: integer): integer;
+begin
+  Result:=N div 3; if Result<3 then Result:=3;
+end;
+
+function Gain(E: integer): double;
+var C,T,Missing,P,EnemyMissing: integer;
+begin
+  P:=TOwner(E); C:=TContinent(E); Missing:=0; EnemyMissing:=0;
+  for T:=1 to CTerritoriesCount(C) do begin
+    if not Owned[CTerritory(C,T)] then Missing:=Missing+1;
+    if (TOwner(CTerritory(C,T))<>P) or Owned[CTerritory(C,T)] then EnemyMissing:=EnemyMissing+1;
+  end;
+  Result:=1.8+4*(Income(Counts[PMe]+1)-Income(Counts[PMe]));
+  if P>0 then Result:=Result+4*(Income(Counts[P])-Income(Counts[P]-1));
+  Result:=Result+CBonus(C)*3.0/(Missing+1);
+  if Missing=1 then Result:=Result+CBonus(C)*5;
+  if EnemyMissing=0 then Result:=Result+CBonus(C)*6;
+  if (P>0) and (Counts[P]=1) then Result:=Result+500;
+end;
+
+procedure Explore(Cur,Armies,Depth,First: integer; Score,Chance: double);
+var F,E,P,D,Remaining,NextFirst: integer; Q,Cost,V: double;
+begin
+  if Depth=0 then exit;
+  for F:=1 to TBordersCount(Cur) do begin
+    E:=TBorder(Cur,F); P:=TOwner(E);
+    if not Owned[E] and (P>0) and (Armies>0) then begin
+      D:=TArmies(E); if D<1 then D:=1;
+      Q:=Odds(Armies,D);
+      if Q>=0.55 then begin
+        Cost:=Casualties(Armies,D);
+        V:=Score+Chance*(Q*Gain(E)-Cost-0.65-(1-Q)*Armies*0.35);
+        NextFirst:=First; if NextFirst=0 then NextFirst:=E;
+        if V>BestScore then begin BestScore:=V; FirstTarget:=NextFirst end;
+        Remaining:=Armies-round(Cost)-1;
+        if Remaining>1 then begin
+          Owned[E]:=True; Counts[PMe]:=Counts[PMe]+1; Counts[P]:=Counts[P]-1;
+          Explore(E,Remaining,Depth-1,NextFirst,V,Chance*Q);
+          Owned[E]:=False; Counts[PMe]:=Counts[PMe]-1; Counts[P]:=Counts[P]+1;
+        end;
+      end;
+    end;
+  end;
+end;
+
+function Campaign(Extra: integer; var Source,Target: integer): double;
+var T,P,I,J: integer; Tops: array[1..4] of integer; Overall: double;
+begin
+  if not Ready then PrepareOdds;
+  for T:=1 to 42 do Owned[T]:=TIsMine(T);
+  for P:=1 to 10 do Counts[P]:=PTerritoriesCount(P);
+  for I:=1 to 4 do Tops[I]:=0;
+  for T:=1 to 42 do if TIsFront(T) then
+    for I:=1 to 4 do if (Tops[I]=0) or (TArmies(T)>TArmies(Tops[I])) then begin
+      for J:=4 downto I+1 do Tops[J]:=Tops[J-1];
+      Tops[I]:=T; break;
+    end;
+  Source:=0; Target:=0; Overall:=0;
+  for I:=1 to 4 do if Tops[I]>0 then begin
+    SearchSource:=Tops[I]; BestScore:=0; FirstTarget:=0;
+    Explore(SearchSource,TArmies(SearchSource)-1+Extra,3,0,0,1);
+    if BestScore>Overall then begin
+      Overall:=BestScore; Source:=SearchSource; Target:=FirstTarget;
+    end;
+  end;
+  Result:=Overall;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T,B,Score,Best: integer;
+begin
+  ToTerritory:=0; Best:=-100000;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    Score:=CBonus(TContinent(T))*4-TBordersCount(T);
+    for B:=1 to TBordersCount(T) do if TIsMine(TBorder(T,B)) then Score:=Score+8;
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T,E,F,Target,Threat,Gap,Best,Pending: integer; V: double;
+begin
+  Pending:=PNewArmies(PMe); if Pending<0 then Pending:=0;
+  V:=Campaign(Pending,ToTerritory,Target);
+  Best:=0;
+  // Preserve owned income when the threat can be covered by today's reinforcements.
+  for T:=1 to 42 do if TIsFront(T) and (COwner(TContinent(T))=PMe) then begin
+    Threat:=0;
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F); if TArmies(E)>Threat then Threat:=TArmies(E);
+    end;
+    Gap:=Threat-TArmies(T)+2;
+    if (Gap>Best) and (Gap>0) and (Gap<=Pending) and (V<CBonus(TContinent(T))*5) then begin
+      Best:=Gap; ToTerritory:=T;
+    end;
+  end;
+  if ToTerritory=0 then begin
+    Best:=-1;
+    for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>Best) then begin
+      Best:=TArmies(T); ToTerritory:=T;
+    end;
+    if ToTerritory=0 then for T:=1 to 42 do if TIsMine(T) then begin ToTerritory:=T; break end;
+  end;
+end;
+
+procedure Attack(var FromTerritory,ToTerritory: integer);
+var V: double;
+begin
+  V:=Campaign(0,FromTerritory,ToTerritory);
+  if V<=0 then begin FromTerritory:=0; ToTerritory:=0 end;
+end;
+
+procedure Occupation(FromTerritory,ToTerritory: integer; var Armies: integer);
+var F,E,Reserve,Available,Threat: integer;
+begin
+  Reserve:=1; Threat:=0; Available:=TArmies(FromTerritory)-1;
+  if TIsFront(FromTerritory) and (COwner(TContinent(FromTerritory))=PMe) then begin
+    for F:=1 to TFrontsCount(FromTerritory) do begin
+      E:=TFront(FromTerritory,F); if TArmies(E)>Threat then Threat:=TArmies(E);
+    end;
+    Reserve:=Threat div 2+1;
+    if Reserve>Available div 3 then Reserve:=Available div 3;
+    if Reserve<1 then Reserve:=1;
+  end;
+  Armies:=TArmies(FromTerritory)-Reserve; if Armies<0 then Armies:=0;
+end;
+
+procedure Fortification(var FromTerritory,ToTerritory,Armies: integer);
+var T,Dest,Best: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) then begin
+    Dest:=TPathToFront(T);
+    if Dest>0 then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+    end;
+  end;
+end;
+
+begin
+  Ready:=False;
+end.
