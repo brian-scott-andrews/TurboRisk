@@ -3,6 +3,7 @@ param(
   [string]$PlayersDirectory = (Join-Path (Get-Location).Path 'players'),
   [string]$SimulatorSnapshot = (Join-Path $env:TEMP 'trtourney\doomstack_all_sizes_20261014_121421\snapshot'),
   [string]$RunDirectory = '',
+  [ValidateSet(2,3,4,5,6,7,8,9,10)][int[]]$PlayerCounts = (2..10),
   [int]$Workers = 24,
   [int]$TimeLimitSeconds = 180,
   [int]$MinimumGamesPerPair = 20,
@@ -11,11 +12,18 @@ param(
   [int]$BatchGamesPerSize = 500,
   [int]$MaxAttempts = 3,
   [string]$FocusBot = '',
+  [string[]]$FocusBots = @(),
+  [string]$VersionCutoffsFile = '',
+  [string]$HistoricalResults = '',
+  [int]$RepresentativeGamesPerBotSize = 0,
+  [int]$TurnLimit = 0,
+  [switch]$StageResults,
   [switch]$PlanOnly
 )
 
 $ErrorActionPreference = 'Stop'
-$sizes = 2..10
+$sizes = @($PlayerCounts | Sort-Object -Unique)
+if ($sizes.Count -eq 0) { throw 'At least one player count is required.' }
 $z95 = 1.959963984540054
 $goal = $HalfWidthGoalPercent / 100
 $brainlessVersionCutoff = '20261027110000'
@@ -27,39 +35,70 @@ if ($TimeLimitSeconds -lt 1) { throw 'TimeLimitSeconds must be positive.' }
 if ($MinimumGamesPerPair -lt 2) { throw 'MinimumGamesPerPair must be at least 2.' }
 if ($BatchGamesPerSize -lt 1) { throw 'BatchGamesPerSize must be positive.' }
 if ($MaxAttempts -lt 1) { throw 'MaxAttempts must be positive.' }
+if ($RepresentativeGamesPerBotSize -lt 0 -or $TurnLimit -lt 0) { throw 'Sample and turn limits cannot be negative.' }
 
 $bots = @(Get-ChildItem $playersPath -Filter '*.trp' | ForEach-Object BaseName | Sort-Object)
 if ($bots.Count -lt 10) { throw "Expected at least 10 current bot files in $playersPath." }
 if ($FocusBot -and $FocusBot -notin $bots) { throw "Focus bot '$FocusBot' is not in $playersPath." }
+$focus = @($FocusBots)
+if ($FocusBot) { $focus += $FocusBot }
+$focus = @($focus | Select-Object -Unique)
+foreach ($bot in $focus) { if ($bot -notin $bots) { throw "Unknown focus bot: $bot" } }
+if ($RepresentativeGamesPerBotSize -gt 0 -and $focus.Count -eq 0) {
+  throw 'Representative sampling requires named focus bots.'
+}
+$versionCutoffs = @{}
+if ($VersionCutoffsFile) {
+  foreach ($entry in (Import-Csv -LiteralPath $VersionCutoffsFile)) {
+    if ($entry.Bot -notin $bots -or $entry.Cutoff -notmatch '^\d{14}$') { throw 'Invalid version cutoff.' }
+    $versionCutoffs[$entry.Bot] = $entry.Cutoff
+  }
+}
 $botSet = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
 foreach ($bot in $bots) { [void]$botSet.Add($bot) }
 
 if (-not $RunDirectory) {
   $RunDirectory = Join-Path $env:TEMP ('trtourney\multiplayer_confidence_' + (Get-Date -Format 'yyyyMMdd_HHmmss'))
 }
-New-Item -ItemType Directory -Path $RunDirectory -Force | Out-Null
-$runPath = (Resolve-Path $RunDirectory).Path
+$runPath = [IO.Path]::GetFullPath($RunDirectory)
+if (-not $PlanOnly) { New-Item -ItemType Directory -Path $runPath -Force | Out-Null }
 $workerRoot = Join-Path $runPath 'workers'
 $resultPath = Join-Path $runPath 'results.sgl'
 $attemptPath = Join-Path $runPath 'attempts.csv'
 $schedulePath = Join-Path $runPath 'schedule.csv'
 $progressPath = Join-Path $runPath 'progress.json'
 $backupDirectory = Join-Path (Split-Path $masterPath) 'raw_backup'
-New-Item -ItemType Directory -Path $backupDirectory -Force | Out-Null
 $masterHash = (Get-FileHash $masterPath -Algorithm SHA256).Hash
-$masterBackup = Join-Path $backupDirectory ('master_results-before-multiplayer-confidence-{0}.sgl' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
-Copy-Item $masterPath $masterBackup
-if ((Get-FileHash $masterBackup -Algorithm SHA256).Hash -ne $masterHash) {
-  throw 'Master backup hash verification failed.'
+if ($StageResults -and -not (Test-Path (Join-Path $runPath 'input-hashes.csv'))) {
+  throw 'Staged study requires a frozen input-hashes.csv manifest.'
+}
+if (-not $PlanOnly -and -not $StageResults) {
+  New-Item -ItemType Directory -Path $backupDirectory -Force | Out-Null
+  $masterBackup = Join-Path $backupDirectory ('master_results-before-multiplayer-confidence-{0}.sgl' -f (Get-Date -Format 'yyyyMMdd_HHmmss'))
+  Copy-Item $masterPath $masterBackup
+  if ((Get-FileHash $masterBackup -Algorithm SHA256).Hash -ne $masterHash) { throw 'Master backup hash verification failed.' }
 }
 
 $pairStats = @{}
+$newMasterLines = New-Object System.Collections.Generic.List[string]
 $masterLines = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
 $pairFailures = @{}
 $seatCounts = @{}
+$representative = @{}
+$representativeWins = @{}
+$representativeAttempts = @{}
 foreach ($size in $sizes) {
   $seatCounts[$size] = @{}
   foreach ($bot in $bots) { $seatCounts[$size][$bot] = New-Object 'int[]' $size }
+  foreach ($bot in $focus) {
+    $representative["$size|$bot"] = 0
+    $representativeWins["$size|$bot"] = 0
+    $representativeAttempts["$size|$bot"] = 0
+  }
+}
+
+function Test-FocusPair([string]$a, [string]$b) {
+  return ($focus.Count -eq 0 -or $a -in $focus -or $b -in $focus)
 }
 
 function Get-PairKey([int]$size, [string]$first, [string]$second) {
@@ -109,6 +148,10 @@ function Add-ResultLine([string]$line) {
   for ($i = 0; $i -lt $size; $i++) {
     $names[$i] = $x[6 + 4 * $i]
     $turns[$i] = [int]$x[7 + 4 * $i]
+    if ($versionCutoffs.ContainsKey($names[$i]) -and
+        ($x[0] + $x[1]) -lt $versionCutoffs[$names[$i]]) {
+      $names[$i] += ' pre-current-version'
+    }
     if ($x[0] -lt '20261023') {
       if ($names[$i] -eq 'actuary') { return }
       if ($names[$i] -eq 'doomstack') { $names[$i] = 'challenger' }
@@ -123,7 +166,7 @@ function Add-ResultLine([string]$line) {
     for ($j = $i + 1; $j -lt $size; $j++) {
       if (-not $botSet.Contains($names[$j])) { continue }
       $key = Get-PairKey $size $names[$i] $names[$j]
-      if ($FocusBot -and $names[$i] -ne $FocusBot -and $names[$j] -ne $FocusBot) { continue }
+      if (-not (Test-FocusPair $names[$i] $names[$j])) { continue }
       if (-not $pairStats.ContainsKey($key)) {
         $pairStats[$key] = [pscustomobject]@{N=0;Score=0.0}
       }
@@ -156,7 +199,8 @@ function Test-EligibleHistoricalLine([string]$line) {
       if ($bot -eq 'brainless V') { $bot = 'brainless V legacy' }
       if ($bot -eq 'brainless vi') { $bot = 'brainless vi legacy' }
     }
-    if (-not $botSet.Contains($bot)) { return $false }
+    # Old code may still supply evidence for unchanged opponents, not for itself.
+    if ($bot -notmatch ' legacy$' -and -not $botSet.Contains($bot)) { return $false }
   }
   return $true
 }
@@ -167,9 +211,31 @@ foreach ($line in [IO.File]::ReadLines($masterPath)) {
 }
 
 if (Test-Path $resultPath) {
+  $stagedLines = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+  $stagedPath = Join-Path $runPath 'master-import-pending.sgl'
+  if ($StageResults -and (Test-Path $stagedPath)) {
+    foreach ($line in [IO.File]::ReadLines($stagedPath)) { [void]$stagedLines.Add($line) }
+  }
   foreach ($line in [IO.File]::ReadLines($resultPath)) {
-    if ((Test-EligibleHistoricalLine $line) -and -not $masterLines.Contains($line)) {
+    if ((Test-EligibleHistoricalLine $line) -and $masterLines.Add($line)) {
       Add-ResultLine $line
+      if (-not $stagedLines.Contains($line)) { $newMasterLines.Add($line) }
+    }
+  }
+}
+if ($HistoricalResults) {
+  foreach ($line in [IO.File]::ReadLines((Resolve-Path $HistoricalResults).Path)) {
+    if ((Test-EligibleHistoricalLine $line) -and $masterLines.Add($line)) { Add-ResultLine $line }
+  }
+}
+if (Test-Path $attemptPath) {
+  foreach ($row in (Import-Csv $attemptPath)) {
+    if ($row.Purpose -ne 'representative' -or $row.AnchorBot -notin $focus) { continue }
+    $key = "$($row.N)|$($row.AnchorBot)"
+    $representativeAttempts[$key]++
+    if ($row.Status -eq '1') {
+      $representative[$key]++
+      if (($row.Line.Split(','))[6] -eq $row.AnchorBot) { $representativeWins[$key]++ }
     }
   }
 }
@@ -240,7 +306,7 @@ function Get-RosterHalfWidth([int]$size, [string[]]$roster) {
   $maxWidth = 0.0
   foreach ($i in 0..($roster.Count - 2)) {
     for ($j = $i + 1; $j -lt $roster.Count; $j++) {
-      if ($FocusBot -and $roster[$i] -ne $FocusBot -and $roster[$j] -ne $FocusBot) { continue }
+      if (-not (Test-FocusPair $roster[$i] $roster[$j])) { continue }
       $key = Get-PairKey $size $roster[$i] $roster[$j]
       $stat = $pairStats[$key]
       if (-not $stat -or $stat.N -lt $MinimumGamesPerPair) { return 1.0 }
@@ -257,16 +323,16 @@ function Get-RosterHalfWidth([int]$size, [string[]]$roster) {
 }
 
 function New-Batch([int]$firstId) {
-  $rng = New-Object System.Random ([int](Get-Date -Format 'HHmmss') + $firstId)
+  $rng = New-Object System.Random ($SeedBase + $firstId)
   $batch = New-Object System.Collections.ArrayList
-  $remainingTotal = 0
   foreach ($size in $sizes) {
+    $remainingTotal = 0
     $count = $bots.Count
     $need = New-Object 'int[,]' $count,$count
     $deficit = New-Object 'int[]' $count
     for ($i = 0; $i -lt $count; $i++) {
       for ($j = $i + 1; $j -lt $count; $j++) {
-        if ($FocusBot -and $bots[$i] -ne $FocusBot -and $bots[$j] -ne $FocusBot) { continue }
+        if (-not (Test-FocusPair $bots[$i] $bots[$j])) { continue }
         $key = Get-PairKey $size $bots[$i] $bots[$j]
         $stat = $pairStats[$key]
         $seen = if ($stat) { $stat.N } else { 0 }
@@ -284,6 +350,37 @@ function New-Batch([int]$firstId) {
     }
 
     $scheduled = 0
+    # Representative games use uniform opponents, not adaptive matchup selection.
+    foreach ($bot in $focus) {
+      $missing = [Math]::Max(0, $RepresentativeGamesPerBotSize - [int]$representative["$size|$bot"])
+      if ($RepresentativeGamesPerBotSize -gt 0 -and
+          [int]$representativeAttempts["$size|$bot"] -ge 3 * $RepresentativeGamesPerBotSize -and $missing -gt 0) {
+        throw "Too many incomplete representative games for $size|$bot."
+      }
+      for ($sample = 0; $sample -lt $missing -and $scheduled -lt $BatchGamesPerSize; $sample++) {
+        $opponents = @($bots | Where-Object { $_ -ne $bot })
+        for ($i = $opponents.Count - 1; $i -gt 0; $i--) {
+          $j = $rng.Next($i + 1); $tmp = $opponents[$i]; $opponents[$i] = $opponents[$j]; $opponents[$j] = $tmp
+        }
+        $rosterNames = @($bot) + @($opponents | Select-Object -First ($size - 1))
+        $seat = ([int]$representativeAttempts["$size|$bot"] + $sample) % $size
+        $tmp = $rosterNames[0]; $rosterNames[0] = $rosterNames[$seat]; $rosterNames[$seat] = $tmp
+        [void]$batch.Add([pscustomobject]@{
+          Id=($firstId + $batch.Count); N=$size; Roster=($rosterNames -join ',')
+          Map='std_map_small'; MaxPairHalfWidthPercent=0
+          Purpose='representative'; AnchorBot=$bot
+        })
+        for ($i = 0; $i -lt $size; $i++) {
+          $a = [array]::IndexOf($bots, $rosterNames[$i])
+          $seatCounts[$size][$rosterNames[$i]][$i]++
+          for ($j = $i + 1; $j -lt $size; $j++) {
+            $b = [array]::IndexOf($bots, $rosterNames[$j])
+            if ($need[$a,$b] -gt 0) { $need[$a,$b]--; $need[$b,$a]--; $remainingTotal-- }
+          }
+        }
+        $scheduled++
+      }
+    }
     while ($remainingTotal -gt 0 -and $scheduled -lt $BatchGamesPerSize) {
       $maxDeficit = 0
       $candidatePairs = New-Object System.Collections.ArrayList
@@ -301,7 +398,28 @@ function New-Batch([int]$firstId) {
       $roster.Add([int]$anchor[0]); $roster.Add([int]$anchor[1])
       while ($roster.Count -lt $size) {
         $available = New-Object System.Collections.ArrayList
-        for ($i = 0; $i -lt $count; $i++) { if (-not $roster.Contains($i)) { [void]$available.Add($i) } }
+        $bestCoverage = -1
+        $bestDeficit = -1
+        for ($i = 0; $i -lt $count; $i++) {
+          if ($roster.Contains($i)) { continue }
+          $coverage = 0
+          $candidateDeficit = 0
+          foreach ($member in $roster) {
+            if ($need[$i,$member] -gt 0) {
+              $coverage++
+              $candidateDeficit += $need[$i,$member]
+            }
+          }
+          if ($coverage -gt $bestCoverage -or
+              ($coverage -eq $bestCoverage -and $candidateDeficit -gt $bestDeficit)) {
+            $bestCoverage = $coverage
+            $bestDeficit = $candidateDeficit
+            $available.Clear()
+          }
+          if ($coverage -eq $bestCoverage -and $candidateDeficit -eq $bestDeficit) {
+            [void]$available.Add($i)
+          }
+        }
         $roster.Add([int]$available[$rng.Next($available.Count)])
       }
 
@@ -330,6 +448,7 @@ function New-Batch([int]$firstId) {
         [void]$batch.Add([pscustomobject]@{
           Id=($firstId + $batch.Count); N=$size; Roster=($rosterNames -join ',')
           Map='std_map_small'; MaxPairHalfWidthPercent=[Math]::Round($width * 100, 2)
+          Purpose='coverage'; AnchorBot=''
         })
       }
       for ($i = 0; $i -lt $size; $i++) {
@@ -345,7 +464,67 @@ function New-Batch([int]$firstId) {
       $scheduled++
     }
   }
-  return ,$batch
+  # Interleave sizes so large games do not wait for an entire duel batch.
+  $interleaved = New-Object System.Collections.ArrayList
+  $bySize = @{}
+  $maximum = 0
+  foreach ($size in $sizes) {
+    $bySize[$size] = @($batch | Where-Object N -eq $size)
+    if ($bySize[$size].Count -gt $maximum) { $maximum = $bySize[$size].Count }
+  }
+  for ($round = 0; $round -lt $maximum; $round++) {
+    foreach ($size in $sizes) {
+      if ($round -lt $bySize[$size].Count) { [void]$interleaved.Add($bySize[$size][$round]) }
+    }
+  }
+  return ,$interleaved
+}
+
+function Update-TournamentBotProgress(
+  [string]$RunDirectory,
+  [string[]]$FocusBot,
+  [string]$OutputPath
+) {
+  if (-not $OutputPath) { $OutputPath = Join-Path $RunDirectory 'index.html' }
+  $html = [IO.File]::ReadAllText((Join-Path $RunDirectory 'index.html'))
+  $counts = @{}
+  $rates = @(Import-Csv (Join-Path $RunDirectory 'representative-win-rates.csv'))
+  foreach ($rate in $rates) {
+    if ($rate.Bot -notin $FocusBot) { continue }
+    $counts["$($rate.Size)|$($rate.Bot)"] = [pscustomobject]@{
+      Size=[int]$rate.Size; Bot=$rate.Bot; Completed=0; Wins=0; Losses=0
+      Timeouts=0; OtherIncompleteAttempts=0; FinishedAttempts=0
+    }
+  }
+  $attemptPath = Join-Path $RunDirectory 'attempts.csv'
+  if (Test-Path -LiteralPath $attemptPath) {
+    foreach ($attempt in (Import-Csv -LiteralPath $attemptPath)) {
+      foreach ($bot in ($attempt.Roster -split ',')) {
+        $key = "$($attempt.N)|$bot"
+        if (-not $counts.ContainsKey($key)) { continue }
+        $row = $counts[$key]
+        $row.FinishedAttempts++
+        if ($attempt.Status -eq '1') {
+          $row.Completed++
+          if (($attempt.Line -split ',')[6] -eq $bot) { $row.Wins++ }
+          else { $row.Losses++ }
+        } elseif ($attempt.Status -eq '4') { $row.Timeouts++ }
+        else { $row.OtherIncompleteAttempts++ }
+      }
+    }
+  }
+  $rows = @($counts.Values | Sort-Object Size,Bot)
+  $rows | Export-Csv (Join-Path $RunDirectory 'bot-game-progress.csv') -NoTypeInformation
+  $section = "<!-- bot-progress-start --><h2>Games played by focus bot (this run)</h2><p>Completed means games with a winner. Timeouts and other incomplete attempts are separate; retries count as separate attempts. Wins are descriptive matchup results, not uniformly sampled win rates.</p>$(($rows | ConvertTo-Html -Fragment) -join '')<!-- bot-progress-end -->"
+  $html = [regex]::Replace($html, '(?s)<!-- bot-progress-start -->.*?<!-- bot-progress-end -->', '')
+  $heading = '<h2>Representative outright wins (new uniformly sampled rosters only)</h2>'
+  if ($html.Contains($heading)) {
+    if (@($rates | Where-Object { [int]$_.Target -gt 0 }).Count -eq 0) {
+      $html = [regex]::Replace($html, '(?s)<h2>Representative outright wins \(new uniformly sampled rosters only\)</h2>.*?(?=</body>)', '')
+      $html = $html.Replace('</body>', "$section</body>")
+    } else { $html = $html.Replace($heading, "$section$heading") }
+  } else { $html = $html.Replace('</body>', "$section</body>") }
+  [IO.File]::WriteAllText($OutputPath, $html)
 }
 
 function Write-Progress(
@@ -370,7 +549,7 @@ function Write-Progress(
     $requiredGameDeficit = 0
     for ($i = 0; $i -lt $bots.Count; $i++) {
       for ($j = $i + 1; $j -lt $bots.Count; $j++) {
-        if ($FocusBot -and $bots[$i] -ne $FocusBot -and $bots[$j] -ne $FocusBot) { continue }
+        if (-not (Test-FocusPair $bots[$i] $bots[$j])) { continue }
         $totalPairs++
         $sizeTotalPairs++
         $key = Get-PairKey $size $bots[$i] $bots[$j]
@@ -391,11 +570,17 @@ function Write-Progress(
     $sizeBatchPlanned = @($batch | Where-Object { $_.N -eq $size }).Count
     $sizeBatchDone = [int]$batchDoneBySize[$size]
     $estimatedGames = [int][Math]::Ceiling($requiredGameDeficit / (($size * ($size - 1)) / 2.0))
+    $representativeDeficit = 0
+    foreach ($bot in $focus) {
+      $representativeDeficit += [Math]::Max(0, $RepresentativeGamesPerBotSize - [int]$representative["$size|$bot"])
+    }
+    $estimatedGames = [Math]::Max($estimatedGames, $representativeDeficit)
     $historicalRate = [double]$historicalRates[$size]
-    $etaMinutes = if ($estimatedGames -gt 0 -and $historicalRate -gt 0) {
+    $etaMinutes = if ($RepresentativeGamesPerBotSize -gt 0) { $null }
+    elseif ($estimatedGames -gt 0 -and $historicalRate -gt 0) {
       $estimatedGames / $historicalRate
     } else { 0.0 }
-    if ($etaMinutes -gt $estimatedTotalMinutes) { $estimatedTotalMinutes = $etaMinutes }
+    if ($null -ne $etaMinutes) { $estimatedTotalMinutes += $etaMinutes }
     $bySize.Add([pscustomobject]@{
       N=$size; PairsMeetingTarget=($sizeTotalPairs - $sizeWidePairs)
       TotalPairs=$sizeTotalPairs; PairsAboveTarget=$sizeWidePairs
@@ -403,7 +588,7 @@ function Write-Progress(
       BatchGamesPending=[Math]::Max(0, $sizeBatchPlanned - $sizeBatchDone)
       EstimatedGamesRemaining=$estimatedGames
       HistoricalGamesPerMinute=[Math]::Round($historicalRate, 2)
-      EtaMinutes=[Math]::Ceiling($etaMinutes)
+      EtaMinutes=$(if ($null -ne $etaMinutes) { [Math]::Ceiling($etaMinutes) } else { $null })
     })
   }
   $batchGamesCompleted = 0
@@ -417,28 +602,59 @@ function Write-Progress(
     BySize=$bySize.ToArray()
     GoalHalfWidthPercent=$HalfWidthGoalPercent
     WidestHalfWidthPercent=[Math]::Round($widest * 100, 2)
-    EstimatedRemainingMinutes=[Math]::Ceiling($estimatedTotalMinutes)
+    EstimatedRemainingMinutes=$(if ($RepresentativeGamesPerBotSize -gt 0) { $null } else { [Math]::Ceiling($estimatedTotalMinutes) })
     Updated=(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
   }
-  $summary | ConvertTo-Json | Set-Content $progressPath -Encoding UTF8
+  if (-not $PlanOnly) {
+    $summary | ConvertTo-Json -Depth 5 | Set-Content $progressPath -Encoding UTF8
+    $rates = @(foreach ($size in $sizes) { foreach ($bot in $focus) {
+      $key = "$size|$bot"; $completed = [int]$representative[$key]; $attempts = [int]$representativeAttempts[$key]
+      $wins = [int]$representativeWins[$key]
+      [pscustomobject]@{Size=$size;Bot=$bot;Completed=$completed;Target=$RepresentativeGamesPerBotSize;
+        Attempts=$attempts;Wins=$wins;CompletedWinRate=$(if($completed){$wins/$completed}else{$null});
+        AllAttemptWinRate=$(if($attempts){$wins/$attempts}else{$null})}
+    } })
+    $rates | Export-Csv (Join-Path $runPath 'representative-win-rates.csv') -NoTypeInformation
+    $html = "<html><head><meta charset='utf-8'><meta http-equiv='refresh' content='30'><title>Current-bot tournament study</title></head><body><h1>Current-bot tournament study</h1><p>Player counts: $($sizes -join ', '). Focus bots: $($focus -join ', '). Updated $($summary.Updated). $Workers isolated workers. Master import pending review. Reused Vexer-focused/alias games supply coverage only, not representative win rates.</p><p>Batch $batchNumber; completed $batchGamesCompleted/$gamesPlanned; running $gamesRunning; pending $gamesPending; timeouts $timeouts; failures $failed.</p><h2>Version-aware pair coverage</h2>$(($bySize|ConvertTo-Html -Fragment)-join '')<h2>Representative outright wins (new uniformly sampled rosters only)</h2>$(($rates|ConvertTo-Html -Fragment)-join '')</body></html>"
+    try {
+      [IO.File]::WriteAllText((Join-Path $runPath 'index.html'),$html)
+      Update-TournamentBotProgress -RunDirectory $runPath -FocusBot $focus
+    }
+    catch [IO.IOException] { Write-Warning "Dashboard locked; retrying next update: $($_.Exception.Message)" }
+  }
   $sizeSummary = ($bySize | ForEach-Object {
-    "N=$($_.N):$($_.PairsMeetingTarget)/$($_.TotalPairs) CIs; batch $($_.BatchGamesCompleted)/$($_.BatchGamesPlanned); ETA $($_.EtaMinutes)m"
+    "N=$($_.N):$($_.PairsMeetingTarget)/$($_.TotalPairs) CIs; batch $($_.BatchGamesCompleted)/$($_.BatchGamesPlanned)"
   }) -join '; '
-  Write-Output ("Batch {0}: finished {1}/{2}; pending {3}; running {4}; timeouts {5}; failed {6}; pairs meeting CI {7}/{8}; widest +/-{9}%; ETA <= {10}m; by size: {11}" -f
+  $etaText = if ($null -eq $summary.EstimatedRemainingMinutes) { 'not estimated' } else { "$($summary.EstimatedRemainingMinutes)m (approximate)" }
+  Write-Output ("Batch {0}: finished {1}/{2}; pending {3}; running {4}; timeouts {5}; failed {6}; pairs meeting CI {7}/{8}; widest +/-{9}%; ETA {10}; by size: {11}" -f
     $batchNumber, $batchGamesCompleted, $gamesPlanned, $gamesPending, $gamesRunning, $timeouts, $failed,
     $summary.PairsMeetingTarget, $totalPairs, $summary.WidestHalfWidthPercent,
-    $summary.EstimatedRemainingMinutes, $sizeSummary)
+    $etaText, $sizeSummary)
 }
 
 $script:Rng = New-Object System.Random $SeedBase
-$newMasterLines = New-Object System.Collections.Generic.List[string]
 $batchNumber = 0
 $gamesDone = 0
 $timeouts = 0
 $failedGames = 0
 $nextId = 1
+if (Test-Path $schedulePath) {
+  $scheduledIds = @(Import-Csv $schedulePath | ForEach-Object { [int]$_.Id })
+  if ($scheduledIds.Count) { $nextId = ($scheduledIds | Measure-Object -Maximum).Maximum + 1 }
+}
 
 while ($true) {
+  if ($StageResults) {
+    if ((Get-FileHash $masterPath).Hash -ne $masterHash) { throw 'Master changed during staged study.' }
+    foreach ($hash in (Import-Csv (Join-Path $runPath 'input-hashes.csv'))) {
+      if ((Get-FileHash -LiteralPath $hash.Path).Hash -ne $hash.Hash) { throw "Frozen input changed: $($hash.Path)" }
+    }
+  }
+  if ($newMasterLines.Count -gt 0 -and -not $PlanOnly) {
+    $destination = if ($StageResults) { Join-Path $runPath 'master-import-pending.sgl' } else { $masterPath }
+    Append-MasterLines $destination ([string[]]$newMasterLines)
+    $newMasterLines.Clear()
+  }
   $batchNumber++
   $batch = New-Batch $nextId
   if ($batch.Count -eq 0) {
@@ -446,11 +662,12 @@ while ($true) {
     break
   }
   $nextId += $batch.Count
-  $batch | Export-Csv $schedulePath -NoTypeInformation -Append:(Test-Path $schedulePath)
+  if (-not $PlanOnly) { $batch | Export-Csv $schedulePath -NoTypeInformation -Append:(Test-Path $schedulePath) }
   Write-Output ("Batch {0}: planned {1} games ({2})" -f $batchNumber, $batch.Count,
     (($batch | Group-Object N | ForEach-Object { "N=$($_.Name):$($_.Count)" }) -join ', '))
 
   if ($PlanOnly) {
+    Write-Progress $batchNumber 0 $batch.Count 0 0 ([object[]]$batch.ToArray()) @{} $batch.Count 0
     $batch | Select-Object -First 12 | Format-Table Id,N,Roster,MaxPairHalfWidthPercent -AutoSize | Out-String | Write-Output
     break
   }
@@ -462,6 +679,9 @@ while ($true) {
   if (-not (Test-Path $smallMapBitmap)) { throw 'Simulator snapshot is missing maps\std_map_small.bmp.' }
   $mapFiles = @(Get-ChildItem $snapshotMaps -Filter '*.trm' -File)
   $playerFiles = @(Get-ChildItem $playersPath -Filter '*.trp' -File)
+  if ($StageResults -and -not (Test-Path (Join-Path $snapshotPath 'TurboRisk.INI'))) {
+    throw 'Staged current-version studies require an explicit frozen INI.'
+  }
   if ($mapFiles.Count -eq 0) { throw 'Simulator snapshot contains no .trm maps.' }
   if ($playerFiles.Count -lt 10) { throw "Expected at least 10 player scripts in $playersPath." }
 
@@ -474,7 +694,7 @@ while ($true) {
     if (-not (Test-Path (Join-Path $dir 'TRSimCLI.exe'))) {
       Copy-Item $simulator $dir
     }
-    foreach ($file in $mapFiles) {
+    foreach ($file in (Get-ChildItem -LiteralPath $snapshotMaps -File)) {
       $target = Join-Path $mapsDir $file.Name
       if (-not (Test-Path $target)) { Copy-Item $file.FullName $target }
     }
@@ -483,6 +703,16 @@ while ($true) {
     foreach ($file in $playerFiles) {
       $target = Join-Path $playersDir $file.Name
       if (-not (Test-Path $target)) { Copy-Item $file.FullName $target }
+    }
+    $ini = Join-Path $snapshotPath 'TurboRisk.INI'
+    if (Test-Path $ini) { Copy-Item -LiteralPath $ini -Destination (Join-Path $dir 'TurboRisk.INI') -Force }
+    if ($StageResults) {
+      foreach ($hash in (Import-Csv (Join-Path $runPath 'input-hashes.csv'))) {
+        $relative = $hash.Path.Substring(($snapshotPath.TrimEnd('\') + '\').Length)
+        if ((Get-FileHash -LiteralPath (Join-Path $dir $relative)).Hash -ne $hash.Hash) {
+          throw "Worker input mismatch: $relative"
+        }
+      }
     }
   }
 
@@ -496,7 +726,7 @@ while ($true) {
     while ($pending.Count -gt 0 -and $active.Count -lt $Workers) {
       $game = $pending.Dequeue()
       $rosterNames = [string[]]($game.Roster -split ',')
-      if ((Get-RosterHalfWidth $game.N $rosterNames) -le $goal) {
+      if ($game.Purpose -ne 'representative' -and (Get-RosterHalfWidth $game.N $rosterNames) -le $goal) {
         $gamesDone++
         $batchDoneBySize[$game.N]++
         continue
@@ -512,7 +742,7 @@ while ($true) {
       $attempt = 1
       $seed = $SeedBase + [int]$game.Id * 101 + $attempt * 7
       $logName = "game-$($game.Id)-attempt-$attempt.sgl"
-      $arguments = "--schedule schedule.csv --map std_map_small.trm --turn-limit 0 --time-limit $TimeLimitSeconds --seed $seed --error-dump --game-log $logName --cpu-log game-$($game.Id)-attempt-$attempt.scl"
+      $arguments = "--schedule schedule.csv --map std_map_small.trm --turn-limit $TurnLimit --time-limit $TimeLimitSeconds --seed $seed --error-dump --game-log $logName --cpu-log game-$($game.Id)-attempt-$attempt.scl --action-log game-$($game.Id)-attempt-$attempt.jsonl"
       $process = Start-Process (Join-Path $dir 'TRSimCLI.exe') -WorkingDirectory $dir `
         -ArgumentList $arguments -RedirectStandardOutput (Join-Path $gameDir "stdout-$attempt.txt") `
         -RedirectStandardError (Join-Path $gameDir "stderr-$attempt.txt") -WindowStyle Hidden -PassThru
@@ -522,7 +752,7 @@ while ($true) {
     Start-Sleep -Milliseconds 500
     $stillRunning = New-Object System.Collections.ArrayList
     foreach ($job in $active) {
-      if (-not $job.Process.HasExited -and ((Get-Date) - $job.Started).TotalSeconds -le ($TimeLimitSeconds + 45)) {
+      if (-not $job.Process.HasExited -and ((Get-Date) - $job.Started).TotalSeconds -le ($TimeLimitSeconds + 90)) {
         [void]$stillRunning.Add($job); continue
       }
       if (-not $job.Process.HasExited) {
@@ -537,8 +767,25 @@ while ($true) {
         }
       }
       $status = if ($line) { ($line -split ',')[2] } else { 'setup-error' }
-      [pscustomobject]@{Id=$job.Game.Id;N=$job.Game.N;Attempt=$job.Attempt;Seed=$job.Seed;Status=$status;Line=$line;Log=$logPath} |
+      if ($StageResults -and $status -in @('1','4')) {
+        $actionPath = Join-Path $job.Directory "game-$($job.Game.Id)-attempt-$($job.Attempt).jsonl"
+        $metadata = (Get-Content -LiteralPath $actionPath -TotalCount 1 | ConvertFrom-Json).metadata
+        if ($metadata.card_values -ne 1 -or $metadata.assignment -ne 0 -or
+            -not $metadata.immediate_trade -or $metadata.map -ne 'std_map_small.trm') {
+          throw 'Recorded game rules do not match the approved study.'
+        }
+      }
+      [pscustomobject]@{Id=$job.Game.Id;N=$job.Game.N;Attempt=$job.Attempt;Seed=$job.Seed;Status=$status;Line=$line;Log=$logPath;
+        Purpose=$job.Game.Purpose;AnchorBot=$job.Game.AnchorBot;Roster=$job.Game.Roster} |
         Export-Csv $attemptPath -NoTypeInformation -Append
+      if ($job.Game.Purpose -eq 'representative') {
+        $key = "$($job.Game.N)|$($job.Game.AnchorBot)"
+        $representativeAttempts[$key]++
+        if ($status -eq '1') {
+          $representative[$key]++
+          if (($line.Split(','))[6] -eq $job.Game.AnchorBot) { $representativeWins[$key]++ }
+        }
+      }
 
       if ($status -in @('1','4') -and (Test-EligibleHistoricalLine $line)) {
         Append-RunResultLine $resultPath $line
@@ -547,7 +794,7 @@ while ($true) {
         if ($masterLines.Add($line)) { $newMasterLines.Add($line) }
         $gamesDone++
         $batchDoneBySize[$job.Game.N]++
-      } elseif ($job.Attempt -lt $MaxAttempts) {
+      } elseif ($job.Game.Purpose -ne 'representative' -and $job.Attempt -lt $MaxAttempts) {
         $rotated = New-Object System.Collections.Generic.List[string]
         $original = [string[]]($job.Game.Roster -split ',')
         for ($k = 0; $k -lt $original.Count; $k++) { $rotated.Add($original[($k + $job.Attempt) % $original.Count]) }
@@ -557,7 +804,7 @@ while ($true) {
         $job.LogName = "game-$($job.Game.Id)-attempt-$($job.Attempt).sgl"
         [IO.File]::WriteAllText((Join-Path $job.Directory 'schedule.csv'),
           ($job.Game.Roster + [Environment]::NewLine), [Text.Encoding]::ASCII)
-        $arguments = "--schedule schedule.csv --map std_map_small.trm --turn-limit 0 --time-limit $TimeLimitSeconds --seed $($job.Seed) --error-dump --game-log $($job.LogName) --cpu-log game-$($job.Game.Id)-attempt-$($job.Attempt).scl"
+        $arguments = "--schedule schedule.csv --map std_map_small.trm --turn-limit $TurnLimit --time-limit $TimeLimitSeconds --seed $($job.Seed) --error-dump --game-log $($job.LogName) --cpu-log game-$($job.Game.Id)-attempt-$($job.Attempt).scl --action-log game-$($job.Game.Id)-attempt-$($job.Attempt).jsonl"
         $job.Process = Start-Process (Join-Path $job.Directory 'TRSimCLI.exe') -WorkingDirectory $job.Directory `
           -ArgumentList $arguments -RedirectStandardOutput (Join-Path $job.GameDirectory "stdout-$($job.Attempt).txt") `
           -RedirectStandardError (Join-Path $job.GameDirectory "stderr-$($job.Attempt).txt") -WindowStyle Hidden -PassThru
@@ -568,14 +815,15 @@ while ($true) {
         $rosterNames = [string[]]($job.Game.Roster -split ',')
         for ($i = 0; $i -lt $rosterNames.Count; $i++) {
           for ($j = $i + 1; $j -lt $rosterNames.Count; $j++) {
-            if ($FocusBot -and $rosterNames[$i] -ne $FocusBot -and $rosterNames[$j] -ne $FocusBot) { continue }
+            if (-not (Test-FocusPair $rosterNames[$i] $rosterNames[$j])) { continue }
             $key = Get-PairKey $job.Game.N $rosterNames[$i] $rosterNames[$j]
             $pairFailures[$key] = [int]$pairFailures[$key] + 1
           }
         }
       }
       if ($newMasterLines.Count -ge 100) {
-        Append-MasterLines $masterPath ([string[]]$newMasterLines)
+        $destination = if ($StageResults) { Join-Path $runPath 'master-import-pending.sgl' } else { $masterPath }
+        Append-MasterLines $destination ([string[]]$newMasterLines)
         $newMasterLines.Clear()
       }
     }
@@ -587,7 +835,8 @@ while ($true) {
     }
   }
   if ($newMasterLines.Count) {
-    Append-MasterLines $masterPath ([string[]]$newMasterLines)
+    $destination = if ($StageResults) { Join-Path $runPath 'master-import-pending.sgl' } else { $masterPath }
+    Append-MasterLines $destination ([string[]]$newMasterLines)
     $newMasterLines.Clear()
   }
   Write-Progress $batchNumber $gamesDone $batch.Count $timeouts $failedGames `
@@ -595,7 +844,11 @@ while ($true) {
 }
 
 Write-Output ("Tournament run directory: {0}" -f $runPath)
-if (-not $PlanOnly) {
+if (-not $PlanOnly -and $StageResults) {
+  if ((Get-FileHash $masterPath).Hash -ne $masterHash) { throw 'Master changed during staged study.' }
+  Write-Output 'Study complete. Results staged; master import requires review.'
+}
+if (-not $PlanOnly -and -not $StageResults) {
   $analysisScript = Join-Path $PSScriptRoot 'run-opponent-overperformance-tournament.ps1'
   if (-not (Test-Path $analysisScript)) { throw "Overperformance analysis script is missing: $analysisScript" }
   $analysisRun = Join-Path $runPath 'overperformance-analysis'

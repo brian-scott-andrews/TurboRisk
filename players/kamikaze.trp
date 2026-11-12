@@ -1,0 +1,77 @@
+{
+Program: Kamikaze
+Author: Brian S. Andrews
+Description: Concentrates reinforcements on the strongest front, attacks the
+weakest available adjacent enemy until conquest or exhaustion, then stops.
+Ignores continents and pushes the surviving stack into the conquered territory.
+
+AI disclaimer: Adapted with AI assistance from a Gemini-generated proposal.
+This deliberately high-risk heuristic does not assess combat odds or card payback.
+}
+
+procedure Assignment(var ToTerritory: integer);
+var T: integer;
+begin
+  ToTerritory:=0;
+  for T:=1 to 42 do if TOwner(T)=0 then begin ToTerritory:=T; break end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T, Best: integer;
+begin
+  UBufferSet(1,0); UBufferSet(2,0); UBufferSet(3,0);
+  ToTerritory:=0; Best:=-1;
+  for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>Best) then begin
+    Best:=TArmies(T); ToTerritory:=T;
+  end;
+  if ToTerritory=0 then
+    for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>Best) then begin
+      Best:=TArmies(T); ToTerritory:=T;
+    end;
+end;
+
+procedure Attack(var FromTerritory, ToTerritory: integer);
+var T, F, E, Weakest, Source, Target: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0;
+  if SConquest then exit;
+  // Keep the same fight across engine-controlled dice rolls, even after losses.
+  if UBufferGet(3)=1 then begin
+    Source:=trunc(UBufferGet(1)); Target:=trunc(UBufferGet(2));
+    if (Source<1) or (Source>42) or (Target<1) or (Target>42) then exit;
+    if TIsMine(Source) and not TIsMine(Target) and
+       (TOwner(Target)>0) and TIsBordering(Source,Target) and (TArmies(Source)>1) then begin
+      FromTerritory:=Source; ToTerritory:=Target;
+    end;
+    exit;
+  end;
+  Weakest:=2147483647;
+  for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>3) then
+    for F:=1 to TFrontsCount(T) do begin
+      E:=TFront(T,F);
+      if (TOwner(E)>0) and (TArmies(E)<Weakest) then begin
+        Weakest:=TArmies(E); FromTerritory:=T; ToTerritory:=E;
+      end;
+    end;
+  UBufferSet(1,FromTerritory); UBufferSet(2,ToTerritory); UBufferSet(3,1);
+end;
+
+procedure Occupation(FromTerritory, ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=TArmies(FromTerritory)-1;
+end;
+
+procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);
+var T, Dest, Best: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  for T:=1 to 42 do if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) then begin
+    Dest:=TPathToFront(T);
+    if Dest>0 then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+    end;
+  end;
+end;
+
+begin
+end.

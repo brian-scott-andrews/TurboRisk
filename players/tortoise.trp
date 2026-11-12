@@ -1,0 +1,155 @@
+{
+Program: Tortoise
+Author: Brian S. Andrews
+Description: Holds an owned chokepoint for twelve personal turns, attacking
+only to recover lost territory in its defended region. Afterwards it balances
+border pressure and advances its wall by at most one conquest per turn when
+the wall holds more than thirty armies. No combat-odds or card-taking exception.
+
+AI disclaimer: Adapted with AI assistance from a Gemini-generated TurtleBot
+proposal. Region selection and breach detection are explicit heuristics.
+}
+
+procedure RememberRegion;
+var T: integer;
+begin
+  for T:=1 to 42 do
+    if TIsMine(T) and (TContinent(T)=trunc(UBufferGet(4))) then UBufferSet(100+T,1);
+end;
+
+function Wall: integer;
+var T,C,I,Own,Score,Best,W: integer;
+begin
+  W:=trunc(UBufferGet(3));
+  if (W>=1) and (W<=42) then
+    if TIsMine(W) and TIsFront(W) then begin Result:=W; exit end;
+  W:=0; Best:=-100000;
+  for T:=1 to 42 do if TIsFront(T) then begin
+    C:=TContinent(T); Own:=0;
+    for I:=1 to CTerritoriesCount(C) do if TIsMine(CTerritory(C,I)) then Own:=Own+1;
+    Score:=Own*20-CEntriesCount(C)*10-TFrontsCount(T)*5;
+    if TIsEntry(T) then Score:=Score+20;
+    if Score>Best then begin Best:=Score; W:=T end;
+  end;
+  if W=0 then for T:=1 to 42 do if TIsMine(T) then begin W:=T; break end;
+  UBufferSet(3,W);
+  if (W>0) and (UBufferGet(4)=0) then begin
+    UBufferSet(4,TContinent(W)); RememberRegion;
+  end;
+  Result:=W;
+end;
+
+procedure SyncTurns;
+var I: integer;
+begin
+  // Count own turn-start events, not per-army placement callbacks.
+  for I:=trunc(UBufferGet(1))+1 to HCount do
+    if (HGet(I,AF_KIND)=AK_TURN_START) and (HGet(I,AF_PLAYER)=PMe) then
+      UBufferSet(2,UBufferGet(2)+1);
+  UBufferSet(1,HCount);
+end;
+
+function Early: boolean;
+begin
+  SyncTurns;
+  Result:=UBufferGet(2)<=12;
+end;
+
+procedure Assignment(var ToTerritory: integer);
+var T,B,Score,Best: integer;
+begin
+  ToTerritory:=0; Best:=-100000;
+  for T:=1 to 42 do if TOwner(T)=0 then begin
+    Score:=-TBordersCount(T);
+    for B:=1 to TBordersCount(T) do if TIsMine(TBorder(T,B)) then Score:=Score+10;
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+end;
+
+procedure Placement(var ToTerritory: integer);
+var T,W: integer; Score,Best: double;
+begin
+  W:=Wall; ToTerritory:=W;
+  if Early then exit;
+  Best:=-1E30;
+  for T:=1 to 42 do if TIsFront(T) then begin
+    Score:=double(TPressure(T))-TArmies(T);
+    if Score>Best then begin Best:=Score; ToTerritory:=T end;
+  end;
+end;
+
+procedure Attack(var FromTerritory,ToTerritory: integer);
+var W,T,F,E,Weakest,Best: integer;
+begin
+  FromTerritory:=0; ToTerritory:=0; W:=Wall;
+  if SConquest or (W=0) then exit;
+  if Early then begin
+    Best:=1;
+    for T:=1 to 42 do if TIsFront(T) and (TArmies(T)>Best) then
+      for F:=1 to TFrontsCount(T) do begin
+        E:=TFront(T,F);
+        if (TOwner(E)>0) and (TContinent(E)=trunc(UBufferGet(4))) and
+           (UBufferGet(100+E)=1) then begin
+          Best:=TArmies(T); FromTerritory:=T; ToTerritory:=E;
+        end;
+      end;
+  end else if TArmies(W)>30 then begin
+    Weakest:=2147483647;
+    for F:=1 to TFrontsCount(W) do begin
+      E:=TFront(W,F);
+      if (TOwner(E)>0) and (TArmies(E)<Weakest) then begin
+        Weakest:=TArmies(E); FromTerritory:=W; ToTerritory:=E;
+      end;
+    end;
+  end;
+end;
+
+procedure Occupation(FromTerritory,ToTerritory: integer; var Armies: integer);
+begin
+  Armies:=TArmies(FromTerritory)-2;
+  if Armies<0 then Armies:=0;
+  if not Early then UBufferSet(3,ToTerritory);
+  RememberRegion;
+end;
+
+procedure Fortification(var FromTerritory,ToTerritory,Armies: integer);
+var T,Dest,Best,W,I,B,N: integer;
+  Distance: array[1..42] of integer;
+  Changed: boolean;
+begin
+  W:=Wall; FromTerritory:=0; ToTerritory:=0; Armies:=0; Best:=1;
+  if W=0 then exit;
+  if not TIsFront(W) then begin RememberRegion; exit end;
+  for T:=1 to 42 do Distance[T]:=-1;
+  Distance[W]:=0;
+  repeat
+    Changed:=False;
+    for I:=1 to 42 do if Distance[I]>=0 then
+      for B:=1 to TBordersCount(I) do begin
+        N:=TBorder(I,B);
+        if TIsMine(N) then
+          if (Distance[N]<0) or (Distance[N]>Distance[I]+1) then begin
+            Distance[N]:=Distance[I]+1; Changed:=True;
+          end;
+      end;
+  until not Changed;
+  for T:=1 to 42 do if TIsMine(T) and not TIsFront(T) and (TArmies(T)>Best) then begin
+    Dest:=TPathToFront(T);
+    if Early and (Distance[T]>0) then begin
+      Dest:=0;
+      for B:=1 to TBordersCount(T) do begin
+        N:=TBorder(T,B);
+        if TIsMine(N) and (Distance[N]=Distance[T]-1) then begin
+          Dest:=N; break;
+        end;
+      end;
+    end;
+    if Dest>0 then if TIsMine(Dest) and TIsBordering(T,Dest) then begin
+      Best:=TArmies(T); FromTerritory:=T; ToTerritory:=Dest; Armies:=Best-1;
+    end;
+  end;
+  RememberRegion;
+end;
+
+begin
+end.

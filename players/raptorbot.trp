@@ -138,7 +138,7 @@ begin
         if ((trunc(UBufferGet(2))) = C) then 
         		z :=z * 2;
 
-        if (z > highest) then 
+        if (ToTerritory = 0) or (z > highest) then
         begin
           highest :=z;
           ToTerritory :=T;

@@ -5,7 +5,11 @@ program TRCompWorkflowTests;
 uses
   Interfaces, Forms, Classes, SysUtils, Variants, Grids, StdCtrls, Controls,
   uPSRuntime, Globals, ExpSubr, TRCompContextForm, ActionHistory,
-  BrainlessMovementTests, ZotobAttackTests;
+  BrainlessMovementTests, ZotobAttackTests,
+  TectonicPlacementTests, PortedAIRegressionTests, BrainlessRouteTests,
+  Walker3Tests, ShadowTests, CooperationRecognitionTests, IdentityAblationTests,
+  KamikazeTests, TortoiseTests, VultureTests, CounterweightTests,
+  RaptorPlacementTests;
 
 procedure Check(ACondition: Boolean; const AMessage: string);
 begin
@@ -339,10 +343,48 @@ end;
 begin
   try
     Application.Initialize;
+    if (ParamCount=1) and (ParamStr(1)='--raptor-tests') then begin
+      RunRaptorPlacementTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--counterweight-tests') then begin
+      RunCounterweightTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--vulture-tests') then begin
+      RunVultureTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--tortoise-tests') then begin
+      RunTortoiseTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--kamikaze-tests') then begin
+      RunKamikazeTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--shadow-tests') then begin
+      RunShadowTests;
+      RunShadow2Tests;
+      Halt(0);
+    end;
     TestContextEditing;
     TestRoutineExecution;
     RunBrainlessMovementTests;
     RunZotobAttackTests;
+    RunTectonicPlacementTests;
+    RunRaptorPlacementTests;
+    RunPortedAIRegressionTests;
+    RunBrainlessRouteTests;
+    RunWalker3Tests;
+    RunKamikazeTests;
+    RunTortoiseTests;
+    RunVultureTests;
+    RunCounterweightTests;
+    RunShadowTests;
+    RunShadow2Tests;
+    RunCooperationRecognitionTests;
+    RunIdentityAblationTests;
     WriteLn('TRComp validation, context-editing, and routine-execution tests passed.');
   except
     on E: Exception do begin

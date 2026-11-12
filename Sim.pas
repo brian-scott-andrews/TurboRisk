@@ -116,6 +116,7 @@ var
   bErrorDump: Boolean;
   bSeedSpecified: Boolean;
   bStatSignificantSample: Boolean;
+  bAllowDuplicatePlayers: Boolean;
   iSeed: Integer;
 
   function NextArgument(const sOption: string): string;
@@ -137,7 +138,8 @@ var
     WriteLn('TRSimCLI --schedule <file> [options]');
     WriteLn('Run scheduled TRP games without showing the simulator GUI.');
     WriteLn('Each non-empty, non-comment schedule line is one comma-separated roster.');
-    WriteLn('Player names may include or omit .trp; each roster needs 2-10 distinct files.');
+    WriteLn('--allow-duplicate-players permits repeated instances of the same bot.');
+    WriteLn('Player names may include or omit .trp; each roster needs 2-10 players.');
     WriteLn('Blank lines and lines beginning with # are ignored.');
     WriteLn('Paths for schedules and logs are relative to the current directory.');
     WriteLn('Map files are loaded from the maps directory beside TRSimCLI.');
@@ -173,6 +175,7 @@ begin
   sActionLogFile := '';
   bSeedSpecified := False;
   bStatSignificantSample := False;
+  bAllowDuplicatePlayers := False;
   iSeed := 0;
   iSimTurnLimit := 0;
   iSimTimeLimit := 0;
@@ -208,6 +211,8 @@ begin
         bErrorDump := True
       else if sArg = '--statistically-significant-sample' then
         bStatSignificantSample := True
+      else if sArg = '--allow-duplicate-players' then
+        bAllowDuplicatePlayers := True
       else if sArg = '--verbose' then
         bSimVerbose := True
       else
@@ -277,7 +282,8 @@ begin
             raise Exception.CreateFmt('Player file not found on schedule line %d: %s',
               [iGame + 1, sPlayer]);
           for iValue := 0 to iPlayer - 1 do
-            if SameText(sPlayer, GamePlayers[iValue]) then
+            if (not bAllowDuplicatePlayers) and
+              SameText(sPlayer, GamePlayers[iValue]) then
               raise Exception.CreateFmt('Duplicate player on schedule line %d: %s',
                 [iGame + 1, sPlayer]);
           GamePlayers[iPlayer] := sPlayer;
@@ -687,7 +693,8 @@ begin
     txtMinPlayers.SetFocus;
     exit;
   end;
-  if lstAlways.Count + lstRandom.Count < iSimMaxPl then begin
+  if (fPlayerSchedule.Count=0) and
+    (lstAlways.Count + lstRandom.Count < iSimMaxPl) then begin
     if bTRSimCLI then
       raise Exception.Create(
         'The total number of TRPs in the "always" and "random" lists is not large enough to reach the maximum number of players per game.');
