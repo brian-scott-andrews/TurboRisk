@@ -84,6 +84,8 @@ reading the function's name, it may sound like it is good for general use but it
 actually customized for Vexer.  If you need help making a function work for your TRP,
 send me an email describing what you want the function to do and I can modify it for you. }
 
+const VexerLogEnabled=False;
+
 Var
   QTArmies, QTOwner: Array of Integer;
   NeedToCheck: array [1..42] of boolean;
@@ -147,6 +149,7 @@ end;
 
 procedure l(s: string);  // shortens Ulog to l
 begin
+  // Enable VexerLogEnabled too when restoring the diagnostic calls below.
   //ULog(s);  // comment off this line to disable all Ulogs
   //UMessage(s);
   //  if (QTOwner[27] = PMe) and (QTOwner[30] <> PMe) then UMessage(s); // enable this line to display logs as messages ( Useful in TRComp's simulation mode)
@@ -715,10 +718,10 @@ begin
     PL:= aNode[DT].PL;
     SetArrayLength(Path, PL + 1);
     Path[PL]:= DT;
-    l('path, n: ' + i(PL) + ' T: ' + i(Path[PL]));
+    begin if VexerLogEnabled then l('path, n: ' + i(PL) + ' T: ' + i(Path[PL])); end;
     for n:= PL - 1 downto 1 do begin
       Path[n]:= aNode[path[n + 1]].iParent;
-      l('path, n: ' + i(n) + ' T: ' + i(Path[n]));
+      begin if VexerLogEnabled then l('path, n: ' + i(n) + ' T: ' + i(Path[n])); end;
     end;
 //    l('QDistance ' + pname(p) + ' st ' + i(st) + ' dt ' + i(dt) + ' pl ' + i(pl));
   end else result:= False;
@@ -786,7 +789,7 @@ Var
   // aQNode is a global variable
 begin
   TT:= 0;
-  l('kill player attack FT: ' + i(ft));
+  begin if VexerLogEnabled then l('kill player attack FT: ' + i(ft)); end;
 
   for T:=1 to 42 do begin
     with aQNode[T] do begin
@@ -865,7 +868,7 @@ begin
   end;
   bs(96, DT);
 
-  l('1 DT ' + i(DT));
+  begin if VexerLogEnabled then l('1 DT ' + i(DT)); end;
 
   if DT = 0 then begin
     MinDistance:= 999999999;
@@ -901,7 +904,7 @@ begin
       end;
     end;
     bs(97, DT);
-    l('2 DT ' + i(DT));
+    begin if VexerLogEnabled then l('2 DT ' + i(DT)); end;
   end;
 
   if (DT > 0) then begin
@@ -966,7 +969,7 @@ begin
         if Borders < MinBorders then begin
           MinBorders:= TBordersCount(BT);
           TT:= BT;
-          l('******************** dt = 0 minborders code, TT:= ' + i(TT) + ' **************************');
+          begin if VexerLogEnabled then l('******************** dt = 0 minborders code, TT:= ' + i(TT) + ' **************************'); end;
         end;
       end;
     end;
@@ -996,7 +999,7 @@ begin
               end;
               if (C = 0) then begin
                 TT:= BT;
-                l('no borders tt code, TT: ' + i(TT));
+                begin if VexerLogEnabled then l('no borders tt code, TT: ' + i(TT)); end;
               end;
             end;
           end;
@@ -1054,7 +1057,7 @@ begin
                         end;
                       end;
                     end;
-                    l('MD1 ' + i(MinDistance1) + ' MD2 ' + i(MinDistance2));
+                    begin if VexerLogEnabled then l('MD1 ' + i(MinDistance1) + ' MD2 ' + i(MinDistance2)); end;
                     if MinDistance1 < MinDistance2 then TT:= BT;
                     if (MinDistance1 = MinDistance2) then begin
                       C1:= 0;
@@ -1079,7 +1082,7 @@ begin
                           BT1:= TBorder(BT, B1);
                           if QTOwner[BT1] = PMe then C2:= C2 + 1;
                         end;
-                        l('c1 ' +i(c1) + ' c2 ' + i(c2));
+                        begin if VexerLogEnabled then l('c1 ' +i(c1) + ' c2 ' + i(c2)); end;
                         if C2 > C1 then begin
                           TT:= BT;
                           m('new tt: ' + i(tt));
@@ -1124,7 +1127,7 @@ begin
   end;
  //if ft = 27 then m('pause ft = 35 end');
 
-  l('end TT ' + i(TT));
+  begin if VexerLogEnabled then l('end TT ' + i(TT)); end;
   if SAlivePlayersCount < 5 then m('pause');
 end;
 
@@ -1235,7 +1238,7 @@ begin
   until (iNode = 0);  // loop until there are no more open nodes
 
   if Ts > 0 then Result:= True;
-  l('addCArmies: ' + i(Armies) + ' Ts: ' + i(Ts));
+  begin if VexerLogEnabled then l('addCArmies: ' + i(Armies) + ' Ts: ' + i(Ts)); end;
 
 end;
 
@@ -1372,7 +1375,7 @@ Begin
             ToTerritory:= TT;
             FromTerritory:= Army[y];
           end;
-          {if QTArmies[ToTerritory] < 3 then }l('1 y: ' + i(y) + ' Army[y] ' + i(Army[y]) + ' WP= ' + PProgram(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory));
+          {if QTArmies[ToTerritory] < 3 then }begin if VexerLogEnabled then l('1 y: ' + i(y) + ' Army[y] ' + i(Army[y]) + ' WP= ' + PProgram(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory)); end;
           if FromTerritory > 0 then exit;
         end;
       end else if c > 1 then begin
@@ -1400,7 +1403,7 @@ Begin
             FromTerritory:= FT;
           end;
           if ToTerritory > 0 then begin
-            l('2 y: ' + i(y) + ' Army[y] ' + i(Army[y]) + ' WP= ' + PProgram(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory));
+            begin if VexerLogEnabled then l('2 y: ' + i(y) + ' Army[y] ' + i(Army[y]) + ' WP= ' + PProgram(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory)); end;
             exit;
           end;
         end;
@@ -1436,14 +1439,14 @@ Begin
         if WeakestPathToWP(WP, Army[y], TT, DT, Cost) then begin
           C:= C + 1;
           if (Cost < MinCost) and (Cost >= QTArmies[Army[y]]) then begin
-            l('cost is too high, Cost: ' + i(cost));
+            begin if VexerLogEnabled then l('cost is too high, Cost: ' + i(cost)); end;
           end;
           if (Cost < MinCost) and (Cost < QTArmies[Army[y]]) then begin
             if ( (FromTerritory > 0) and ( (MinCost - Cost) > (QTArmies[FromTerritory] - QTArmies[Army[y]]) ) or (FromTerritory = 0) ) then begin
               MinCost:= Cost;
               ToTerritory:= TT;
               FromTerritory:= Army[y];
-              l('4 Army[y]: ' + i(Army[y]) + ' WP= ' + PName(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory) + ' cost ' + i(mincost));
+              begin if VexerLogEnabled then l('4 Army[y]: ' + i(Army[y]) + ' WP= ' + PName(WP) + ' ft: ' + i(fromterritory) + ' tt ' + i(toterritory) + ' cost ' + i(mincost)); end;
             end;
           end;
         end;
@@ -1455,7 +1458,7 @@ Begin
       if (MinCost > CForce) then begin
         ToTerritory:= 0;
         FromTerritory:= 0;
-        l('cancel attack, MinCost > CForce, CForce: ' + i(CForce));
+        begin if VexerLogEnabled then l('cancel attack, MinCost > CForce, CForce: ' + i(CForce)); end;
       end;
     end;
 
@@ -1477,7 +1480,7 @@ Begin
       if MinCost + TotalWPArmies > QPAC - QPTC then begin
         FromTerritory:= 0;
         ToTerritory:= 0;
-        l('*************************************************** savin time');
+        begin if VexerLogEnabled then l('*************************************************** savin time'); end;
       end;
     end;
   end;
@@ -1548,7 +1551,7 @@ begin
     FromTerritory:= 0;
     bs(100, 0);
     bs(101, 0);
-    l('attack sp not worth it, high CTIV');
+    begin if VexerLogEnabled then l('attack sp not worth it, high CTIV'); end;
   end;
 
   If (FromTerritory > 0) then begin
@@ -1575,7 +1578,7 @@ begin
           end;
         end;
       end;
-      l('mincostIOA: ' + i(mincostIOA) + ' mincost: ' + i(mincost));
+      begin if VexerLogEnabled then l('mincostIOA: ' + i(mincostIOA) + ' mincost: ' + i(mincost)); end;
       EA:= 0;
       For x:= 1 to CTerritoriesCount(TContinent(TargetEntryT)) do begin
         EA:= EA + TArmies(CTerritory(TContinent(TargetEntryT), x));
@@ -1585,16 +1588,16 @@ begin
       if (MinCostIOA > MinCost) or (  (MinCostIOA = 0) and ( (EA + TurnInArmies) > trunc(0.9*(TArmies(FromTerritory))) )  ) then begin
                                     // MinCostIOA = 0 implies that there are no more C's left to attack
         bs(67, 1);  // 67 - used to tell the occupation routine to set Armies:= 0
-        l('dont occupy - mincostIOA: ' + i(mincostIOA) + ' mincost: ' + i(mincost));
+        begin if VexerLogEnabled then l('dont occupy - mincostIOA: ' + i(mincostIOA) + ' mincost: ' + i(mincost)); end;
       end;
       if (TContinent(TargetEntryT) = 6) then begin
         if (EA < TIV div 3) or (EA < 6) then bs(67, EA + 4)
          else bs(67, 1);
       end;
-      l('bg 67: ' + i(bg(67)));
+      begin if VexerLogEnabled then l('bg 67: ' + i(bg(67))); end;
     end;
 
-    if ToTerritory > 0 then l('attack SP: ' + PProgram(SP) + ' FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory));
+    if ToTerritory > 0 then begin if VexerLogEnabled then l('attack SP: ' + PProgram(SP) + ' FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory)); end;
     if ToTerritory = TargetEntryT then begin
       m2('attack SP: ' + PProgram(SP) + ' FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory));
       ///UTakeSnapshot('attack SP in australia');
@@ -1770,8 +1773,8 @@ begin
 
   bs(73, 0);
   bs(74, 0);
-  l('P ' + i(p) + ' bg(77) ' + i(bg(77)) + ' bg(79) ' + i(bg(79)) + ' bg(80) ' + i(bg(80)) + ' bg(86) ' + i(bg(86)) + ' bg(96) ' + i(bg(96)) + ' bg(97) ' + i(bg(97)));
-  if bg(400) > 0 then l('start kill player occ, FT ' + i(fromterritory) + ' TT ' + i(Toterritory));
+  begin if VexerLogEnabled then l('P ' + i(p) + ' bg(77) ' + i(bg(77)) + ' bg(79) ' + i(bg(79)) + ' bg(80) ' + i(bg(80)) + ' bg(86) ' + i(bg(86)) + ' bg(96) ' + i(bg(96)) + ' bg(97) ' + i(bg(97))); end;
+  if bg(400) > 0 then begin if VexerLogEnabled then l('start kill player occ, FT ' + i(fromterritory) + ' TT ' + i(Toterritory)); end;
   if ( (bg(80) = -1) and (FromTerritory = bg(77)) ) then begin
     bs(77, 0);
     bs(79, 0);
@@ -1785,7 +1788,7 @@ begin
   if ((SAlivePlayersCount > 2) and (not KillBoth)) and (bg(97) = 0) then begin
     if ({c}({b}({a}(TOwner(ToTerritory) <> P) and (TOwner(ToTerritory) <> PMe){a}) and (bg(400) = 0){b}) or ( (bg(86) <> P) and (bg(86) > 04) ){c}) then begin
       Armies:= FTA;
-      l('armies = FTA occ **************************************************************');
+      begin if VexerLogEnabled then l('armies = FTA occ **************************************************************'); end;
       exit;
     end;
   end;
@@ -1845,7 +1848,7 @@ begin
   if (ePTC = 0) and (not (P = 0)) then begin
 // add code to switch to next weakest player
     Armies:= FTA;
-    l('new occ code player is dead ePTC = 0');
+    begin if VexerLogEnabled then l('new occ code player is dead ePTC = 0'); end;
     exit;
   end;
 
@@ -1890,7 +1893,7 @@ begin
 
   if addCET_TT = ePTC then begin
     Armies:= FTA;
-    l('new occ code only tt needs');
+    begin if VexerLogEnabled then l('new occ code only tt needs'); end;
     if bg(97) = 0 then exit;
   end;
 
@@ -2004,16 +2007,16 @@ begin
       end;
     end;
     if (Armies = TTNeeds) and (Armies > 0) then begin
-      l('armies = ttneeds');
+      begin if VexerLogEnabled then l('armies = ttneeds'); end;
       if FTA > TTNeeds + FTNeeds + 4 then begin
         Armies:= Armies + 2;
         TTNeeds:= TTNeeds + 2;
-        l('give TT 2 extra');
+        begin if VexerLogEnabled then l('give TT 2 extra'); end;
       end;
       if (FTA > TTNeeds + FTNeeds + 5) and (SAlivePlayersCount = 3) then begin
         Armies:= Armies + 3;
         TTNeeds:= TTNeeds + 3;
-        l('give TT 3 extra');
+        begin if VexerLogEnabled then l('give TT 3 extra'); end;
       end;
     end;
     if Armies > FTA then Armies:= FTA;
@@ -2035,7 +2038,7 @@ begin
   end;
   }
 
-  l('ttNeeds:  ' + i(TTNeeds) + ' FTNeeds: ' + i(ftneeds));
+  begin if VexerLogEnabled then l('ttNeeds:  ' + i(TTNeeds) + ' FTNeeds: ' + i(ftneeds)); end;
 
   if (TTNeeds = 0) and (FTNeeds > 0) then begin
     C:= 0;
@@ -2056,7 +2059,7 @@ begin
     }
     if C1 = 0 then begin
       Armies:= 0;
-      l('new occ code ttneeds = 0 - no attack possible from TT');
+      begin if VexerLogEnabled then l('new occ code ttneeds = 0 - no attack possible from TT'); end;
     end;
   end;
 
@@ -2122,7 +2125,7 @@ begin
         bs(77, BestFT);
       end else bs(77, -1);
     end;
-    l('weakest path occ, FT: ' + i(FromTerritory) + ' Bestft: ' + i(bestFT) + ' MinCost ' + i(mincost) + ' FTNeedsMore ' + i(FTNeedsMore));
+    begin if VexerLogEnabled then l('weakest path occ, FT: ' + i(FromTerritory) + ' Bestft: ' + i(bestFT) + ' MinCost ' + i(mincost) + ' FTNeedsMore ' + i(FTNeedsMore)); end;
   end;
                                                                                         // only run this code if the bestFT is not already connected to Player P
   if (bg(77) > 0) and ( (bg(77) = FromTerritory) or (bg(77) = ToTerritory) ) and (not (bg(80) = -1)) then begin
@@ -2132,10 +2135,10 @@ begin
     For T:= 1 to 42 do begin
       if QTOwner[T] = PMe then MyTotalArmies:= MyTotalArmies + QTArmies[T] - 1;  // -1 to exclude my t count
     end;
-    l('FTNeedsMore ' + i(FTNeedsMore));
+    begin if VexerLogEnabled then l('FTNeedsMore ' + i(FTNeedsMore)); end;
     if (TTNeeds + FTNeeds + FTNeedsMore > MyTotalArmies) and (bg(400) = 0) and (SAlivePlayersCount > 3) then begin
       Armies:= -1000;
-      l('*************************************************** savin time occ');
+      begin if VexerLogEnabled then l('*************************************************** savin time occ'); end;
     end else begin
 //      if not aNode[BestFT].bClosed then bs(77, BestFT);
       if (FromTerritory = BestFT) then begin
@@ -2609,7 +2612,7 @@ Begin
 
     if (SAlivePlayersCount = 4) and (PCardCount(Pme) + PCardCount(WP) >= 5) then begin
       cRankSort(rank, parmies, myarmies);
-      For x:= 1 to saliveplayerscount do l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(PArmies[x]));
+      For x:= 1 to saliveplayerscount do begin if VexerLogEnabled then l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(PArmies[x])); end;
 
       MyArmies:= PArmiesCount(PMe) + PNewArmies(PMe) - (PArmiesCount(WP) + PTerritoriesCount(WP) + 5)
        + trunc(double(PCardCount(PMe) + PCardCount(WP))/3 * double(TIV));
@@ -2638,8 +2641,8 @@ Begin
         end;
       end;
       for x:= 1 to APC do begin
-        if Rank[x] <> PME then l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(PArmies[x]));
-        if Rank[x] = PME then l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(MyArmies));
+        if Rank[x] <> PME then begin if VexerLogEnabled then l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(PArmies[x])); end;
+        if Rank[x] = PME then begin if VexerLogEnabled then l('Rank ' + i(x) + ': ' + PName(Rank[x]) + ' Armies: ' + i(MyArmies)); end;
       end;
       //m2('check ranks');
 
@@ -2650,11 +2653,11 @@ Begin
 
     if SAlivePlayersCount = 3 then begin
       For P:= 1 to 3 do if (Rank[P] <> PMe) and (Rank[P] <> WP) then OP:= Rank[P];
-      l('OP: ' + PProgram(OP));
+      begin if VexerLogEnabled then l('OP: ' + PProgram(OP)); end;
       If (pos('09', lowercase(PProgram(OP))) > 0) then TM:= 0.9 else TM:= 1.05;
-      l('my total: ' + i(PArmiesCount(PME) - PTerritoriesCount(PMe) - ( PArmiesCount(WP) + PTerritoriesCount(WP) )
-       + trunc( double( PCardCount(Pme) + PCardCount(WP) + 1 )/3 * double(TIV) )));
-      l('OPs total: ' + i(trunc( TM * double( PArmiesCount(OP) + trunc( double( PCardCount(OP) )/3 * double(PCardTurnInValue(OP)) ) ) )));
+      begin if VexerLogEnabled then l('my total: ' + i(PArmiesCount(PME) - PTerritoriesCount(PMe) - ( PArmiesCount(WP) + PTerritoriesCount(WP) )
+       + trunc( double( PCardCount(Pme) + PCardCount(WP) + 1 )/3 * double(TIV) ))); end;
+      begin if VexerLogEnabled then l('OPs total: ' + i(trunc( TM * double( PArmiesCount(OP) + trunc( double( PCardCount(OP) )/3 * double(PCardTurnInValue(OP)) ) ) ))); end;
       if ( PArmiesCount(PME) + PNewArmies(PMe) - PTerritoriesCount(PMe) - ( PArmiesCount(WP) + PTerritoriesCount(WP) )
        + trunc( double( PCardCount(Pme) + PCardCount(WP) + 1 )/3 * double(TIV) )
        >  trunc( TM * double( PArmiesCount(OP) + trunc( double( PCardCount(OP) )/3 * double(PCardTurnInValue(OP)) ) ) ) ) and (PCardCount(OP) < 3)
@@ -2926,7 +2929,7 @@ begin
       If KillWP then begin
        // UTakeSnapshot('place to help kill a player');
          For x:= 300 to 342 do bs(x, 0);
-      l('killwp = true, max that combined pathcosts can be: ' + i((PArmiesCount(PME) +  PNewArmies(PMe) - PTerritoriesCount(PMe)) - (PArmiesCount(WP) + PTerritoriesCount(WP))));
+      begin if VexerLogEnabled then l('killwp = true, max that combined pathcosts can be: ' + i((PArmiesCount(PME) +  PNewArmies(PMe) - PTerritoriesCount(PMe)) - (PArmiesCount(WP) + PTerritoriesCount(WP)))); end;
 
         Abort:= False;
         for T:= 1 to 42 do begin
@@ -2939,7 +2942,7 @@ begin
 
         MaxArmy:= Army[1];
         Repeat
-          l('MaxArmy ' + i(MaxArmy));
+          begin if VexerLogEnabled then l('MaxArmy ' + i(MaxArmy)); end;
           aNode[MaxArmy].bTotalEA:= 0;
 
           for T:= 1 to 42 do begin
@@ -3011,13 +3014,13 @@ begin
               //  l('ichild ' + i(ichild) + ' pathcost ' + i(anode[ichild].pathcost));
                 if aNode[iChild].PathCost > ( (PArmiesCount(PME) +  PNewArmies(PMe) - PTerritoriesCount(PMe))
                  - (PArmiesCount(WP) + PTerritoriesCount(WP)) ) div 2 then begin
-                  l('1, ichild ' + i(ichild));
+                  begin if VexerLogEnabled then l('1, ichild ' + i(ichild)); end;
                   if PlaceToKillPlayer2(WP, iChild, PathCostTotal, Cost, MaxArmy1) then begin
-                    l('2, ichild ' + i(ichild) + ' cost ' + i(cost) + ' PathCost ' + i(anode[ichild].pathcost) + ' maxarmy1 ' + i(maxarmy1) + ' maxarmy ' + i(maxarmy));
+                    begin if VexerLogEnabled then l('2, ichild ' + i(ichild) + ' cost ' + i(cost) + ' PathCost ' + i(anode[ichild].pathcost) + ' maxarmy1 ' + i(maxarmy1) + ' maxarmy ' + i(maxarmy)); end;
                     if (MaxArmy1 <> MaxArmy) then begin
                       aNode[iChild].bOpen:= false;
                       AccountedFor[iChild]:= false;
-                      l('3, ichild removed, ' + i(ichild));
+                      begin if VexerLogEnabled then l('3, ichild removed, ' + i(ichild)); end;
 
                       // removed any of WP's Ts that are connected
                       for T:=1 to 42 do begin
@@ -3044,7 +3047,7 @@ begin
                             if TOwner(iChild1) <> WP then Continue;
 
                             if ((not bNode[iChild1].Open) and (not bNode[iChild1].Closed)) then begin
-                              l('4, ichild1 removed, ' + i(ichild1));
+                              begin if VexerLogEnabled then l('4, ichild1 removed, ' + i(ichild1)); end;
                               aNode[iChild1].bOpen:= false;
                               AccountedFor[iChild1]:= false;
                               bNode[iChild1].Open:= true;
@@ -3092,7 +3095,7 @@ begin
             TotalCost:= 3;
           end else TotalCost:= TotalCost + 3 + (ET div 3) + extra;
           //if m2('total cost: ' + i(Totalcost)) then exit;
-          l('total cost: ' + i(Totalcost));
+          begin if VexerLogEnabled then l('total cost: ' + i(Totalcost)); end;
 
            //if m2('4 start new part, T ' + i(MaxArmy)) then exit;
           TCanTake[MaxArmy]:= aNode[MaxArmy].bTotalEA - (TArmies(MaxArmy) - 1);
@@ -3110,10 +3113,10 @@ begin
           //if m2('5 start new part, T ' + i(MaxArmy)) then exit;
           // find a new T that might need more armies
 
-          if abort then l('abort, TotalCost > (TArmies(MaxArmy) - 1) + PNewArmies(PMe)') else begin
+          if abort then begin if VexerLogEnabled then l('abort, TotalCost > (TArmies(MaxArmy) - 1) + PNewArmies(PMe)'); end else begin
             if TotalNeeded > PNewArmies(PMe) then begin
               abort:= true;
-              l('abort, TotalNeeded > PNewArmies');
+              begin if VexerLogEnabled then l('abort, TotalNeeded > PNewArmies'); end;
             end;
           end;
 
@@ -3127,7 +3130,7 @@ begin
               T:= T + 1;
               if (TOwner(T) = WP) and (not AccountedFor[T]) then begin
                 C:= C + 1;
-                l('find next maxarmy, T ' + i(t));
+                begin if VexerLogEnabled then l('find next maxarmy, T ' + i(t)); end;
                 if PlaceToKillPlayer2(WP, T, PathCostTotal, Cost, MaxArmy1) then begin
                   if ((Cost < MinCost) or (MinCost = 0)) and (not (MaxArmy1 = oMaxArmy)) then begin
                     MinCost:= Cost;
@@ -3149,11 +3152,11 @@ begin
         Until (MaxArmy = 0) or abort;
       end; // end If KillWP
     end;
-    l('************* total needed ' + i(totalneeded) + ' place T count ' + i(PlaceTCount));
+    begin if VexerLogEnabled then l('************* total needed ' + i(totalneeded) + ' place T count ' + i(PlaceTCount)); end;
     if ((PNewArmies(PMe) < TotalNeeded) and (PNewArmies(PMe) > 1)) or Abort then begin
       ToTerritory:= 0;
       bs(300, 0);
-      l('cancel place to kill player, dont have enough armies, total needed: ' + i(totalneeded) + ' or abort=true');
+      begin if VexerLogEnabled then l('cancel place to kill player, dont have enough armies, total needed: ' + i(totalneeded) + ' or abort=true'); end;
     end;
     //if (ToTerritory > 0) and (PNewArmies(PMe) - TotalNeeded > 0) and (PlaceTCount = 1) then begin
     //  bs(56, bg(56) + 1);
@@ -3609,10 +3612,10 @@ begin
      // OldMaxCost:= MaxCost;
       Repeat
         if (y = 1) then begin
-          l('************************************************************second weakest');
+          begin if VexerLogEnabled then l('************************************************************second weakest'); end;
           if (Rank[SAlivePlayersCount - 1] <> PMe) then WP:=Rank[SAlivePlayersCount - 1] else break;
         end;
-        l('bg89 ' + i(bg(89)) + ' bg88 ' + i(bg(88)) + ' bg87 ' + i(bg(87)));
+        begin if VexerLogEnabled then l('bg89 ' + i(bg(89)) + ' bg88 ' + i(bg(88)) + ' bg87 ' + i(bg(87))); end;
         if (not ( (WP = bg(89)) or (WP = bg(88)) or (WP = bg(87)) )) then begin
           KillWeakPlayerCheck(WP, 0, KillWP, Rank);
         end;
@@ -3660,8 +3663,8 @@ end;
             end;
   //          FirstFT:= 0;
   //          FirstTT:= 0;
-            l('');
-            l('WP= ' + PName(WP));
+            begin if VexerLogEnabled then l(''); end;
+            begin if VexerLogEnabled then l('WP= ' + PName(WP)); end;
             x:= 400;
             //c:= 0;
             LastTT:= 0;
@@ -3683,7 +3686,7 @@ end;
                 KillWeakestPlayer(WP, LastTT, FT, TT);
                 if (FT = 0) and (LastTT > 0) then KillWeakestPlayer(WP, 0, FT, TT);
                 LastTT:= 0;
-                          l('ft ' + i(ft) + ' tt ' + i(tt));
+                          begin if VexerLogEnabled then l('ft ' + i(ft) + ' tt ' + i(tt)); end;
                 //if (QTArmies[FT] = 2) and (QTArmies[TT] = 1) then begin
                  // m('shouldnt be making this attack');
                  // FT:=0;
@@ -3715,7 +3718,7 @@ end;
                     If QTOwner[TT] = WP then begin
                       WPArmies:= WPArmies - TArmies(TT);
                     end;
-                    l('                                                WPArmies: ' + i(wparmies));
+                    begin if VexerLogEnabled then l('                                                WPArmies: ' + i(wparmies)); end;
                     QTOwner[TT]:= PMe;
                     if QTArmies[FT] = 1 then QTArmies[TT]:= 1 else begin
                       // occupy with the mandatory minimum
@@ -3749,7 +3752,7 @@ end;
                           //if TT = 29 then m('armies: ' + i(Armies));
                           QTArmies[FT]:= QTArmies[FT] - Armies;
                           QTArmies[TT]:= QTArmies[TT] + Armies;
-                          l('after occ qtarmies[ft] ' + i(qtarmies[ft]) + ' qtarmies[tt] ' + i(qtArmies[tt]));
+                          begin if VexerLogEnabled then l('after occ qtarmies[ft] ' + i(qtarmies[ft]) + ' qtarmies[tt] ' + i(qtArmies[tt])); end;
                         end;
                       end;
                     end;
@@ -3786,7 +3789,7 @@ end;
                   For P:= 1 to 10 do begin
                     if PAlive(P) and (P <> PMe) and (PCardTurnInValue(P) > MaxTIV) then MaxTIV:= PCardTurnInValue(P);
                   end;
-                  l('QMyAC ' + i(QMyAC) + ' QMyTC ' + i(qmytc) + ' TIV ' + i(TIV) + ' MaxTIV ' + i(MaxTIV));
+                  begin if VexerLogEnabled then l('QMyAC ' + i(QMyAC) + ' QMyTC ' + i(qmytc) + ' TIV ' + i(TIV) + ' MaxTIV ' + i(MaxTIV)); end;
                   if (PCardCount(PMe) + PCardCount(WP) >= 5) then begin
                     if QMyAC {- QMyTC}  + TIV < 20 then WPArmies:= -1;
                     if QMyAC - QMyTC + TIV < MaxTIV then begin
@@ -3946,9 +3949,9 @@ end;
   if ((SAlivePlayersCount = 4) or (SAlivePlayersCount = 3)) and (not KillWP) then begin
     cRankSort(Rank, PArmies, MyArmies);
     for x:= 1 to SAlivePlayersCount do begin
-      l('Rank ' + i(x) + ' ' + PProgram(Rank[x]) + ' Armies ' + i(PArmies[x]));
+      begin if VexerLogEnabled then l('Rank ' + i(x) + ' ' + PProgram(Rank[x]) + ' Armies ' + i(PArmies[x])); end;
     end;
-    l('MyArmies ' + i(MyArmies));
+    begin if VexerLogEnabled then l('MyArmies ' + i(MyArmies)); end;
     if (PArmiesCount(PMe) > 150) and (not (Rank[SAlivePlayersCount] = PMe)) then begin
       if (SAlivePlayersCount = 3) and (Rank[1] <> PMe) then begin
     //  Total:= 0;
@@ -4044,7 +4047,7 @@ end;
   {------------------------------------------ATTACK STRONG PLAYER---------------------------------------}
 
   If (FromTerritory = 0) then begin
-    l('begin attack sp');
+    begin if VexerLogEnabled then l('begin attack sp'); end;
     cRankSort(Rank, PArmies, MyArmies);
     SP:= 0;
     AttackSP:= false;
@@ -4063,14 +4066,14 @@ end;
          and (SAlivePlayersCount < 5) then AttackSP:= true;
       end;
     end;
-    if attacksp then l('1 attack sp');
+    if attacksp then begin if VexerLogEnabled then l('1 attack sp'); end;
 //    OneHuman:= GameHasOneHuman(P);
     if SCardsBasedOnCombo and GameHasOneHuman(P) then AttackSP:= true;
 
     if not SCardsBasedOnCombo then SP:= Rank[1] else begin
       if GameHasOneHuman(P) then SP:= P else SP:= Rank[1];
     end;
-    l('sp: ' + i(sp));
+    begin if VexerLogEnabled then l('sp: ' + i(sp)); end;
     //  attacksp:= true; sp:= 2;
     if attackSP and (SP > 0) then begin
       m2('attempt attack strong player');
@@ -4134,7 +4137,7 @@ end;
     end;
 
     //if bg(61) > 0 then
-    l('CForce: ' + i(Cforce) + ' bg(61): ' + i(bg(61)));
+    begin if VexerLogEnabled then l('CForce: ' + i(Cforce) + ' bg(61): ' + i(bg(61))); end;
 
     //if PArmiesCount(PMe) > 200 then CForce:= CForce * 2;
     if (not SConquest) and (FromTerritory = 0) then begin
@@ -4265,7 +4268,7 @@ end;
             Coef:= Coef + 1/double(TArmies(BT));
           end;
           Coef:= Coef * 2.94;
-          l('coef ' + f(coef));
+          begin if VexerLogEnabled then l('coef ' + f(coef)); end;
           For B:= 1 to TBordersCount(T) do begin
             BT:= TBorder(T, B);
             if ((T = 14) and (BT = 12)) or ((T = 9) and (BT = 10)) then continue; // dont go into SA
@@ -4283,7 +4286,7 @@ end;
                 MinArmy:= TArmies(BT1);
               end;
             end;
-            l('bt ' + i(BT) + ' points ' + f(apoints));
+            begin if VexerLogEnabled then l('bt ' + i(BT) + ' points ' + f(apoints)); end;
             go:= false;
             if (aPoints = MaxPoints) and (MinArmy < oMinArmy) then go:= true;
             if aPoints > MaxPoints then go:= true;
@@ -4293,7 +4296,7 @@ end;
               ToTerritory:= BT;
               oMinArmy:= MinArmy;
             //  TT2:= BT1;
-              l('Points > MaxPoints, TT: ' + i(ToTerritory) + ' points ' + f(apoints) + ' TT2 ' + i(TT2));
+              begin if VexerLogEnabled then l('Points > MaxPoints, TT: ' + i(ToTerritory) + ' points ' + f(apoints) + ' TT2 ' + i(TT2)); end;
             end;
           end;
         end;
@@ -4554,7 +4557,7 @@ begin
   If (bg(72) > 2) and (ToTerritory = bg(71)) then begin
     Armies:= FTA;
     if (FTA > TIV) and (FTA > 100) and (TArmies(Army[2]) < 4) then Armies:= FTA div 2;
-    l('occupy the T weve been trading');
+    begin if VexerLogEnabled then l('occupy the T weve been trading'); end;
   end;
   //m2('end of occ armmies: ' + i(Armies));
      // Army is for defence
@@ -4721,9 +4724,9 @@ begin
   end;
   if SConquest then bs(61,0);
   if bg(61) > 0 then begin
-    l('');
-    l('Turns without conquest: ' + i(bg(61)));
-    l('Turns without conquest total: ' + i(bg(62)));
+    begin if VexerLogEnabled then l(''); end;
+    begin if VexerLogEnabled then l('Turns without conquest: ' + i(bg(61))); end;
+    begin if VexerLogEnabled then l('Turns without conquest total: ' + i(bg(62))); end;
   end;
   if bg(61) > 10 then begin
     UTakeSnapshot('>10 turns in a row without conquest');
@@ -4786,9 +4789,9 @@ begin
         FromTerritory:= T;
         ToTerritory:= TT;
         Armies:= TArmies(T) - 1;
-        l('');
+        begin if VexerLogEnabled then l(''); end;
         m2('1 large army blocked in FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory));
-        l('');
+        begin if VexerLogEnabled then l(''); end;
       end;
     end;
   end;
@@ -4824,14 +4827,14 @@ begin
             if (  ( (EA1 < EA) and (TArmies(BT) > 3) and Combine )
             or ( (EA1 < EA) and (TArmies(BT) < 3) )  )
             and ((EA1 < MinEA) or (MinEA = 0)) then begin
-              if combine and (TArmies(BT) > 3) then l('combine');
+              if combine and (TArmies(BT) > 3) then begin if VexerLogEnabled then l('combine'); end;
               ToTerritory:= BT;
               FromTerritory:= T;
               Armies:= TArmies(FromTerritory) - 1;
               MinEA:= EA1;
-              l('');
-              l('3 fortify to T with less EA TT: ' + i(ToTerritory));
-              l('');
+              begin if VexerLogEnabled then l(''); end;
+              begin if VexerLogEnabled then l('3 fortify to T with less EA TT: ' + i(ToTerritory)); end;
+              begin if VexerLogEnabled then l(''); end;
             end;
           end;
         end;
@@ -4851,7 +4854,7 @@ begin
           ToTerritory:= TT;
           Armies:= TArmies(Army[x]) - 1;
           if (x = 1) and (TArmies(Army[x]) > 40) and (not TIsBordering(TT, TFront(Army[x], 1))) then Armies:= TArmies(Army[x]) - 4;  // leave some behind in case blocking enemy moves away
-          l('4 untrap me FT: ' + i(Fromterritory) + ' TT: ' + i(Toterritory));
+          begin if VexerLogEnabled then l('4 untrap me FT: ' + i(Fromterritory) + ' TT: ' + i(Toterritory)); end;
           exit;
         end;
       end;
@@ -4880,9 +4883,9 @@ begin
           FromTerritory:= T;
           ToTerritory:= TT;
           Armies:= TArmies(T) - 1;
-          l('');
-          l('5 large army blocked in FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory));
-          l('');
+          begin if VexerLogEnabled then l(''); end;
+          begin if VexerLogEnabled then l('5 large army blocked in FT: ' + i(FromTerritory) + ' TT: ' + i(ToTerritory)); end;
+          begin if VexerLogEnabled then l(''); end;
         end;
       end;
     end;
