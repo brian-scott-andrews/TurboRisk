@@ -5,11 +5,11 @@ program TRCompWorkflowTests;
 uses
   Interfaces, Forms, Classes, SysUtils, Variants, Grids, StdCtrls, Controls,
   uPSRuntime, Globals, ExpSubr, TRCompContextForm, ActionHistory,
-  BrainlessMovementTests, ZotobAttackTests,
+  BrainlessMovementTests, ErasorMovementTests, ZotobAttackTests,
   TectonicPlacementTests, PortedAIRegressionTests, BrainlessRouteTests,
   Walker3Tests, ShadowTests, CooperationRecognitionTests, IdentityAblationTests,
   KamikazeTests, TortoiseTests, VultureTests, CounterweightTests,
-  RaptorPlacementTests;
+  RaptorPlacementTests, AustralianOptimizationTests, SearchOptimizationTests;
 
 procedure Check(ACondition: Boolean; const AMessage: string);
 begin
@@ -343,6 +343,22 @@ end;
 begin
   try
     Application.Initialize;
+    if (ParamCount=1) and (ParamStr(1)='--enemy-cost-tests') then begin
+      RunEnemyCostOptimizationTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--legacy-tests') then begin
+      RunLegacyOptimizationTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--search-optimization-tests') then begin
+      RunSearchOptimizationTests;
+      Halt(0);
+    end;
+    if (ParamCount=1) and (ParamStr(1)='--australian-tests') then begin
+      RunAustralianOptimizationTests;
+      Halt(0);
+    end;
     if (ParamCount=1) and (ParamStr(1)='--raptor-tests') then begin
       RunRaptorPlacementTests;
       Halt(0);
@@ -366,11 +382,17 @@ begin
     if (ParamCount=1) and (ParamStr(1)='--shadow-tests') then begin
       RunShadowTests;
       RunShadow2Tests;
+      RunShadow2OptimizationTests;
       Halt(0);
     end;
     TestContextEditing;
     TestRoutineExecution;
     RunBrainlessMovementTests;
+    RunAustralianOptimizationTests;
+    RunEnemyCostOptimizationTests;
+    RunLegacyOptimizationTests;
+    RunSearchOptimizationTests;
+    RunErasorMovementTests;
     RunZotobAttackTests;
     RunTectonicPlacementTests;
     RunRaptorPlacementTests;
@@ -383,6 +405,7 @@ begin
     RunCounterweightTests;
     RunShadowTests;
     RunShadow2Tests;
+    RunShadow2OptimizationTests;
     RunCooperationRecognitionTests;
     RunIdentityAblationTests;
     WriteLn('TRComp validation, context-editing, and routine-execution tests passed.');

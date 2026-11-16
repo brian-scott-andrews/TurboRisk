@@ -142,4 +142,43 @@ try {
 } finally {
   Remove-Item -LiteralPath $runPath -Recurse -Force
 }
-Write-Output "PASS: multiple focus bots, version-aware reuse, unique rosters, all sizes, independent quotas, termination, coverage packing ($required games), fresh historical loading and deduplicated resume/staging."
+$bots=@('brainless V','brainless vi','zotob')
+$focus=@('brainless V','brainless vi')
+$versionCutoffs=@{}
+$botSet=New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+foreach($bot in $bots){[void]$botSet.Add($bot)}
+$vHistory=@(
+  '20261026,120000,1,1,40,2,brainless V,40,0,42,zotob,39,0,0',
+  '20261026,120001,1,1,40,2,zotob,40,0,42,brainless V legacy,39,0,0',
+  '20261028,120000,1,1,40,2,brainless V,40,0,42,zotob,39,0,0',
+  '20261026,120002,1,1,40,2,brainless vi,40,0,42,zotob,39,0,0',
+  '20261028,120001,1,1,40,2,brainless vi,40,0,42,zotob,39,0,0'
+)
+$pairStats=@{}
+foreach($line in $vHistory){
+  if(-not(Test-EligibleHistoricalLine $line)){throw 'Pooled V evidence was ineligible'}
+  Add-ResultLine $line
+}
+if($pairStats['2|brainless V|zotob'].N -ne 3 -or
+    $pairStats['2|brainless V|zotob'].Score -ne 2 -or
+    $pairStats['2|brainless vi|zotob'].N -ne 1){
+  throw 'Planning must pool V history and aliases, but retain the VI strategy boundary'
+}
+$overperformancePath=Join-Path $PSScriptRoot '..\Doc\Tournament\run-opponent-overperformance-tournament.ps1'
+$overperformanceAst=[Management.Automation.Language.Parser]::ParseFile($overperformancePath,[ref]$tokens,[ref]$errors)
+if($errors.Count){throw ($errors|Out-String)}
+foreach($function in $overperformanceAst.FindAll({
+  param($node) $node -is [Management.Automation.Language.FunctionDefinitionAst]
+},$false)){
+  if($function.Name -in @('Get-PairKey','Add-ResultLine')){
+    . ([scriptblock]::Create($function.Extent.Text))
+  }
+}
+$pairStats=@{}
+foreach($line in $vHistory){Add-ResultLine $line $true}
+if($pairStats['brainless V|zotob'].N -ne 3 -or
+    $pairStats['brainless V|zotob'].ScoreA -ne 2 -or
+    $pairStats['brainless vi|zotob'].N -ne 1){
+  throw 'Overperformance evidence must pool V history and aliases without pooling legacy VI'
+}
+Write-Output "PASS: multiple focus bots, version-aware reuse, unique rosters, all sizes, independent quotas, termination, coverage packing ($required games), fresh historical loading, deduplicated resume/staging and V-only legacy pooling."

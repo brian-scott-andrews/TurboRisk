@@ -327,15 +327,17 @@ begin
   end else if FromisFront then begin
  
 TStrongestFront(FromTerritory,EnemyT,EnemyA);
-    if EnemyT > Tarmies(FromTerritory) then begin
+    if EnemyA > Tarmies(FromTerritory) then begin
         Armies:= 1;
        end else
-         if EnemyT < TArmies(FromTerritory) then
+         if EnemyA < TArmies(FromTerritory) then
              Armies:=TArmies(FromTerritory)-EnemyA ;
 
   end else begin
     Armies:=(TArmies(FromTerritory)-2);
   end;
+  if Armies>TArmies(FromTerritory)-1 then Armies:=TArmies(FromTerritory)-1;
+  if Armies<0 then Armies:=0;
 end;
 
 procedure Fortification(var FromTerritory, ToTerritory, Armies: integer);

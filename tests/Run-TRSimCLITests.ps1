@@ -202,6 +202,96 @@ try {
   if ($records[-1].kind -ne 11) { throw 'Action log omitted the game-ending status.' }
   Write-Output 'PASS: JSONL actions reconstruct the board, preserve RNG results, and include combat outcomes.'
 
+  $timingPath = Join-Path $runB 'routine-timing.jsonl'
+  $timingResult = Invoke-TRSimCLI $cli @(
+    '--schedule', $seedSchedule, '--turn-limit', '100', '--seed', '123',
+    '--timing-log', $timingPath,
+    '--game-log', (Join-Path $runB 'timing.sgl'),
+    '--cpu-log', (Join-Path $runB 'timing.scl')
+  ) $runB
+  Assert-ExitCode $timingResult 0 'Routine timing trace'
+  $timingRecords = @(Get-Content -LiteralPath $timingPath |
+    ForEach-Object { $_ | ConvertFrom-Json })
+  if ($timingRecords[0].format -ne 'TurboRisk.routine-timing' -or
+      $timingRecords[0].type -ne 'session') {
+    throw 'Routine timing trace omitted its session header.'
+  }
+  $openCalls = @{}
+  $openPhases = @{}
+  $phaseNames = @{}
+  $lastElapsed = -1L
+  $timingStarts = 0
+  $timingEnds = 0
+  $phaseEnds = 0
+  for ($i = 1; $i -lt $timingRecords.Count; $i++) {
+    $event = $timingRecords[$i]
+    if ($event.sequence -ne $i -or [long]$event.elapsed_ms -lt $lastElapsed -or
+        $event.timestamp_local -notmatch '^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}$') {
+      throw "Invalid timing sequence or timestamp at row $i."
+    }
+    $lastElapsed = [long]$event.elapsed_ms
+    $callId = [string]$event.call_id
+    if ($event.type -eq 'routine_start') {
+      if ($openCalls.ContainsKey($callId) -or
+          [string]::IsNullOrWhiteSpace($event.player) -or
+          [string]::IsNullOrWhiteSpace($event.routine)) {
+        throw "Invalid routine start at row $i."
+      }
+      $openCalls[$callId] = $event
+      $timingStarts++
+    } elseif ($event.type -eq 'routine_end') {
+      if (-not $openCalls.ContainsKey($callId)) {
+        throw "Routine end has no matching start at row $i."
+      }
+      $start = $openCalls[$callId]
+      if ($start.game -ne $event.game -or $start.turn -ne $event.turn -or
+          $start.player_index -ne $event.player_index -or
+          $start.routine -ne $event.routine -or [long]$event.duration_ms -lt 0) {
+        throw "Routine end does not match its start at row $i."
+      }
+      $openCalls.Remove($callId)
+      $timingEnds++
+    } elseif ($event.type -eq 'phase_start') {
+      $phaseId = [string]$event.phase_id
+      if ($openPhases.ContainsKey($phaseId) -or
+          [string]::IsNullOrWhiteSpace($event.phase)) {
+        throw "Invalid simulator phase start at row $i."
+      }
+      $openPhases[$phaseId] = $event
+      $phaseNames[$event.phase] = $true
+    } elseif ($event.type -eq 'phase_end') {
+      $phaseId = [string]$event.phase_id
+      if (-not $openPhases.ContainsKey($phaseId)) {
+        throw "Simulator phase end has no matching start at row $i."
+      }
+      $start = $openPhases[$phaseId]
+      if ($start.phase -ne $event.phase -or [long]$event.duration_ms -lt 0) {
+        throw "Simulator phase end does not match its start at row $i."
+      }
+      $openPhases.Remove($phaseId)
+      $phaseEnds++
+    } else {
+      throw "Unknown routine timing event at row $i."
+    }
+  }
+  $cpuCallTotal = 0L
+  foreach ($line in Get-Content -LiteralPath (Join-Path $runB 'timing.scl')) {
+    if ($line -match '^Calls\d+=(\d+)$') {
+      $cpuCallTotal += [long]$Matches[1]
+    }
+  }
+  foreach ($phase in @('computer_turn', 'assign_new_armies', 'pass_turn')) {
+    if (-not $phaseNames.ContainsKey($phase)) {
+      throw "Routine timing trace omitted simulator phase $phase."
+    }
+  }
+  if ($timingStarts -eq 0 -or $timingStarts -ne $timingEnds -or
+      $timingEnds -ne $cpuCallTotal -or $openCalls.Count -ne 0 -or
+      $phaseEnds -eq 0 -or $openPhases.Count -ne 0) {
+    throw 'Routine timing trace did not close every completed bot call and simulator phase.'
+  }
+  Write-Output "PASS: routine timing trace recorded $timingEnds matched TRP calls (CPU log: $cpuCallTotal) and $phaseEnds matched simulator phases."
+
   $historyPlayer = @'
 procedure CheckHistory;
 var
