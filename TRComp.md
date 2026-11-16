@@ -30,5 +30,16 @@ These tests check valid and incomplete TRP validation, editable context values,
 function results, `var` parameters, captured utility calls, and restoration of
 the active game state and random sequence.
 
+Run just the strategy-preserving search optimization comparisons with:
+
+```powershell
+.\tests\TRCompWorkflowTests.exe --search-optimization-tests
+```
+
+These compare callback outputs and player buffers against frozen route and
+scoring references for Counterweight, Challenger, Doomstack, Shadow, Brainless VI,
+Actuary and Shadow2. Cases cover route tie-breaking and budgets, Shadow's duel
+and Vexer-triggered modes, and continent ownership changes between callbacks.
+
 For legacy player-script migration guidance and numbered territory maps, see
 the [TRP conversion reference](Doc/README.md).

@@ -34,9 +34,11 @@ end;
 
 function FindEliminationRoute(Start: integer; var FirstStep: integer): boolean;
 var
-  P,T,B,Node,NextNode,Step,Cost,MinDist,CandidateCost,CandidateTarget,BestCost: integer;
+  P,T,B,Node,NextNode,Step,Cost,CandidateCost,CandidateTarget,BestCost,
+    Head,Cursor,Prior: integer;
   Dist: array [1..42] of integer;
   Parent: array [1..42] of integer;
+  QueueNext,QueuePrev: array [1..42] of integer;
   Visited: array [1..42] of boolean;
 begin
   FirstStep:=0;
@@ -52,20 +54,18 @@ begin
       Dist[T]:=2147483647;
       Parent[T]:=0;
       Visited[T]:=False;
+      QueueNext[T]:=0; QueuePrev[T]:=0;
     end;
-    Dist[Start]:=0;
+    Dist[Start]:=0; Head:=Start;
     CandidateCost:=2147483647;
     CandidateTarget:=0;
 
     repeat
-      Node:=0;
-      MinDist:=2147483647;
-      for T:=1 to 42 do
-        if (not Visited[T]) and (Dist[T]<MinDist) then begin
-          MinDist:=Dist[T];
-          Node:=T;
-        end;
+      Node:=Head;
       if Node=0 then break;
+      Head:=QueueNext[Node];
+      if Head<>0 then QueuePrev[Head]:=0;
+      QueueNext[Node]:=0;
       Visited[Node]:=True;
 
       if (Node<>Start) and (TOwner(Node)=P) then begin
@@ -79,8 +79,24 @@ begin
         if (NextNode<1) or (NextNode>42) or TIsMine(NextNode) then continue;
         Cost:=Dist[Node]+TArmies(NextNode)+1;
         if (not Visited[NextNode]) and (Cost<Dist[NextNode]) then begin
+          if Dist[NextNode]<2147483647 then begin
+            if QueuePrev[NextNode]=0 then Head:=QueueNext[NextNode]
+            else QueueNext[QueuePrev[NextNode]]:=QueueNext[NextNode];
+            if QueueNext[NextNode]<>0 then
+              QueuePrev[QueueNext[NextNode]]:=QueuePrev[NextNode];
+          end;
           Dist[NextNode]:=Cost;
           Parent[NextNode]:=Node;
+          // Keep the original lowest-territory tie break.
+          Cursor:=Head; Prior:=0;
+          while Cursor<>0 do begin
+            if (Dist[Cursor]>Cost) or
+              ((Dist[Cursor]=Cost) and (Cursor>NextNode)) then break;
+            Prior:=Cursor; Cursor:=QueueNext[Cursor];
+          end;
+          QueuePrev[NextNode]:=Prior; QueueNext[NextNode]:=Cursor;
+          if Prior=0 then Head:=NextNode else QueueNext[Prior]:=NextNode;
+          if Cursor<>0 then QueuePrev[Cursor]:=NextNode;
         end;
       end;
 

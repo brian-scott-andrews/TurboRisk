@@ -288,7 +288,8 @@ begin
 end;
 
 procedure ACAttack(var FromTerritory,ToTerritory: integer);
-var T,F,E,H,Owner,A,D,Onward,TC,Stack,From,First,Victim,Force: integer;
+var T,F,E,H,Owner,A,D,Onward,TC,Stack,From,First,Victim,Force,C: integer;
+  Missing: array[1..6] of integer;
   P,V,EV,Best,W: double;
 begin
   FromTerritory:=0; ToTerritory:=0;
@@ -298,6 +299,10 @@ begin
     end;
   W:=AttritionWeight; Best:=0.0; TC:=TargetContinent;
   Stack:=StrongestFront; Force:=EnemyArmies;
+  for C:=1 to 6 do Missing[C]:=0;
+  for T:=1 to 42 do if not TIsMine(T) then begin
+    C:=TContinent(T); Missing[C]:=Missing[C]+1;
+  end;
   for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
     for F:=1 to TFrontsCount(T) do begin
       E:=TFront(T,F); Owner:=TOwner(E);
@@ -306,7 +311,7 @@ begin
       if P>=0.5 then begin
         V:=0.5;
         if not SConquest then V:=V+CardValue;
-        if (CBonus(TContinent(E))>0) and CompletesContinent(E) then
+        if (CBonus(TContinent(E))>0) and (Missing[TContinent(E)]=1) then
           V:=V+CBonus(TContinent(E))*3.0;
         if (Owner>0) and (COwner(TContinent(E))=Owner) then
           V:=V+CBonus(TContinent(E))*2.0;
@@ -424,7 +429,8 @@ end;
 function DSRoute(Start,P,Budget: integer; var First,Cost: integer): boolean;
 var Used,Closed: array[1..42] of boolean;
   Distance,Previous: array[1..42] of integer;
-  T,E,F,Current,Next,Remaining,N,Cheapest,StepCost,Factor: integer;
+  QueueNext,QueuePrev: array[1..42] of integer;
+  T,E,F,Current,Next,Remaining,N,StepCost,Factor,Head,Cursor,Prior: integer;
 begin
   Result:=false; First:=0; Cost:=0;
   if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;
@@ -440,15 +446,15 @@ begin
   while Remaining>0 do begin
     for T:=1 to 42 do begin
       Distance[T]:=100000; Previous[T]:=0; Closed[T]:=false;
+      QueueNext[T]:=0; QueuePrev[T]:=0;
     end;
-    Distance[Current]:=0; Next:=0;
+    Distance[Current]:=0; Next:=0; Head:=Current;
     for N:=1 to 42 do begin
-      E:=0; Cheapest:=100000;
-      for T:=1 to 42 do
-        if not Closed[T] and (Distance[T]<Cheapest) then begin
-          E:=T; Cheapest:=Distance[T];
-        end;
+      E:=Head;
       if E=0 then break;
+      Head:=QueueNext[E];
+      if Head<>0 then QueuePrev[Head]:=0;
+      QueueNext[E]:=0;
       Closed[E]:=true;
       if (E<>Current) and (TOwner(E)=P) then begin Next:=E; break end;
       for F:=1 to TBordersCount(E) do begin
@@ -456,7 +462,21 @@ begin
         if not TIsMine(T) and not Used[T] and not Closed[T] then begin
           StepCost:=Distance[E]+Factor*DSDefense(T)+1;
           if StepCost<Distance[T] then begin
+            if Distance[T]<100000 then begin
+              if QueuePrev[T]=0 then Head:=QueueNext[T]
+              else QueueNext[QueuePrev[T]]:=QueueNext[T];
+              if QueueNext[T]<>0 then QueuePrev[QueueNext[T]]:=QueuePrev[T];
+            end;
             Distance[T]:=StepCost; Previous[T]:=E;
+            Cursor:=Head; Prior:=0;
+            while Cursor<>0 do begin
+              if (Distance[Cursor]>StepCost) or
+                ((Distance[Cursor]=StepCost) and (Cursor>T)) then break;
+              Prior:=Cursor; Cursor:=QueueNext[Cursor];
+            end;
+            QueuePrev[T]:=Prior; QueueNext[T]:=Cursor;
+            if Prior=0 then Head:=T else QueueNext[Prior]:=T;
+            if Cursor<>0 then QueuePrev[Cursor]:=T;
           end;
         end;
       end;
@@ -534,7 +554,8 @@ end;
 
 procedure DSAttack(var FT,TT: integer);
 var T,F,E,P,Next,Cost,Target,Reward,BestReward,S,
-  Available,Score,Best,H,Neighbor,Onward,Cheapest: integer;
+  Available,Score,Best,H,Neighbor,Onward,Cheapest,C: integer;
+  Missing: array[1..6] of integer;
   Need: double; Allowed: boolean;
 begin
   FT:=0; TT:=0; S:=DSFront;
@@ -553,6 +574,10 @@ begin
     end;
   end;
   if TT>0 then exit;
+  for C:=1 to 6 do Missing[C]:=0;
+  for T:=1 to 42 do if not TIsMine(T) then begin
+    C:=TContinent(T); Missing[C]:=Missing[C]+1;
+  end;
   Best:=-100000;
   for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
     for F:=1 to TFrontsCount(T) do begin
@@ -570,7 +595,7 @@ begin
         end;
         Score:=Available-DSDefense(E)*3+Onward*4;
         if Cheapest<100000 then Score:=Score-Cheapest;
-        if DSCompletes(E) then Score:=Score+CBonus(TContinent(E))*12;
+        if Missing[TContinent(E)]=1 then Score:=Score+CBonus(TContinent(E))*12;
         if COwner(TContinent(E))=TOwner(E) then
           Score:=Score+CBonus(TContinent(E))*4;
         if Score>Best then begin Best:=Score; FT:=T; TT:=E end;
@@ -708,7 +733,9 @@ function EliminationStep(Start,Target: integer): integer;
 var
   Used,Closed: array[1..42] of boolean;
   D,Prev: array[1..42] of integer;
-  T,B,N,Pass,Current,Best,Goal,Remaining,Cost,Step,First,Budget: integer;
+  QueueNext,QueuePrev: array[1..42] of integer;
+  T,B,N,Pass,Current,Best,Goal,Remaining,Cost,Step,First,Budget,
+    Head,Cursor,Prior: integer;
 begin
   Result:=0;
   if Start=0 then exit;
@@ -722,24 +749,37 @@ begin
   while Remaining>0 do begin
     for T:=1 to 42 do begin
       D[T]:=1000000000; Prev[T]:=0; Closed[T]:=false;
+      QueueNext[T]:=0; QueuePrev[T]:=0;
     end;
-    D[Current]:=0;
+    D[Current]:=0; Head:=Current;
     for Pass:=1 to 42 do begin
-      Best:=0;
-      for T:=1 to 42 do if not Closed[T] then begin
-        if Best=0 then Best:=T
-        else if D[T]<D[Best] then Best:=T;
-      end;
+      Best:=Head;
       if Best=0 then break;
-      if D[Best]=1000000000 then break;
+      Head:=QueueNext[Best];
+      if Head<>0 then QueuePrev[Head]:=0;
+      QueueNext[Best]:=0;
       Closed[Best]:=true;
       for B:=1 to TBordersCount(Best) do begin
         N:=TBorder(Best,B);
         if not Used[N] and not Closed[N] and
           (not IsVexer(TOwner(N)) or (TOwner(N)=Target)) then
           if double(D[Best])+2.2*TArmies(N)+2<D[N] then begin
+            if D[N]<1000000000 then begin
+              if QueuePrev[N]=0 then Head:=QueueNext[N]
+              else QueueNext[QueuePrev[N]]:=QueueNext[N];
+              if QueueNext[N]<>0 then QueuePrev[QueueNext[N]]:=QueuePrev[N];
+            end;
             D[N]:=D[Best]+trunc(2.2*TArmies(N))+2;
             Prev[N]:=Best;
+            Cursor:=Head; Prior:=0;
+            while Cursor<>0 do begin
+              if (D[Cursor]>D[N]) or
+                ((D[Cursor]=D[N]) and (Cursor>N)) then break;
+              Prior:=Cursor; Cursor:=QueueNext[Cursor];
+            end;
+            QueuePrev[N]:=Prior; QueueNext[N]:=Cursor;
+            if Prior=0 then Head:=N else QueueNext[Prior]:=N;
+            if Cursor<>0 then QueuePrev[Cursor]:=N;
           end;
       end;
     end;

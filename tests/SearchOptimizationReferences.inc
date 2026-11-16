@@ -1,4 +1,186 @@
 const
+  BrainlessVIRouteReference =
+    'function FindEliminationRoute(Start: integer; var FirstStep: integer): boolean;' + LineEnding +
+    'var' + LineEnding +
+    '  P,T,B,Node,NextNode,Step,Cost,MinDist,CandidateCost,CandidateTarget,BestCost: integer;' + LineEnding +
+    '  Dist: array [1..42] of integer;' + LineEnding +
+    '  Parent: array [1..42] of integer;' + LineEnding +
+    '  Visited: array [1..42] of boolean;' + LineEnding +
+    'begin' + LineEnding +
+    '  FirstStep:=0; Result:=False;' + LineEnding +
+    '  if (Start<1) or (Start>42) or (not TIsMine(Start)) then exit;' + LineEnding +
+    '  BestCost:=2147483647;' + LineEnding +
+    '  for P:=1 to 10 do begin' + LineEnding +
+    '    if (P=PMe) or (not PActive(P)) or' + LineEnding +
+    '      (PArmiesCount(P)>=TArmies(Start)) then continue;' + LineEnding +
+    '    for T:=1 to 42 do begin' + LineEnding +
+    '      Dist[T]:=2147483647; Parent[T]:=0; Visited[T]:=False;' + LineEnding +
+    '    end;' + LineEnding +
+    '    Dist[Start]:=0; CandidateCost:=2147483647; CandidateTarget:=0;' + LineEnding +
+    '    repeat' + LineEnding +
+    '      Node:=0; MinDist:=2147483647;' + LineEnding +
+    '      for T:=1 to 42 do' + LineEnding +
+    '        if (not Visited[T]) and (Dist[T]<MinDist) then begin' + LineEnding +
+    '          MinDist:=Dist[T]; Node:=T;' + LineEnding +
+    '        end;' + LineEnding +
+    '      if Node=0 then break;' + LineEnding +
+    '      Visited[Node]:=True;' + LineEnding +
+    '      if (Node<>Start) and (TOwner(Node)=P) then begin' + LineEnding +
+    '        CandidateCost:=Dist[Node]; CandidateTarget:=Node; break;' + LineEnding +
+    '      end;' + LineEnding +
+    '      for B:=1 to TBordersCount(Node) do begin' + LineEnding +
+    '        NextNode:=TBorder(Node,B);' + LineEnding +
+    '        if (NextNode<1) or (NextNode>42) or TIsMine(NextNode) then continue;' + LineEnding +
+    '        Cost:=Dist[Node]+TArmies(NextNode)+1;' + LineEnding +
+    '        if (not Visited[NextNode]) and (Cost<Dist[NextNode]) then begin' + LineEnding +
+    '          Dist[NextNode]:=Cost; Parent[NextNode]:=Node;' + LineEnding +
+    '        end;' + LineEnding +
+    '      end;' + LineEnding +
+    '    until False;' + LineEnding +
+    '    if (CandidateCost<BestCost) and (CandidateCost<TArmies(Start)) then begin' + LineEnding +
+    '      if (CandidateTarget>=1) and (CandidateTarget<=42) then begin' + LineEnding +
+    '        Step:=CandidateTarget; T:=0;' + LineEnding +
+    '        while (Parent[Step]<>Start) and (Parent[Step]>0) and (T<42) do begin' + LineEnding +
+    '          Step:=Parent[Step]; T:=T+1;' + LineEnding +
+    '        end;' + LineEnding +
+    '        if (Parent[Step]=Start) and (Step>=1) and (Step<=42) then begin' + LineEnding +
+    '          if CandidateCost<BestCost then begin' + LineEnding +
+    '            BestCost:=CandidateCost; FirstStep:=Step; Result:=True;' + LineEnding +
+    '          end;' + LineEnding +
+    '        end;' + LineEnding +
+    '      end;' + LineEnding +
+    '    end;' + LineEnding +
+    '  end;' + LineEnding +
+    'end;' + LineEnding;
+  ShadowEliminationReference =
+    'function EliminationStep(Start,Target: integer): integer;' + LineEnding +
+    'var' + LineEnding +
+    '  Used,Closed: array[1..42] of boolean;' + LineEnding +
+    '  D,Prev: array[1..42] of integer;' + LineEnding +
+    '  T,B,N,Pass,Current,Best,Goal,Remaining,Cost,Step,First,Budget: integer;' + LineEnding +
+    'begin' + LineEnding +
+    '  Result:=0;' + LineEnding +
+    '  if Start=0 then exit;' + LineEnding +
+    '  if UBufferGet(100+Target)=0 then exit;' + LineEnding +
+    '  Remaining:=PTerritoriesCount(Target); Budget:=TArmies(Start)-1;' + LineEnding +
+    '  Cost:=5; First:=0; Current:=Start;' + LineEnding +
+    '  for T:=1 to 42 do Used[T]:=TIsMine(T);' + LineEnding +
+    '  while Remaining>0 do begin' + LineEnding +
+    '    for T:=1 to 42 do begin' + LineEnding +
+    '      D[T]:=1000000000; Prev[T]:=0; Closed[T]:=false;' + LineEnding +
+    '    end;' + LineEnding +
+    '    D[Current]:=0;' + LineEnding +
+    '    for Pass:=1 to 42 do begin' + LineEnding +
+    '      Best:=0;' + LineEnding +
+    '      for T:=1 to 42 do if not Closed[T] then begin' + LineEnding +
+    '        if Best=0 then Best:=T else if D[T]<D[Best] then Best:=T;' + LineEnding +
+    '      end;' + LineEnding +
+    '      if Best=0 then break;' + LineEnding +
+    '      if D[Best]=1000000000 then break;' + LineEnding +
+    '      Closed[Best]:=true;' + LineEnding +
+    '      for B:=1 to TBordersCount(Best) do begin' + LineEnding +
+    '        N:=TBorder(Best,B);' + LineEnding +
+    '        if not Used[N] and not Closed[N] and' + LineEnding +
+    '          (not IsVexer(TOwner(N)) or (TOwner(N)=Target)) then' + LineEnding +
+    '          if double(D[Best])+2.2*TArmies(N)+2<D[N] then begin' + LineEnding +
+    '            D[N]:=D[Best]+trunc(2.2*TArmies(N))+2; Prev[N]:=Best;' + LineEnding +
+    '          end;' + LineEnding +
+    '      end;' + LineEnding +
+    '    end;' + LineEnding +
+    '    Goal:=0;' + LineEnding +
+    '    for T:=1 to 42 do if (TOwner(T)=Target) and not Used[T] then begin' + LineEnding +
+    '      if Goal=0 then Goal:=T else if D[T]<D[Goal] then Goal:=T;' + LineEnding +
+    '    end;' + LineEnding +
+    '    if Goal=0 then exit;' + LineEnding +
+    '    if D[Goal]=1000000000 then exit;' + LineEnding +
+    '    Cost:=Cost+D[Goal];' + LineEnding +
+    '    if Cost>Budget then exit;' + LineEnding +
+    '    Step:=Goal;' + LineEnding +
+    '    while Step<>Current do begin' + LineEnding +
+    '      if Prev[Step]=0 then exit;' + LineEnding +
+    '      Used[Step]:=true;' + LineEnding +
+    '      if TOwner(Step)=Target then Remaining:=Remaining-1;' + LineEnding +
+    '      N:=Step; Step:=Prev[Step];' + LineEnding +
+    '    end;' + LineEnding +
+    '    if First=0 then First:=N;' + LineEnding +
+    '    Current:=Goal;' + LineEnding +
+    '  end;' + LineEnding +
+    '  Result:=First;' + LineEnding +
+    'end;' + LineEnding;
+  ShadowDuelRouteReference =
+    'function DSRoute(Start,P,Budget: integer; var First,Cost: integer): boolean;' + LineEnding +
+    'var Used,Closed: array[1..42] of boolean;' + LineEnding +
+    '  Distance,Previous: array[1..42] of integer;' + LineEnding +
+    '  T,E,F,Current,Next,Remaining,N,Cheapest,StepCost,Factor: integer;' + LineEnding +
+    'begin' + LineEnding +
+    '  Result:=false; First:=0; Cost:=0;' + LineEnding +
+    '  if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;' + LineEnding +
+    '  if not TIsMine(Start) or (P=PMe) or not PActive(P) then exit;' + LineEnding +
+    '  Remaining:=PTerritoriesCount(P);' + LineEnding +
+    '  if (Remaining<1) or (Remaining>10) then exit;' + LineEnding +
+    '  Factor:=2;' + LineEnding +
+    '  if SCardsBasedOnCombo then Factor:=3;' + LineEnding +
+    '  if (Remaining<=2) and (PArmiesCount(P)>=30) then Factor:=1;' + LineEnding +
+    '  if Factor*PArmiesCount(P)+Remaining+4>Budget then exit;' + LineEnding +
+    '  for T:=1 to 42 do Used[T]:=false;' + LineEnding +
+    '  Used[Start]:=true; Current:=Start;' + LineEnding +
+    '  while Remaining>0 do begin' + LineEnding +
+    '    for T:=1 to 42 do begin' + LineEnding +
+    '      Distance[T]:=100000; Previous[T]:=0; Closed[T]:=false;' + LineEnding +
+    '    end;' + LineEnding +
+    '    Distance[Current]:=0; Next:=0;' + LineEnding +
+    '    for N:=1 to 42 do begin' + LineEnding +
+    '      E:=0; Cheapest:=100000;' + LineEnding +
+    '      for T:=1 to 42 do' + LineEnding +
+    '        if not Closed[T] and (Distance[T]<Cheapest) then begin' + LineEnding +
+    '          E:=T; Cheapest:=Distance[T];' + LineEnding +
+    '        end;' + LineEnding +
+    '      if E=0 then break;' + LineEnding +
+    '      Closed[E]:=true;' + LineEnding +
+    '      if (E<>Current) and (TOwner(E)=P) then begin Next:=E; break end;' + LineEnding +
+    '      for F:=1 to TBordersCount(E) do begin' + LineEnding +
+    '        T:=TBorder(E,F);' + LineEnding +
+    '        if not TIsMine(T) and not Used[T] and not Closed[T] then begin' + LineEnding +
+    '          StepCost:=Distance[E]+Factor*DSDefense(T)+1;' + LineEnding +
+    '          if StepCost<Distance[T] then begin' + LineEnding +
+    '            Distance[T]:=StepCost; Previous[T]:=E;' + LineEnding +
+    '          end;' + LineEnding +
+    '        end;' + LineEnding +
+    '      end;' + LineEnding +
+    '    end;' + LineEnding +
+    '    if Next=0 then exit;' + LineEnding +
+    '    Cost:=Cost+Distance[Next];' + LineEnding +
+    '    if Cost+4>Budget then exit;' + LineEnding +
+    '    T:=Next;' + LineEnding +
+    '    while T<>Current do begin' + LineEnding +
+    '      if TOwner(T)=P then Remaining:=Remaining-1;' + LineEnding +
+    '      Used[T]:=true; E:=Previous[T];' + LineEnding +
+    '      if E=0 then exit;' + LineEnding +
+    '      if (Current=Start) and (E=Start) then First:=T;' + LineEnding +
+    '      T:=E;' + LineEnding +
+    '    end;' + LineEnding +
+    '    Current:=Next;' + LineEnding +
+    '  end;' + LineEnding +
+    '  Result:=First>0;' + LineEnding +
+    'end;' + LineEnding;
+  CompletionReference =
+    'function CompletesContinent(E: integer): boolean;' + LineEnding +
+    'var T,C: integer;' + LineEnding +
+    'begin' + LineEnding +
+    '  Result:=true; C:=TContinent(E);' + LineEnding +
+    '  for T:=1 to 42 do' + LineEnding +
+    '    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then begin' + LineEnding +
+    '      Result:=false; exit;' + LineEnding +
+    '    end;' + LineEnding +
+    'end;' + LineEnding;
+  ShadowDuelCompletionReference =
+    'function DSCompletes(E: integer): boolean;' + LineEnding +
+    'var T,C: integer;' + LineEnding +
+    'begin' + LineEnding +
+    '  Result:=true; C:=TContinent(E);' + LineEnding +
+    '  for T:=1 to 42 do' + LineEnding +
+    '    if (TContinent(T)=C) and (T<>E) and not TIsMine(T) then Result:=false;' + LineEnding +
+    'end;' + LineEnding;
   CounterReference =
     'function Gain(E: integer): double;' + LineEnding +
     'var C,T,Missing,P,EnemyMissing: integer;' + LineEnding +

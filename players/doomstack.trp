@@ -61,7 +61,9 @@ function EliminationRoute(Start, P, Budget: integer;
 var
   Used, Closed: array [1..42] of boolean;
   Distance, Previous: array [1..42] of integer;
-  T, E, F, Current, Next, Remaining, N, Cheapest, StepCost, Factor, Limit: integer;
+  QueueNext, QueuePrev: array [1..42] of integer;
+  T, E, F, Current, Next, Remaining, N, StepCost, Factor, Limit,
+    Head, Cursor, Prior: integer;
 begin
   result:=false; First:=0; Cost:=0;
   if (Start<1) or (Start>42) or (P<1) or (P>10) then exit;
@@ -82,15 +84,15 @@ begin
   while Remaining>0 do begin
     for T:=1 to 42 do begin
       Distance[T]:=100000; Previous[T]:=0; Closed[T]:=false;
+      QueueNext[T]:=0; QueuePrev[T]:=0;
     end;
-    Distance[Current]:=0; Next:=0;
+    Distance[Current]:=0; Next:=0; Head:=Current;
     for N:=1 to 42 do begin
-      E:=0; Cheapest:=100000;
-      for T:=1 to 42 do
-        if not Closed[T] and (Distance[T]<Cheapest) then begin
-          E:=T; Cheapest:=Distance[T];
-        end;
+      E:=Head;
       if E=0 then break;
+      Head:=QueueNext[E];
+      if Head<>0 then QueuePrev[Head]:=0;
+      QueueNext[E]:=0;
       Closed[E]:=true;
       if (E<>Current) and (TOwner(E)=P) then begin Next:=E; break end;
       for F:=1 to TBordersCount(E) do begin
@@ -98,7 +100,22 @@ begin
         if not TIsMine(T) and not Used[T] and not Closed[T] then begin
           StepCost:=Distance[E]+Factor*Defense(T)+1;
           if StepCost<Distance[T] then begin
+            if Distance[T]<100000 then begin
+              if QueuePrev[T]=0 then Head:=QueueNext[T]
+              else QueueNext[QueuePrev[T]]:=QueueNext[T];
+              if QueueNext[T]<>0 then QueuePrev[QueueNext[T]]:=QueuePrev[T];
+            end;
             Distance[T]:=StepCost; Previous[T]:=E;
+            // Preserve the original scan's lowest-territory tie break.
+            Cursor:=Head; Prior:=0;
+            while Cursor<>0 do begin
+              if (Distance[Cursor]>StepCost) or
+                  ((Distance[Cursor]=StepCost) and (Cursor>T)) then break;
+              Prior:=Cursor; Cursor:=QueueNext[Cursor];
+            end;
+            QueuePrev[T]:=Prior; QueueNext[T]:=Cursor;
+            if Prior=0 then Head:=T else QueueNext[Prior]:=T;
+            if Cursor<>0 then QueuePrev[Cursor]:=T;
           end;
         end;
       end;
@@ -267,8 +284,9 @@ procedure Attack(var FromTerritory, ToTerritory: integer);
 var T, F, E, P, Next, Cost, Target, Reward, BestReward, Stack,
   Available, Score, Best, H, Neighbor, Onward, Cheapest, Force: integer;
   Need: double;
-  Small, Duel, Allowed, Breaks: boolean;
-  TC: integer;
+  Small, Duel, Allowed, Breaks, Complete: boolean;
+  TC, C: integer;
+  Missing: array [1..6] of integer;
 begin
   FromTerritory:=0; ToTerritory:=0;
   Stack:=StrongestFront;
@@ -295,18 +313,23 @@ begin
   Small:=(SAlivePlayersCount<=4) and (SPlayersCount<=4);
   TC:=0;
   if SmallMode then TC:=TargetContinent;
+  for C:=1 to 6 do Missing[C]:=0;
+  for T:=1 to 42 do if not TIsMine(T) then begin
+    C:=TContinent(T); Missing[C]:=Missing[C]+1;
+  end;
   for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
     for F:=1 to TFrontsCount(T) do begin
       E:=TFront(T,F); Available:=TArmies(T)-1;
+      Complete:=Missing[TContinent(E)]=1;
       Breaks:=COwner(TContinent(E))=TOwner(E);
       Need:=3.0;
       if SCardsBasedOnCombo then Need:=4.0;
-      if CompletesContinent(E) then Need:=2.5;
-      Allowed:=not SConquest or CompletesContinent(E);
+      if Complete then Need:=2.5;
+      Allowed:=not SConquest or Complete;
       if (Available>Force*2+42) or (SAlivePlayersCount=2) then begin Need:=1.8; Allowed:=true end;
       if Small and not Duel then begin
         // Few opponents: continents and bonus denial matter more than in big games.
-        if CompletesContinent(E) then begin Need:=1.5; Allowed:=true end
+        if Complete then begin Need:=1.5; Allowed:=true end
         else if (TC>0) and (TContinent(E)=TC) then begin Need:=1.3; Allowed:=true end
         else if Breaks then begin Need:=2.0; Allowed:=true end;
         if (T=Stack) and (Available>Force) then begin Need:=1.5; Allowed:=true end;
@@ -328,7 +351,7 @@ begin
         Score:=Available-Defense(E)*8+Onward*2;
         if Duel then Score:=Available-Defense(E)*3+Onward*4;
         if Cheapest<100000 then Score:=Score-Cheapest;
-        if CompletesContinent(E) then Score:=Score+CBonus(TContinent(E))*12;
+        if Complete then Score:=Score+CBonus(TContinent(E))*12;
         if (TC>0) and (TContinent(E)=TC) then Score:=Score+40;
         if COwner(TContinent(E))=TOwner(E) then
           Score:=Score+CBonus(TContinent(E))*4;
