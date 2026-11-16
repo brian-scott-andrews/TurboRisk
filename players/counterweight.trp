@@ -16,6 +16,8 @@ var
   Prob,Loss: array[0..40] of array[0..40] of double;
   Owned: array[1..42] of boolean;
   Counts: array[1..10] of integer;
+  MissingByContinent: array[1..6] of integer;
+  EnemyMissingByContinent: array[1..6] of array[0..10] of integer;
   Ready: boolean;
   SearchSource,FirstTarget: integer;
   BestScore: double;
@@ -75,13 +77,10 @@ begin
 end;
 
 function Gain(E: integer): double;
-var C,T,Missing,P,EnemyMissing: integer;
+var C,Missing,P,EnemyMissing: integer;
 begin
-  P:=TOwner(E); C:=TContinent(E); Missing:=0; EnemyMissing:=0;
-  for T:=1 to CTerritoriesCount(C) do begin
-    if not Owned[CTerritory(C,T)] then Missing:=Missing+1;
-    if (TOwner(CTerritory(C,T))<>P) or Owned[CTerritory(C,T)] then EnemyMissing:=EnemyMissing+1;
-  end;
+  P:=TOwner(E); C:=TContinent(E);
+  Missing:=MissingByContinent[C]; EnemyMissing:=EnemyMissingByContinent[C][P];
   Result:=1.8+4*(Income(Counts[PMe]+1)-Income(Counts[PMe]));
   if P>0 then Result:=Result+4*(Income(Counts[P])-Income(Counts[P]-1));
   Result:=Result+CBonus(C)*3.0/(Missing+1);
@@ -91,7 +90,7 @@ begin
 end;
 
 procedure Explore(Cur,Armies,Depth,First: integer; Score,Chance: double);
-var F,E,P,D,Remaining,NextFirst: integer; Q,Cost,V: double;
+var F,E,P,C,D,Remaining,NextFirst: integer; Q,Cost,V: double;
 begin
   if Depth=0 then exit;
   for F:=1 to TBordersCount(Cur) do begin
@@ -106,9 +105,14 @@ begin
         if V>BestScore then begin BestScore:=V; FirstTarget:=NextFirst end;
         Remaining:=Armies-round(Cost)-1;
         if Remaining>1 then begin
+          C:=TContinent(E);
+          MissingByContinent[C]:=MissingByContinent[C]-1;
+          EnemyMissingByContinent[C][P]:=EnemyMissingByContinent[C][P]+1;
           Owned[E]:=True; Counts[PMe]:=Counts[PMe]+1; Counts[P]:=Counts[P]-1;
           Explore(E,Remaining,Depth-1,NextFirst,V,Chance*Q);
           Owned[E]:=False; Counts[PMe]:=Counts[PMe]-1; Counts[P]:=Counts[P]+1;
+          MissingByContinent[C]:=MissingByContinent[C]+1;
+          EnemyMissingByContinent[C][P]:=EnemyMissingByContinent[C][P]-1;
         end;
       end;
     end;
@@ -116,11 +120,22 @@ begin
 end;
 
 function Campaign(Extra: integer; var Source,Target: integer): double;
-var T,P,I,J: integer; Tops: array[1..4] of integer; Overall: double;
+var T,P,C,I,J: integer; Tops: array[1..4] of integer; Overall: double;
 begin
   if not Ready then PrepareOdds;
   for T:=1 to 42 do Owned[T]:=TIsMine(T);
   for P:=1 to 10 do Counts[P]:=PTerritoriesCount(P);
+  for C:=1 to 6 do begin
+    MissingByContinent[C]:=0;
+    for P:=0 to 10 do EnemyMissingByContinent[C][P]:=CTerritoriesCount(C);
+    for I:=1 to CTerritoriesCount(C) do begin
+      T:=CTerritory(C,I);
+      if not Owned[T] then MissingByContinent[C]:=MissingByContinent[C]+1;
+      P:=TOwner(T);
+      if not Owned[T] and (P>=0) and (P<=10) then
+        EnemyMissingByContinent[C][P]:=EnemyMissingByContinent[C][P]-1;
+    end;
+  end;
   for I:=1 to 4 do Tops[I]:=0;
   for T:=1 to 42 do if TIsFront(T) then
     for I:=1 to 4 do if (Tops[I]=0) or (TArmies(T)>TArmies(Tops[I])) then begin

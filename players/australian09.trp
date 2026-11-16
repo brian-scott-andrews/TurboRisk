@@ -5,7 +5,22 @@ Description: This was a complete re-write in 2009-10, and does not play the same
 It is designed to play in games with lots of players, and cards trade based on combination.
 
 Thanks to Nathan Scarbrough for advice on various issues.
+
+Repository performance changes reuse army totals within each callback and
+unchanged vulnerability baselines within each candidate search. Candidate
+evaluation order, scores and placement plans are retained.
+Further changes cache per-callback threat facts and map baselines, reuse the
+existing placement plan, and avoid disabled diagnostic formatting. Native
+vulnerability evaluation requires a rebuilt TurboRisk/TRSim/TRComp executable;
+set A09NativeVulnerability to False to compare with the interpreted evaluator.
 }
+
+const
+  A09LogEnabled=False;
+  A09MessagesEnabled=False;
+  A09SnapshotsEnabled=False;
+  A09NativeVulnerability=True;
+  A09NativeLegacy=True;
 
 var
   B,MaxArmy,MaximumValue,Value: integer;
@@ -35,11 +50,12 @@ var
   Calc:integer;
   ABT,ABTI,ABTC,ABTN:Integer;
   T40,T41,T42:Integer;
-  MyArmiesMap: Array of Integer;
-  AttackArmies: Array of Integer;
-  MineArmies: Array of Boolean;
+  MyArmiesMap: TA09ArmyMap;
+  AttackArmies: TA09ArmyMap;
+  MineArmies: TA09MineMap;
   KP2009,killreason: Integer;
-  ValIndex, ValProtection: array of Integer;
+  ValIndex: TA09ArmyMap;
+  ValProtection: array of Integer;
   MyAttackC,PlayersCount,ThreatPlayer:integer;
   MyStartC: Array of Integer;
   MyConnected: Array of Integer;
@@ -53,18 +69,26 @@ var
   aalive,dalive,ealive,lastturnfrom,lastturnto:integer;
   AverageEnemyArmies,EnemiesAlive:integer;
   DomAccumulate, DomAttack:boolean;
+  VulnFactsReady:boolean;
+  VulnScores,VulnArmyTotals:array[0..10] of integer;
+  VulnPrograms:array[0..10] of string;
+  VulnHumans:array[0..10] of boolean;
+  PlacementArraysReady:boolean;
+  MapFactsReady:boolean;
+  MapArmyBaseline:array[1..42] of integer;
+  MapMineBaseline:array[1..42] of boolean;
 
 {_________________________ m/l/UBuffer ______________________________}
 
 procedure m(s: string);  // shortens m to m
 begin
-  //Umessage(s); // comment off this line to disable all ms
+  if A09MessagesEnabled then UMessage(s);
   //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
 end;
 
 procedure l(s: string);  // shortens l to l
 begin
-  //Ulog(s);  // comment off this line to disable all ls
+  if A09LogEnabled then ULog(s);
   //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
 end;
 
@@ -73,7 +97,7 @@ begin result:= inttostr(x); end;
 
 procedure sn(s: string);  // shortens l to l
 begin
-  //Utakesnapshot(s + ' Player ' + PProgram(PMe) + ' Turn ' + i(turn));  // comment off this line to disable all ls
+  if A09SnapshotsEnabled then UTakeSnapshot(s + ' Player ' + PProgram(PMe) + ' Turn ' + i(turn));
   //if PTerritoriesCount(Pme) = 41 then l('Armies: ' + i(PArmiesCount(Pme)));
 end;
 
@@ -119,7 +143,9 @@ begin UBufferSet(x, y); end;
           end;
           if aalive=1 then CValx:=CValx+1000;
         end;
-        for CNT:=1 to 42 do begin
+        if A09NativeLegacy then
+          A09AddContinentThreat(CVC,CValX,CNT,CNT2,CNM,CNX,CNY)
+        else for CNT:=1 to 42 do begin
           CNM :=0;
           if (not TIsMine(CNT)) then begin
             CNX:=TBordersCount(CNT);
@@ -142,6 +168,10 @@ function LoneTerritoryValue(Territory:integer): double;
 var
   WE,T,X,MinD,res:integer;
 begin
+  if A09NativeLegacy then begin
+    result:=A09LoneTerritoryValue(Territory,mrsecondarmies,T2);
+    exit;
+  end;
   res:=1000;
   MinD:=10000;
   If (TContinent(Territory)=2) or (TContinent(Territory)=6) then begin
@@ -334,6 +364,8 @@ begin
   end;      
   if (FromTerritory=0) then begin
     MaxTerritoryValue:=-100000;
+    if A09NativeLegacy then A09RelaxValues(ValIndex)
+    else begin
     loopcontrol:=true;
     while loopcontrol do begin
       loopcontrol:=false;
@@ -351,6 +383,7 @@ begin
           end;
         end;
       end;
+    end;
     end;
     if routine=1 then begin
       D:=-1000000;
@@ -384,11 +417,18 @@ begin
   end;
 end;
 
+procedure NativeConquest(var FromTerritory, ToTerritory: integer; var Value: double);
+begin
+  A09ConquestAttack(AverageEnemyArmies,mrsecondarmies,FromTerritory,ToTerritory,T2,Value);
+end;
+
 procedure conquestAttack(var FromTerritory, ToTerritory: integer);
 var
   T,T2,X,Y:integer;
   Value:double;
 begin
+  if A09NativeLegacy then NativeConquest(FromTerritory,ToTerritory,Value)
+  else begin
   if (not SConquest) and (ToTerritory=0) then begin
     Value:=-100000;
     for T:=1 to 42 do begin
@@ -460,8 +500,9 @@ begin
       end;
     end;
   end;
+  end;
   if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-    l('Cards attack from ' + i(FromTerritory) + ' to ' + i(ToTerritory) + ' armies to kill ' + i(TArmies(ToTerritory)) + ' val ' + f(Value)); 
+    if A09LogEnabled then l('Cards attack from ' + i(FromTerritory) + ' to ' + i(ToTerritory) + ' armies to kill ' + i(TArmies(ToTerritory)) + ' val ' + f(Value));
   end;
 end;
 
@@ -736,7 +777,7 @@ end;
         end;
       end;
       if (TerritoryTo>0) then begin
-        l('Lessening Attack ' + i(TerritoryTo)); 
+        if A09LogEnabled then l('Lessening Attack ' + i(TerritoryTo));
         T:=TerritoryTo;
         Y:=TBordersCount(T);
         LAValue:=0;
@@ -1072,7 +1113,7 @@ begin
     if (TerritoryTo>0) then begin
       ToTerritory:=TerritoryTo;
       FromTerritory:=TerritoryFrom;
-      l('Lessening Attacking');
+      if A09LogEnabled then l('Lessening Attacking');
     end;
   end;
 
@@ -1082,7 +1123,7 @@ begin
     if (TerritoryTo>0) then begin
       ToTerritory:=TerritoryTo;
       FromTerritory:=TerritoryFrom;
-      l('Lessening Attacking');
+      if A09LogEnabled then l('Lessening Attacking');
     end;
   end;
 
@@ -1157,7 +1198,7 @@ begin
     if ((C<>C2) AND (not (COwner(C)=PMe)) AND (Y<X)) then begin
       Armies:=0;
       Calc:=1;
-      l('Stay in favourable continent' + i(Y) + ' ' + i(X));
+      if A09LogEnabled then l('Stay in favourable continent' + i(Y) + ' ' + i(X));
     end;
   //don't let a small army wander
     CAnalysis(C,PT,PA,ET,EA);
@@ -1169,7 +1210,7 @@ begin
         if ((TArmies(T)>1) AND (T <> FromTerritory)) then begin  
           Armies:=0;
           Calc:=1;
-          l('Small Armies stay at home');
+          if A09LogEnabled then l('Small Armies stay at home');
         end;
       end;
     end;
@@ -1664,7 +1705,7 @@ end;
 
 procedure calculatebigarmies();
 var 
-  T:integer;
+  T,CachedArmies:integer;
   ifcontrol:boolean;
 begin
   mrbig:=0;
@@ -1683,13 +1724,14 @@ begin
       end;
     end;
     if (not ifcontrol) then begin
-      if PArmiesCount(T)>mrbigarmies then begin
+      CachedArmies:=PArmiesCount(T);
+      if CachedArmies>mrbigarmies then begin
         mrsecondarmies:=mrbigarmies;
-        mrbigarmies:=PArmiesCount(T);
+        mrbigarmies:=CachedArmies;
         mrbig:=T;
       end else begin
-        if PArmiesCount(T)>=mrsecondarmies then begin
-          mrsecondarmies:=PArmiesCount(T);
+        if CachedArmies>=mrsecondarmies then begin
+          mrsecondarmies:=CachedArmies;
         end;
       end;
     end;
@@ -1740,12 +1782,28 @@ end;
 
 
 
-function calculatevuln(): boolean;
+procedure preparevulnfacts();
+var
+  VP:integer;
+begin
+  if not VulnFactsReady then begin
+    for VP:=0 to 10 do begin
+      VulnScores[VP]:=PlayerScore(VP);
+      VulnArmyTotals[VP]:=PArmiesCount(VP);
+      VulnPrograms[VP]:=lowercase(PProgram(VP));
+      VulnHumans[VP]:=PHuman(VP);
+    end;
+    VulnFactsReady:=True;
+  end;
+end;
+
+function calculatevulnscript(): boolean;
 var
   T, T2, BorderT,ET,EA,X,Y,Score,P,WatchPlayer: integer;
   control,loopcontrol: boolean;
   Prog:String;
 begin
+  preparevulnfacts();
   loopcontrol:=True;
   WatchPlayer:=0;
   SetArrayLength(AttackArmies,43);
@@ -1757,8 +1815,8 @@ begin
     end;
     if not (TIsMine(T)) then begin
       P:=TOwner(T);
-      Score:=PlayerScore(P);
-      Prog:=lowercase(PProgram(P));
+      Score:=VulnScores[P];
+      Prog:=VulnPrograms[P];
       if (pos('australian',Prog)>0) and (Score=3) then begin
         WatchPlayer:=1;
         if not (COwner(6)=PMe) then begin
@@ -1795,7 +1853,7 @@ begin
           AttackArmies[T]:=-10000;
         end;
       end;
-      if (Prog='vexer.trp') and (PArmiesCount(TOwner(T))<PArmiesCount(PMe)) then begin
+      if (Prog='vexer.trp') and (VulnArmyTotals[TOwner(T)]<VulnArmyTotals[PMe]) then begin
         WatchPlayer:=1;
         AttackArmies[T]:=-10000;
       end;
@@ -1814,7 +1872,7 @@ begin
       if (Prog='zotob.trp') then begin
         WatchPlayer:=1;
       end;
-      if PHuman(P) then begin
+      if VulnHumans[P] then begin
         WatchPlayer:=1;
       end;
       if (Prog='frank.trp') and (COwner(6)=PMe) and (Score=3) then begin
@@ -1826,10 +1884,10 @@ begin
       if (COwner(2)=P) and (COwner(6)=PMe) then begin
         AttackArmies[T]:=AttackArmies[T] div 2;
       end;
-      if PHuman(P) and (COwner(6)=PMe) and (Score=3) then begin
+      if VulnHumans[P] and (COwner(6)=PMe) and (Score=3) then begin
         AttackArmies[T]:=AttackArmies[T]+13;
       end;
-      if (KP2009=mrbig) and (PArmiesCount(PMe)=mrsecondarmies) and (TOwner(T)=KP2009) then begin
+      if (KP2009=mrbig) and (VulnArmyTotals[PMe]=mrsecondarmies) and (TOwner(T)=KP2009) then begin
         AttackArmies[T]:=-10000;
       end;
       if (PlayersCount = 2) or (WatchPlayer=0) then begin
@@ -1900,6 +1958,16 @@ begin
     end;
   end;
   result:=true;
+end;
+
+function calculatevuln():boolean;
+begin
+  if A09NativeVulnerability then begin
+    Result:=A09Vulnerability(MyArmiesMap,MineArmies,MyAttackC,PlayersCount,KP2009,mrbig,mrsecondarmies,AttackArmies);
+    C:=7;
+  end else begin
+    Result:=calculatevulnscript();
+  end;
 end;
 
 function calcmyfronts():integer;
@@ -2014,9 +2082,16 @@ procedure setupmymaps();
 var 
   T:integer;
 begin
+  if not MapFactsReady then begin
+    for T:=1 to 42 do begin
+      MapArmyBaseline[T]:=TArmies(T);
+      MapMineBaseline[T]:=TIsMine(T);
+    end;
+    MapFactsReady:=True;
+  end;
   for T:=1 to 42 do begin
-    MyArmiesMap[T]:=TArmies(T);
-    MineArmies[T]:=TIsMine(T);
+    MyArmiesMap[T]:=MapArmyBaseline[T];
+    MineArmies[T]:=MapMineBaseline[T];
   end;
 end;
 
@@ -2030,7 +2105,7 @@ begin
   MyArmiesMap[fromc]:=MyArmiesMap[fromc]-1;
   MyArmiesMap[toc]:=MyArmiesMap[toc]-1;
   calculateoverallvuln(newoverallvuln,newmaxvuln);
-  l('MMMov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln));
+  if A09LogEnabled then l('MMMov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln));
   if (overallvuln>=newoverallvuln) and (maxvuln>=newmaxvuln) then begin
     result:= true;
   end else begin
@@ -2087,7 +2162,7 @@ begin
   PP:=0;
 //  l('Hello ' + i(PlayerScore(PMe)) + ' ' + i(TotalEnemyScore()));
   PP:=ConnectedEnemywithMostArmies();
-  l('endgameplay kill ' + i(PP));
+  if A09LogEnabled then l('endgameplay kill ' + i(PP));
   result:=PP;
 end;
 
@@ -2125,7 +2200,7 @@ begin
       if (PArmiesCount(PMe)>=mrsecondarmies) then begin
         if (mrbig <> PMe) and (ArePlayersConnected(PMe,MrBig)) then begin
           PP:=Mrbig;
-          if (PP<>KP2009) then l('KillMrBig ' + i(PP));
+          if (PP<>KP2009) then if A09LogEnabled then l('KillMrBig ' + i(PP));
         end;
       end;
     end;
@@ -2463,7 +2538,7 @@ begin
   //      end;
       end;
       if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-        l('Kill Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+        if A09LogEnabled then l('Kill Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
       end;
 end;
 
@@ -2472,7 +2547,7 @@ var
   MaxTerritoryValue:integer;
 begin
   if KP2009>0 then begin
-    l('KP2009 ' + i(KP2009));
+    if A09LogEnabled then l('KP2009 ' + i(KP2009));
     if ArePlayersConnected(PMe,KP2009) then begin
       MaxTerritoryValue:=0;
       for T:=1 to 42 do begin
@@ -2485,7 +2560,7 @@ begin
         end;
       end;
       if (ToTerritory>0) then begin
-        l('APlace ' + i(ToTerritory));
+        if A09LogEnabled then l('APlace ' + i(ToTerritory));
       end;
     end;
   end;
@@ -2498,7 +2573,7 @@ begin
   setupmymaps();
   calculateoverallvuln(overallvuln,maxvuln);
   if (overallvuln <> 0) or (maxvuln <> 0) then begin
-    l('POV '+ i(overallvuln)+' PMV '+i(maxvuln));
+    if A09LogEnabled then l('POV '+ i(overallvuln)+' PMV '+i(maxvuln));
     Score:=0;
     for T:=1 to 42 do begin
       If TisMine(T) and (MyCTerr(T)) then begin
@@ -2518,7 +2593,7 @@ begin
         end;                    
       end;
     end;
-    if (ToTerritory>0) then l('Defensive place ' + i(ToTerritory) + ' ' + floattostr(Score)); 
+    if (ToTerritory>0) then if A09LogEnabled then l('Defensive place ' + i(ToTerritory) + ' ' + floattostr(Score));
   end;
 end;
 
@@ -2533,12 +2608,12 @@ var
 begin
   setupmymaps();
   MaxTerritoryValue:=-10000;
-  l('SMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+  if A09LogEnabled then l('SMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
   for T:=1 to 42 do begin
     if TIsMine(T) then begin
       for T2:=1 to TFrontsCount(T) do begin
         PossAttackTerritory:=TFront(T,T2);
-        l('FMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+        if A09LogEnabled then l('FMAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
         if (TContinent(PossAttackTerritory)=MyAttACkC) then begin
           setupmymaps();
           EnemyAreas:=CalcEnemyAreas(MyAttackC);
@@ -2546,12 +2621,12 @@ begin
           MineArmies[PossAttackTerritory]:=True;
           MyArmiesMap[T]:=TArmies(T)+2-TArmies(PossAttackTerritory);
           NewEnemyAreas:=CalcEnemyAreas(MyAttackC);
-          l('MAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
+          if A09LogEnabled then l('MAC ' + i(MyAttackC) + ' PAT ' + i(PossAttackTerritory) + ' EA ' + i(EnemyAreas) + ' NEA ' + i(NewEnemyAreas));
           if (EnemyAreas >= NewEnemyAreas) then begin
             MyBorders:=calcMyBorders()
             TerritoryValue:=0 - (MyBorders+TArmies(PossAttackTerritory));
             if TerritoryValue > MaxTerritoryValue then begin
-              l('Border Value T ' + i(T) + ' PATer ' + i(PossAttackTerritory) + ' TV ' + i(TerritoryValue));
+              if A09LogEnabled then l('Border Value T ' + i(T) + ' PATer ' + i(PossAttackTerritory) + ' TV ' + i(TerritoryValue));
               MaxTerritoryValue:=TerritoryValue;
               FromTerritory:=T;
               ToTerritory:=PossAttackTerritory;
@@ -2568,7 +2643,7 @@ procedure SpreadAttack(var FromTerritory,ToTerritory:integer);
 var
   PossAttackCountry:integer;
 begin
-  l('Spread Attack Start');
+  if A09LogEnabled then l('Spread Attack Start');
   For T:=1 to 42 do begin
     if (TIsMine(T)  and (TArmies(T) > 5) and TIsFront(T)) then begin
       for T2:=1 to TFrontsCount(T) do begin
@@ -2624,7 +2699,7 @@ begin
     end;
   end;
   if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-    l('Border Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+    if A09LogEnabled then l('Border Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
   end;
 end;
 
@@ -2662,7 +2737,7 @@ begin
         end;
       end;
       if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-        l('Big Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+        if A09LogEnabled then l('Big Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
       end;
     end;
   end;
@@ -2684,7 +2759,7 @@ begin
     end;
   end;
   if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-    l('General MyAttackC Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+    if A09LogEnabled then l('General MyAttackC Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
   end;
 end;
 
@@ -2704,14 +2779,16 @@ begin
     end;
   end;
   if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-    l('One Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
+    if A09LogEnabled then l('One Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory));
   end;
 end;
 
 procedure ReduceVulnAttack(var FromTerritory,ToTerritory:integer);
 var
   overallvuln, maxvuln, newoverallvuln, newmaxvuln: integer;
+  BaselineReady:boolean;
 begin
+  BaselineReady:=False;
   if PArmiesCount(PMe)>AverageEnemyArmies then begin
     for T:=1 to 42 do begin
       if TIsMine(T) and (TArmies(T)>2)then begin
@@ -2720,7 +2797,10 @@ begin
   //        l('2ReduceVuln Attack F ' + i(T) + ' T ' + i(T2)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
           if TArmies(T) > 11 then begin
             setupmymaps();
-            calculateoverallvuln(overallvuln,maxvuln);
+            if not BaselineReady then begin
+              calculateoverallvuln(overallvuln,maxvuln);
+              BaselineReady:=True;
+            end;
             MyArmiesMap[T]:=TArmies(T)-1;
             MyArmiesMap[T2]:=TArmies(T2)-1;
             calculateoverallvuln(newoverallvuln,newmaxvuln);
@@ -2734,7 +2814,7 @@ begin
       end;
     end;
     if (FromTerritory>0) and (not ((lastturnfrom=FromTerritory) and (lastturnto=ToTerritory))) then begin 
-      l('ReduceVuln Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+      if A09LogEnabled then l('ReduceVuln Attack F ' + i(FromTerritory) + ' T ' + i(ToTerritory)+ ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
     end;
   end;
 end;
@@ -2803,7 +2883,7 @@ begin
     Turn:=20;
   end;
   Turn:=Turn+1;
-  sn('P');
+  if A09SnapshotsEnabled then sn('P');
   UBufferset(150,Turn);
   for T:=1 to 42 do begin
     X:=trunc(UBufferGet(100+T));
@@ -2894,16 +2974,16 @@ begin
     end;
   end;
   calcMyAttackC();
-  l('Turn ' + i(Turn) + ' Start armies ' + i(PArmiesCount(PMe)) + ' Mr Big has ' + i(mrbigarmies) + ' Mr 2 has ' + i(mrsecondarmies) + ' Big Score ' + i(PlayerScore(MrBig)) + ' Me Score ' + i(PlayerScore(PMe)) + ' MyAttackC ' + i(MyAttackC));
+  if A09LogEnabled then l('Turn ' + i(Turn) + ' Start armies ' + i(PArmiesCount(PMe)) + ' Mr Big has ' + i(mrbigarmies) + ' Mr 2 has ' + i(mrsecondarmies) + ' Big Score ' + i(PlayerScore(MrBig)) + ' Me Score ' + i(PlayerScore(PMe)) + ' MyAttackC ' + i(MyAttackC));
   if ((PlayerScore(PMe) > TotalEnemyScore()) and (PlayersCount>2))then begin
     X:= (PlayerScore(PMe) - StartTurnPlayerScoreOrdered[2])*10;
     if X > 100 then X:=100; 
     if (PArmiesCount(PMe) > mrsecondarmies + X) then begin
       DomAttack:=True;
-      l('DomAttack');
+      if A09LogEnabled then l('DomAttack');
     end else begin
       DomAccumulate:=True;
-      l('DomAccumulate');
+      if A09LogEnabled then l('DomAccumulate');
     end;
   end;
 end;
@@ -2933,6 +3013,22 @@ begin
   end; // end "if PProgram(PMe) = ..."
 end; // end procedure Assignment
 
+function CachedPlacement(var ToTerritory:integer):boolean;
+begin
+  Result:=False;
+  if not PlacementArraysReady then exit;
+  ToTerritory:=bg(98);
+  if (ToTerritory<1) or (ToTerritory>42) then exit;
+  if not TIsMine(ToTerritory) then exit;
+  if (bg(99)=0) or (bg(100)=0) then exit;
+  if COwner(MyAttackC)=PMe then exit;
+  if (PArmiesCount(PMe)<10) or (PlayerScore(PMe)<5) then exit;
+  UBufferSet(148,ToTerritory);
+  UBufferSet(149,99);
+  UBufferSet(99,1);
+  Result:=True;
+end;
+
 procedure Placement(var ToTerritory: integer);
 var
   T,X,Y,T2,C,P: integer;
@@ -2949,9 +3045,12 @@ begin
 //  if not FinisherPlacement(ToTerritory) then begin
 ////
   routine:=1;
+  VulnFactsReady:=False;
+  MapFactsReady:=False;
   calculatebigarmies();
   lastturnfrom:=trunc(UBufferGet(148));
   lastturnto:=trunc(UBufferGet(149));
+  if CachedPlacement(ToTerritory) then exit;
   SetArrayLength(MyArmiesMap,43);
   SetArrayLength(MineArmies,43);
   SetArrayLength(ValIndex,43);
@@ -2963,12 +3062,13 @@ begin
   SetArrayLength(StartTurnPlayerCScore,11);
   SetArrayLength(StartTurnPlayerScoreOrdered,11);
   setArrayLength(DistanceToAttackFront,43);
+  PlacementArraysReady:=True;
   PlacementTerritory:=0;
   AttackTerritory:=0;
   ToTerritory:=0;
   if (COwner(MyAttackC)=PMe) then begin
     calcMyAttackC();
-    l('MyAttackC ' + i(MyAttackC));
+    if A09LogEnabled then l('MyAttackC ' + i(MyAttackC));
   end;
   if (bg(99) = 0) or (bg(100) = 0) then begin
     preparevalues();
@@ -3067,9 +3167,9 @@ begin
           end;
         end;
       end;
-      if (PlacementTerritory > 0) then l('General MAC attack placement From ' + i(PlacementTerritory) + ' To ' + i(AttackTerritory) + ' val ' + i(MaxTerritoryValue));
+      if (PlacementTerritory > 0) then if A09LogEnabled then l('General MAC attack placement From ' + i(PlacementTerritory) + ' To ' + i(AttackTerritory) + ' val ' + i(MaxTerritoryValue));
       if (PlacementTerritory = 0) then begin
-        l('Second Last Option Placement');
+        if A09LogEnabled then l('Second Last Option Placement');
         Score:=-1000;
         for T:=1 to 42 do begin
           for X:=1 to TFrontsCount(T) do begin
@@ -3086,7 +3186,7 @@ begin
         end;
       end;
       if (PlacementTerritory = 0) then begin
-        l('Last Option Placement');
+        if A09LogEnabled then l('Last Option Placement');
         Score:=-1000;
         for T:=1 to 42 do begin
           for X:=1 to TFrontsCount(T) do begin
@@ -3106,7 +3206,7 @@ begin
         UBufferSet(98,PlacementTerritory);
         UBufferSet(97,AttackTerritory);
         ToTerritory:=PlacementTerritory;
-        l('Placeplan ' + i(PlacementTerritory) + ' ' + i(AttackTerritory));
+        if A09LogEnabled then l('Placeplan ' + i(PlacementTerritory) + ' ' + i(AttackTerritory));
       end;
     end;
           
@@ -3136,6 +3236,8 @@ var
   control:boolean;
 begin
   routine:=2;
+  VulnFactsReady:=False;
+  MapFactsReady:=False;
 //  if not FinisherAttack(FromTerritory, ToTerritory) then begin
   UBufferSet(100,1);
   lastturnfrom:=trunc(UBufferGet(148));
@@ -3203,7 +3305,7 @@ begin
             FromTerritory:=T;
             ToTerritory:=T2;
             MaxTerritoryValue:=TArmies(T2);
-            l('Last Option');
+            if A09LogEnabled then l('Last Option');
           end;
         end;
       end;
@@ -3227,6 +3329,8 @@ var
   TryTest,FromStrongestFront,ToStrongestFront:Integer;
   loopcontrol,control,ifcontrol:Boolean;
 begin
+  VulnFactsReady:=False;
+  MapFactsReady:=False;
 //  if not FinisherOccupation(FromTerritory, ToTerritory, Armies) then begin
 //  l('Occupation Start');
   calcmyattackc();
@@ -3234,7 +3338,7 @@ begin
     if PlayerScore(KP2009) < StartTurnPlayerScore[PMe] then begin
       KP2009:=0;
       killreason:=0;
-      l('No longer killing ' + i(KP2009));
+      if A09LogEnabled then l('No longer killing ' + i(KP2009));
     end;
   end;
   ifcontrol:=false;
@@ -3252,7 +3356,7 @@ begin
   //Spread Override
   if (SpreadLevel > 0) and (PlayerScore(PMe)> 4) then begin
     if (TArmies(FromTerritory)-Armies) < SpreadLevel then begin
-      l ('Spread Override');
+      if A09LogEnabled then l('Spread Override');
       if (TArmies(FromTerritory)>SpreadLevel) then begin
         Armies:=TArmies(FromTerritory) - SpreadLevel;
       end else begin
@@ -3263,7 +3367,7 @@ begin
 
 //  end; // end "if not FinisherOccupation..."
   if ((TContinent(FromTerritory)=2) and (TContinent(ToTerritory)=2)) then begin
-    l('Armies being moved' + i(Armies));
+    if A09LogEnabled then l('Armies being moved' + i(Armies));
   end;
 end; // end procedure Occupation
 
@@ -3277,7 +3381,9 @@ var
   MaxTerritoryValue,currentFrom,currentdest:Integer;
   FromValue,ToValue:double;
 begin
-  sn('f');
+  VulnFactsReady:=False;
+  MapFactsReady:=False;
+  if A09SnapshotsEnabled then sn('f');
   calcmyattackc();
   ubufferset(99,0);
 //  if not FinisherFortification(FromTerritory, ToTerritory, Armies) then begin
@@ -3289,9 +3395,10 @@ begin
   MaxValue:=0;
   setupmymaps();
   if ((FromTerritory=0) and (PlayerScore(PMe)> 4)) then begin
+    // The board stays fixed while candidate transfers are evaluated.
     calculateoverallvuln(overallvuln,maxvuln);
     if (overallvuln <> 0) or (maxvuln <> 0) then begin
-      l('COV '+ i(overallvuln)+' CMV '+i(maxvuln));
+      if A09LogEnabled then l('COV '+ i(overallvuln)+' CMV '+i(maxvuln));
     end;
     for T:=1 to 42 do begin
       If TisMine(T) then begin
@@ -3300,7 +3407,6 @@ begin
             Dest:=TBorder(T,T2);
             IF TIsMine(Dest) then begin
               setupmymaps();
-              calculateoverallvuln(overallvuln,maxvuln);
               MyArmiesMap[T]:=MyArmiesMap[T]-1;
               MyArmiesMap[Dest]:=MyArmiesMap[Dest]+1;
               calculateoverallvuln(newoverallvuln,newmaxvuln);
@@ -3317,7 +3423,7 @@ begin
                   ToTerritory:=Dest;
                   Armies:=ArmySize;
                   MaxValue:=Value;
-                  l('JFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' value ' + floattostr(value));
+                  if A09LogEnabled then l('JFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln) + ' value ' + floattostr(value));
                 end;
               end;
             end;
@@ -3340,7 +3446,7 @@ begin
               FromTerritory:=T;
               ToTerritory:=T2;
               Armies:=TArmies(T)-1;
-              l('Desire Fort ' + i(FromTerritory) + ' TA ' + i(ToTerritory) + ' A ' + i(TArmies(FromTerritory))+ ' VI ' + i(ValIndex[ToTerritory])+' D ' + i(D));
+              if A09LogEnabled then l('Desire Fort ' + i(FromTerritory) + ' TA ' + i(ToTerritory) + ' A ' + i(TArmies(FromTerritory))+ ' VI ' + i(ValIndex[ToTerritory])+' D ' + i(D));
             end;
           end;
         end;
@@ -3362,7 +3468,7 @@ begin
               ToTerritory:=T2;
               Armies:=TArmies(T)-1;
               MaxValue:=((ToValue-FromValue)*TArmies(T));
-              l('LTVFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' maxvalue ' + floattostr(maxvalue));
+              if A09LogEnabled then l('LTVFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ ' Fa ' + i(TArmies(FromTerritory)) + ' maxvalue ' + floattostr(maxvalue));
             end;
           end;
         end;
@@ -3370,24 +3476,24 @@ begin
     end;
   end;            
  
-  l('End Turn armies ' + i(PArmiesCount(PMe)));
+  if A09LogEnabled then l('End Turn armies ' + i(PArmiesCount(PMe)));
   for T:=1 to 10 do begin
     UBufferSet(80+T,PArmiesCount(T))
   end;
   if (COwner(2)=PMe) then begin
     if (TArmies(13)>1) or (TArmies(11)>1) then begin
-       l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+       if A09LogEnabled then l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
     end;
   end;
   if (COwner(6)=PMe) then begin
     if (TArmies(40)>1) or (TArmies(41)>1) or (TArmies(42)>1) then begin
-       l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
+       if A09LogEnabled then l('EEEFort From ' + i(FromTerritory) + ' To ' + i(ToTerritory) + ' Armies ' + i(Armies)+ i(TArmies(FromTerritory)) + ' mv ' + i(maxvuln) + ' nmv ' + i(newmaxvuln) + ' ov ' + i(overallvuln) + ' nov ' + i(newoverallvuln));
     end;
   end;
 
   if (SpreadLevel > 0) and (PlayerScore(PMe)> 4) then begin
     if (TArmies(FromTerritory)-Armies) < SpreadLevel then begin
-      l ('fort Spread Override');
+      if A09LogEnabled then l('fort Spread Override');
       if (TArmies(FromTerritory)>SpreadLevel) then begin
         Armies:=TArmies(FromTerritory) - SpreadLevel;
       end else begin

@@ -213,24 +213,7 @@ begin
       end;
     end;
 
-    for X:=1 to 8 do begin
-      for T:=1 to 42 do begin
-        if (not TIsMine(T)) then begin
-          Y:=TBordersCount(T);
-          for Z:=1 to Y do begin
-            T2:=TBorder(T,Z);
-            if (not TIsMine(T2)) then begin
-              D:=trunc(UBufferGet(T));
-              D2:=trunc(UBufferGet(T2));
-              if (D>(D2+TArmies(T))) then begin
-                D:=D2+TArmies(T)+1;
-                UBufferSet(T,D);
-              end;
-            end;
-          end;
-        end;
-      end;
-    end;
+    UPropagateEnemyCosts;
     
     for T:=1 to 42 do begin
       if (TIsMine(T)) then begin
@@ -638,24 +621,7 @@ begin
       end;
     end;
 
-    for X:=1 to 8 do begin
-      for T:=1 to 42 do begin
-        if (not TIsMine(T)) then begin
-          Y:=TBordersCount(T);
-          for Z:=1 to Y do begin
-            T2:=TBorder(T,Z);
-            if (not TIsMine(T2)) then begin
-              D:=trunc(UBufferGet(T));
-              D2:=trunc(UBufferGet(T2));
-              if (D>(D2+TArmies(T))) then begin
-                D:=D2+TArmies(T)+1;
-                UBufferSet(T,D);
-              end;
-            end;
-          end;
-        end;
-      end;
-    end;
+    UPropagateEnemyCosts;
     
     for T:=1 to 42 do begin
       if (TIsMine(T)) then begin

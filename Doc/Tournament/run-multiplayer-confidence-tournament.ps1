@@ -147,6 +147,7 @@ function Add-ResultLine([string]$line) {
   $turns = New-Object 'int[]' $size
   for ($i = 0; $i -lt $size; $i++) {
     $names[$i] = $x[6 + 4 * $i]
+    if ($names[$i] -eq 'brainless V legacy') { $names[$i] = 'brainless V' }
     $turns[$i] = [int]$x[7 + 4 * $i]
     if ($versionCutoffs.ContainsKey($names[$i]) -and
         ($x[0] + $x[1]) -lt $versionCutoffs[$names[$i]]) {
@@ -157,7 +158,6 @@ function Add-ResultLine([string]$line) {
       if ($names[$i] -eq 'doomstack') { $names[$i] = 'challenger' }
     }
     if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
-      if ($names[$i] -eq 'brainless V') { $names[$i] = 'brainless V legacy' }
       if ($names[$i] -eq 'brainless vi') { $names[$i] = 'brainless vi legacy' }
     }
   }
@@ -191,12 +191,12 @@ function Test-EligibleHistoricalLine([string]$line) {
       $x.Count -lt (6 + 4 * $size)) { return $false }
   for ($i = 0; $i -lt $size; $i++) {
     $bot = $x[6 + 4 * $i]
+    if ($bot -eq 'brainless V legacy') { $bot = 'brainless V' }
     if ($x[0] -lt '20261023') {
       if ($bot -eq 'actuary') { return $false }
       if ($bot -eq 'doomstack') { $bot = 'challenger' }
     }
     if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
-      if ($bot -eq 'brainless V') { $bot = 'brainless V legacy' }
       if ($bot -eq 'brainless vi') { $bot = 'brainless vi legacy' }
     }
     # Old code may still supply evidence for unchanged opponents, not for itself.

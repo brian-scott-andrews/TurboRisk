@@ -6,6 +6,8 @@ interface
 
 // Execute the computer player's turn.
 procedure ExecuteComputerTurn;
+procedure StartSimulatorTimingPhase(const PhaseName: string);
+procedure EndSimulatorTimingPhase(const PhaseName: string);
 function strTran(ctext, cfor, cwith: string): string;
 
 
@@ -22,6 +24,16 @@ var
   tParamList: TPSList; // The parameter list
 
   iStartTime, iEndTime: QWord; // CPU timing for TRSim
+
+procedure StartSimulatorTimingPhase(const PhaseName: string);
+begin
+  LogSimulatorPhaseStart(PhaseName);
+end;
+
+procedure EndSimulatorTimingPhase(const PhaseName: string);
+begin
+  LogSimulatorPhaseEnd(PhaseName);
+end;
 
 { Character by Character String Replacement }
 function StrTran(ctext, cfor, cwith: string): string;
@@ -91,6 +103,7 @@ begin
   arPlayer[iTurn].aCPU[uRoutine].iTime := arPlayer[iTurn].aCPU[uRoutine]
   .iTime + iTicks;
   inc(arPlayer[iTurn].aCPU[uRoutine].iCalls);
+  LogTRPRoutineEnd(uRoutine, iTicks);
 end;
 
 procedure LogTRPDecision(const sMessage: string);
@@ -120,6 +133,7 @@ begin
   // run the script
   try
     CPU_Phase(rtAssignment);
+    LogTRPRoutineStart(rtAssignment);
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ASSIGNMENT'));
@@ -185,6 +199,7 @@ begin
       tParamList.Clear;
       tParamList.Add(tParamToTerritory);
       // run the script
+      LogTRPRoutineStart(rtPlacement);
       iStartTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('PLACEMENT'));
@@ -255,6 +270,7 @@ begin
   try
     // run script
     CPU_Phase(rtOccupation);
+    LogTRPRoutineStart(rtOccupation);
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('OCCUPATION'));
@@ -332,6 +348,7 @@ begin
       tParamList.Add(tParamToTerritory);
       tParamList.Add(tParamFromTerritory);
       // run the script
+      LogTRPRoutineStart(rtAttack);
       iStartTime := SysUtils.GetTickCount64();
 //      QueryPerformanceCounter(iStartTime); // get initial time
       ScriptExec.RunProc(tParamList, ScriptExec.GetProc('ATTACK'));
@@ -446,6 +463,7 @@ begin
   try
     // run the script
     CPU_Phase(rtFortification);
+    LogTRPRoutineStart(rtFortification);
     iStartTime := SysUtils.GetTickCount64();
 //    QueryPerformanceCounter(iStartTime); // get initial time
     ScriptExec.RunProc(tParamList, ScriptExec.GetProc('FORTIFICATION'));
@@ -523,7 +541,7 @@ end;
 // ******************************
 
 // Execute the computer player's turn.
-procedure ExecuteComputerTurn;
+procedure ExecuteComputerTurnInternal;
 begin
   // update LastTurn for TRSim statistics
   arPlayer[iTurn].LastTurn := iTurnCounter;
@@ -582,7 +600,16 @@ begin
   tParamList.Add(tParamToTerritory);
   tParamList.Add(tParamFromTerritory);
   FreePIFVariantList(tParamList);
+end;
 
+procedure ExecuteComputerTurn;
+begin
+  StartSimulatorTimingPhase('computer_turn');
+  try
+    ExecuteComputerTurnInternal;
+  finally
+    EndSimulatorTimingPhase('computer_turn');
+  end;
 end;
 
 end.

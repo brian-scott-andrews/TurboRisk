@@ -53,21 +53,42 @@ var
   OddsTable: array [0..860] of double;
   OddsReady: boolean;
   VexerDistance: array [1..42] of integer;
+  VexerPrograms: array [1..10] of boolean;
+  VexerProgramsReady, VexerDistancesReady: boolean;
+  VexerOwners: array [1..42] of integer;
 
 function IsVexer(P: integer): boolean;
+var PlayerIndex: integer;
 begin
+  if not VexerProgramsReady then begin
+    for PlayerIndex:=1 to 10 do
+      VexerPrograms[PlayerIndex]:=(PlayerIndex<>PMe) and
+        (lowercase(PProgram(PlayerIndex))='vexer.trp');
+    VexerProgramsReady:=true;
+  end;
   result:=false;
-  if (P>0) and (P<>PMe) then result:=lowercase(PProgram(P))='vexer.trp';
+  if (P>0) and (P<>PMe) then begin
+    if P<=10 then result:=VexerPrograms[P]
+    else result:=lowercase(PProgram(P))='vexer.trp';
+  end;
 end;
 
 procedure BuildVexerDistances;
 var Queue: array [1..42] of integer;
-  Head, Tail, T, F, E: integer;
+  Head, Tail, T, F, E, Owner: integer;
+  Changed: boolean;
 begin
+  Changed:=not VexerDistancesReady;
+  for T:=1 to 42 do begin
+    Owner:=TOwner(T);
+    if Owner<>VexerOwners[T] then Changed:=true;
+    VexerOwners[T]:=Owner;
+  end;
+  if not Changed then exit;
   Head:=1; Tail:=0;
   for T:=1 to 42 do begin
     VexerDistance[T]:=99;
-    if IsVexer(TOwner(T)) then begin
+    if IsVexer(VexerOwners[T]) then begin
       VexerDistance[T]:=0; Tail:=Tail+1; Queue[Tail]:=T;
     end;
   end;
@@ -79,6 +100,7 @@ begin
         VexerDistance[E]:=VexerDistance[T]+1;
         Tail:=Tail+1; Queue[Tail]:=E;
       end;
+      VexerDistancesReady:=true;
     end;
   end;
 end;

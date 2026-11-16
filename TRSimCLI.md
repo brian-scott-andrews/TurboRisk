@@ -177,6 +177,82 @@ strength leaves the armies in place. Its existing both-front distribution is
 preserved when legal. The compiler workflow tests cover these decisions,
 one-army boundaries, and independence from enemy territory numbering (#50).
 
+Australian09, Descartes09 and Endeavour09 share eight performance changes. Their
+matching routines and script dependencies were compared before porting; their
+individual strategies and Descartes09's existing attack legality guard are retained.
+The changes reuse army totals and unchanged vulnerability
+baselines, cache threat facts and real-board map baselines within each callback,
+and reuse existing placement plans without skipping required bookkeeping.
+Disabled diagnostic arguments are gated by `A09LogEnabled`,
+`A09MessagesEnabled` and `A09SnapshotsEnabled`, all false by default.
+The compiler workflow's `--australian-tests` selector checks all eight optimizations
+separately for each of the three bots on 72 paired synthetic boards, comparing decisions, buffers and
+simulated attack maps. The five further changes also preserved all 250,480
+actions in seeded case 72 through the fixed 421-turn cutoff, with each stage
+compared to the preceding stage. This does not establish equivalence for every
+possible game or show that the full game finishes.
+
+`A09Vulnerability(var ArmyMap: TA09ArmyMap; var MineMap: TA09MineMap;
+AttackContinent, PlayersCount, KillPlayer, BiggestPlayer, SecondArmies: integer;
+var AttackMap: TA09ArmyMap): boolean` is the native threat evaluator shared by
+these three 09 bots. Its API name is retained for compatibility.
+The registered map types are dynamic arrays of integer and boolean respectively;
+both input arrays must contain 43 elements (index 0 is reserved). Invalid sizes
+raise a script runtime error. Inputs are passed by reference for interpreter
+marshaling but are not changed; `AttackMap` receives the calculated threats.
+The algorithm retains the interpreted evaluator's traversal order, integer
+arithmetic and historical recognition behavior. The script wrapper also
+preserves its global `C` side effect. Set `A09NativeVulnerability=False` to use
+the retained interpreted evaluator for comparison. Both settings require a
+rebuilt executable with the new API; the updated script cannot load in older
+executables. Rebuild `TurboRisk`, `TRSim`, `TRSimCLI` and `TRComp` as needed.
+
+`UPropagateEnemyCosts` is the native eight-pass territory-cost propagation used
+by Australian+ and Australian in placement and attack, and by Descartes and
+Zotob in placement and occupation.
+It updates the current player's buffers 1–42, retaining the original territory
+and neighbor order, integer truncation, strict comparison and assignment's extra
+one-army cost. Owned territories, untouched fractional costs and all other
+buffers are preserved. Ownership and army snapshots are callback-local, never
+reused after the board changes. The compiler workflow's `--enemy-cost-tests`
+selector compares the interpreted loop and native helper on fractional/negative
+cost maps and all four bots' placement/attack/occupation decisions and complete buffers
+across 72 synthetic boards, including changed boards between callbacks.
+These four updated scripts also require rebuilt executables with this API.
+Frozen tournament runtimes and scripts are not updated by rebuilding.
+
+Counterweight now maintains continent-missing counts during its bounded
+three-capture search, updating and restoring them with simulated ownership.
+Its odds, floating-point scoring, traversal order and strict tie comparisons
+are unchanged. Challenger uses a sorted route frontier with the original
+lowest-territory tie break, and computes missing continent territories once
+per attack callback instead of repeatedly scanning the board.
+`--search-optimization-tests` compares both bots against frozen interpreted
+references, including all five callbacks, campaign scores, route budgets,
+partial failures, simulated captures and changed boards.
+
+Shadow2 caches opponent-program recognition within the loaded player turn.
+Its Vexer-distance cache checks every territory's ownership before reuse,
+so reinforcements reuse distances but conquests and eliminations refresh them.
+`--shadow-tests` includes exact pre-cache callback comparisons and a probe
+that changes ownership between distance queries in one loaded script instance.
+
+Australian09 and Endeavour09 additionally use native legacy helpers for
+Minnow's fixed-point value propagation, continent threat scans, lone-territory
+valuation and the five-pass conquest selection. These are separate from the
+eight previous 09 optimizations and the older family's eight-pass buffer helper.
+`A09NativeLegacy=False` selects their retained interpreted reference paths.
+Both settings require rebuilt executables; no additional array types are
+registered. `ValIndex` uses the existing `TA09ArmyMap`, and propagation preserves
+its reserved index 0. The native paths preserve integer arithmetic, selection
+order, strict comparisons and caller-visible global loop/neighbor values.
+`--legacy-tests` compares helpers, all five callbacks, value maps, persistent
+buffers and global side effects, and rejects invalid value-map sizes explicitly.
+These differential checks establish equivalence for their tested inputs,
+not for every possible game. Seeded game comparisons must also use identical
+rules and rosters; use a deterministic turn limit rather than a wall-time limit
+when comparing full action sequences.
+
 Every playable script in `players` starts with **Program**, **Author** and
 **Description**, in that order, with a value on each label's line.
 Credits, AI disclaimers and version notes follow the description.
@@ -266,6 +342,7 @@ proposal to the real TRP callbacks, it is not included in already-frozen studies
 | `--game-log <file>` | Game log path. Defaults to `TRSimCLI.sgl`. |
 | `--cpu-log <file>` | CPU usage log path. Defaults to `TRSimCLI.scl`. |
 | `--action-log <file>` | Optional public action history as UTF-8 JSONL. Appends game/roster headers and sequenced actions; disabled unless specified. Must be separate from other logs and the schedule. |
+| `--timing-log <file>` | Optional TRP-routine and simulator-phase trace as JSONL. Overwrites the file; must be separate from the schedule and other logs. |
 | `--turn-limit <number>` | Maximum turns per game; `0` disables the limit. |
 | `--time-limit <seconds>` | Maximum seconds per game; `0` disables the limit. |
 | `--seed <number>` | Seed for the game random-number generator, including calls made by TRPs through `URandom`. Identical seeds, schedules, and game inputs produce repeatable random sequences. |
@@ -298,6 +375,19 @@ identifies its roster; action rows contain game/segment IDs, sequence numbers,
 actors, territories, army counts before/after, casualties and capture flags.
 Each combat row represents one dice exchange. The existing `.sgl`, `.scl` and
 `history.txt` formats are unchanged.
+
+### Per-routine timing trace
+
+Use `--timing-log .\routine-timing.jsonl` to record TRP routine and simulator
+phase boundaries. Routine records include local timestamps, monotonic elapsed
+milliseconds, game and turn, player, program, routine, call ID, and completed
+call duration. Every callback invocation gets its own pair, including repeated
+calls within one simulator phase. Phase records measure `computer_turn`,
+`assign_new_armies`, and `pass_turn`, including their completed duration.
+While running, an unmatched `routine_start` or `phase_start` identifies the
+work currently in progress. If the run has exited, correlate unmatched starts
+with the game log to distinguish an error from a stall. This diagnostic is
+opt-in and separate from the public action log.
 
 In the game, **Log actions...** in the Log window saves the available history
 and streams future actions until **Stop action log** or application exit.

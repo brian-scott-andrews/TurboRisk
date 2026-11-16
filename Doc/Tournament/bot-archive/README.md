@@ -7,7 +7,7 @@ by the game; benchmark aliases are separately bundled under `players\`.
 copied from `doomstack-before-opt.trp`. To test other old versions, copy them
 into `players\` under a different file name.
 
-The snapshots retain their historical headers unchanged, including old names
+Historical snapshots retain their original headers unchanged, including old names
 and descriptions that may not distinguish strategy inspiration from code
 adaptation. For Doomstack and its Challenger baseline, the Brainless IV and
 Vexer references credit strategy concepts, not copied source code. Actuary's
@@ -60,12 +60,27 @@ rewritten in place and no copies survive.
 
 The Brainless V and VI source versions and the 27 October 2026 VI route-planner
 rerun are documented in [`brainless/README.md`](brainless/README.md).
-Historical pre-restoration V and pre-route-planner VI results use the explicit
-`brainless V legacy` and `brainless vi legacy` player aliases; the original
+Historical pre-restoration V results, including the `brainless V legacy`
+alias, are pooled with `brainless V` under the safety-fix policy.
+Pre-route-planner VI results retain the `brainless vi legacy` alias; the original
 result rows remain unchanged in the external master-results archive. The
 archive also preserves the earlier IV-derived elimination-helper snapshots
 that were tried in both bots before the user chose to keep V close to its
 original strategy and make VI the route-planning variant.
+
+## Vexer logging variant
+
+`vexer\vexerlog.trp` is a diagnostic variant of bundled `players\vexer.trp`
+at commit `6dad7b3`. `VexerLogEnabled` is true, and the `l`, `m` and `m2`
+helpers write their diagnostic text through `ULog`, enabled by `ULogOn` at
+initialization. Interactive dialogs,
+snapshots and debug abort hooks remain disabled; already commented-out call
+sites remain commented out. The original strategy and the Boolean results of
+`m` and `m2` are unchanged.
+
+It is archived outside `players\` and is not included in routine tournaments.
+Copy it into `players\vexerlog.trp` only when explicitly choosing to use the
+logging variant. Normal bundled Vexer remains quiet.
 
 ## Hashes (SHA-256, first 12 hex)
 

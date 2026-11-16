@@ -7,23 +7,34 @@ October 2026 work:
 |---|---|---|
 | `brainless-V-pre-restoration.trp` | V baseline | Committed pre-restoration V, with the elimination caller removed during the 8 October hardening change. |
 | `brainless-V-iv-elimination.trp` | V IV-derived experiment | Temporary version that used an IV-style immediate elimination-target helper. It was superseded when V was restored close to its original design. |
-| `brainless-V-restored.trp` | V restored | Near-original elimination planner restored with bounds guards; its incomplete result is diagnostic and does not choose an attack target. This is the current `players\brainless V.trp`. |
+| `brainless-V-restored.trp` | V restored | Near-original elimination planner restored with bounds guards; its incomplete result is diagnostic and does not choose an attack target. Snapshot before the strategy-preserving removal of ineffective planner work from current `players\brainless V.trp`. |
 | `brainless-vi-pre-route.trp` | VI baseline | Committed pre-route-planner VI. It does not use a functional elimination route planner. |
 | `brainless-vi-iv-elimination.trp` | VI IV-derived experiment | Temporary version with the IV-style immediate elimination-target helper, before VI's route planner was implemented. |
 | `brainless-vi-route-planner.trp` | VI route planner | Bounded weighted route search that selects the first step toward a reachable weak opponent and replans after each attack. This is the current `players\brainless vi.trp`. |
 | `brainless-vi-route-rerun-2026-10-27.sgl` | VI benchmark | Raw valid result rows from the isolated route-planner rerun. |
 
-Historical results through 27 October 2026 10:59 are identified as
-`brainless V legacy` and `brainless vi legacy`; their exact benchmark aliases
+Historical V results through 27 October 2026 10:59 were previously separated
+as `brainless V legacy`. They are now pooled with `brainless V`, including
+explicit legacy-alias rows, under the safety-fix policy: placement and attack
+selection are unchanged, the restored planner never selected an attack, and
+the later movement guards correct invalid moves. This does not claim identical
+outcomes in safety-fix edge cases.
+Historical VI results through that time remain `brainless vi legacy` because
+the route planner changes attack selection. The exact benchmark aliases
 are preserved here as `brainless V legacy.trp` and `brainless vi legacy.trp`,
 not in `players\`. Archived versions must not be run in tournaments unless
 explicitly requested. The IV-derived experiments were
 preserved from checkpoint `dba587b`; they were exploratory and not tournament
 benchmarked. The current versions keep the names
 `brainless V` and `brainless vi`. The original master-results file was not
-rewritten; the tournament scripts apply the same cutoff when building
+rewritten; the tournament scripts apply the cutoff only to VI when building
 statistics. The intermediate IV-derived helper snapshots were preserved for
 historical comparison and were not used in the route-planner rerun.
+
+The current V omits the ineffective elimination search and its per-roll array
+allocations. Its destination remained zero, so the search could never return
+success or affect attack selection. This performance fix retains V's strategy;
+it does not replace V with IV/VI elimination logic or reset strategy coverage.
 
 ## VI route-planner rerun (2026-10-27)
 

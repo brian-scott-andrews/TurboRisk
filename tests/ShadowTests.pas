@@ -3,8 +3,124 @@ unit ShadowTests;
 interface
 procedure RunShadowTests;
 procedure RunShadow2Tests;
+procedure RunShadow2OptimizationTests;
 implementation
 uses Classes, SysUtils, Variants, Globals, Territ, ActionHistory;
+
+procedure RunShadow2OptimizationTests;
+const
+  OriginalDistances =
+    'function IsVexer(P: integer): boolean;' +
+    ' begin result:=false; if (P>0) and (P<>PMe) then ' +
+    'result:=lowercase(PProgram(P))=''vexer.trp''; end;' + LineEnding +
+    'procedure BuildVexerDistances;' +
+    ' var Queue:array[1..42] of integer; Head,Tail,T,F,E:integer;' +
+    ' begin Head:=1; Tail:=0; for T:=1 to 42 do begin VexerDistance[T]:=99;' +
+    ' if IsVexer(TOwner(T)) then begin VexerDistance[T]:=0; Tail:=Tail+1;' +
+    ' Queue[Tail]:=T; end; end;' +
+    ' while Head<=Tail do begin T:=Queue[Head]; Head:=Head+1;' +
+    ' for F:=1 to TBordersCount(T) do begin E:=TBorder(T,F);' +
+    ' if VexerDistance[E]=99 then begin VexerDistance[E]:=VexerDistance[T]+1;' +
+    ' Tail:=Tail+1; Queue[Tail]:=E; end; end; end; end;' + LineEnding;
+var
+  Lines: TStringList;
+  Source, Reference, ActualProbe, ReferenceProbe, Name, Diagnostics, Value: string;
+  Context, Actual, Expected: TTRCompContext;
+  A, B: array of Variant;
+  First, Last, Board, T, P, R, I, Count: Integer;
+  Routine, Helpers, Probe: string;
+
+  function WithDistanceProbe(const Text: string): string;
+  var InsertAt: Integer;
+  begin
+    Result := StringReplace(Text, 'TOwner(', 'TestDistanceOwner(', [rfReplaceAll]);
+    InsertAt := Pos('function IsVexer(', Result);
+    if InsertAt = 0 then raise Exception.Create('Shadow distance helper marker missing.');
+    Insert(Helpers, Result, InsertAt);
+    InsertAt := Length(Result);
+    while (InsertAt > 0) and (Copy(Result, InsertAt, 5) <> 'begin') do Dec(InsertAt);
+    if InsertAt = 0 then raise Exception.Create('Shadow distance initialization missing.');
+    Insert(Probe, Result, InsertAt);
+  end;
+
+begin
+  SetupTerritories;
+  Name := 'players' + PathDelim + 'shadow2.trp';
+  Lines := TStringList.Create;
+  try Lines.LoadFromFile(Name); Source := Lines.Text finally Lines.Free end;
+  First := Pos('function IsVexer(', Source);
+  Last := Pos('function TargetValue(', Source);
+  if (First = 0) or (Last <= First) then
+    raise Exception.Create('Shadow optimization reference markers missing.');
+  Reference := Copy(Source, 1, First - 1) + OriginalDistances + Copy(Source, Last, MaxInt);
+  Helpers := 'var DistanceChangedT,DistanceChangedOwner:integer;' + LineEnding +
+    'function TestDistanceOwner(T:integer):integer;' +
+    ' begin Result:=TOwner(T); if T=DistanceChangedT then Result:=DistanceChangedOwner; end;' +
+    LineEnding;
+  Probe := 'procedure TestDistances(var ChangedTerritory,NewOwner:integer);' +
+    ' var DistanceIndex:integer; begin DistanceChangedT:=0;' +
+    ' BuildVexerDistances; BuildVexerDistances;' +
+    ' for DistanceIndex:=1 to 42 do UBufferSet(700+DistanceIndex,VexerDistance[DistanceIndex]);' +
+    ' DistanceChangedT:=ChangedTerritory; DistanceChangedOwner:=NewOwner;' +
+    ' BuildVexerDistances; BuildVexerDistances;' +
+    ' for DistanceIndex:=1 to 42 do UBufferSet(800+DistanceIndex,VexerDistance[DistanceIndex]); end;' +
+    LineEnding;
+  ActualProbe := WithDistanceProbe(Source);
+  ReferenceProbe := WithDistanceProbe(Reference);
+  Count := 0;
+  for Board := 0 to 71 do begin
+    Context := Default(TTRCompContext);
+    Context.CurrentPlayer := 1 + Board mod 3;
+    Context.Conquest := Board mod 2 = 0;
+    Context.CardTradeByCombination := Board mod 3 = 0;
+    for P := 1 to MAXPLAYERS do begin
+      Context.PlayerActive[P] := P <= 3;
+      Context.PlayerName[P] := 'Player ' + IntToStr(P);
+      Context.PlayerProgram[P] := 'simple.trp';
+      if P = 1 + (Board div 3) mod 3 then Context.PlayerProgram[P] := 'VeXeR.TrP';
+      Context.PlayerNewArmies[P] := Board mod 30;
+    end;
+    for T := 1 to 42 do begin
+      Context.TerritoryOwner[T] := 1 + (T + Board) mod 3;
+      Context.TerritoryArmies[T] := 1 + (T * 17 + Board) mod 100;
+      if Board mod 6 = 0 then Context.TerritoryOwner[T] := 1 + T mod 2;
+    end;
+    for R := 0 to 5 do begin
+      if R = 0 then Routine := 'Assignment'
+      else if R = 1 then Routine := 'Placement'
+      else if R = 2 then Routine := 'Attack'
+      else if R = 3 then Routine := 'Occupation'
+      else if R = 4 then Routine := 'Fortification'
+      else Routine := 'TestDistances';
+      I := 1;
+      if (R = 2) or (R = 5) then I := 2;
+      if (R = 3) or (R = 4) then I := 3;
+      SetLength(A, I);
+      for I := 0 to High(A) do A[I] := 0;
+      if R = 3 then begin A[0] := 1; A[1] := 2 end;
+      if R = 5 then begin A[0] := 1 + Board mod 42; A[1] := 1 + (Board + 1) mod 3 end;
+      B := Copy(A);
+      Actual := Context;
+      Expected := Context;
+      if R = 5 then begin
+        if not RunTRPRoutine(Name, ReferenceProbe, Routine, Expected, B, Value, Diagnostics) then
+          raise Exception.Create('Shadow cache reference: ' + Diagnostics);
+      end else
+        if not RunTRPRoutine(Name, Reference, Routine, Expected, B, Value, Diagnostics) then
+          raise Exception.Create('Shadow callback reference: ' + Diagnostics);
+      if R = 5 then Probe := ActualProbe else Probe := Source;
+      if not RunTRPRoutine(Name, Probe, Routine, Actual, A, Value, Diagnostics) then
+        raise Exception.Create('Shadow cache optimized: ' + Diagnostics);
+      for I := 0 to High(A) do
+        if A[I] <> B[I] then raise Exception.Create('Shadow optimized callback output changed.');
+      for I := 1 to MAXBUFFER do
+        if Actual.Buffers[I] <> Expected.Buffers[I] then
+          raise Exception.CreateFmt('Shadow board %d routine %s buffer %d differs.', [Board, Routine, I]);
+      Inc(Count);
+    end;
+  end;
+  WriteLn('Shadow2 reference callbacks and within-turn distance refresh matched in ', Count, ' cases.');
+end;
 
 procedure ResetContext(var Context: TTRCompContext);
 var T,P: Integer;
