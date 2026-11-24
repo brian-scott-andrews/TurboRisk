@@ -88,12 +88,229 @@ var
   fSim: TfSim;
   bSimVerbose: Boolean;
 
+procedure StartRoutineTimingLog(const FileName: string);
+procedure StopRoutineTimingLog;
+procedure LogTRPRoutineStart(Routine: TRoutine);
+procedure LogTRPRoutineEnd(Routine: TRoutine; DurationMilliseconds: QWord);
+procedure LogSimulatorPhaseStart(const PhaseName: string);
+procedure LogSimulatorPhaseEnd(const PhaseName: string);
+
 implementation
 
 {$R *.lfm}
 
-uses IniFiles, StrUtils, DateUtils, {StdPas,} SimRun, SimMap, Stats, Territ,
+uses IniFiles, StrUtils, DateUtils, fpjson, {StdPas,} SimRun, SimMap, Stats, Territ,
   SimCPULog, SimGameLog, ExpSubr, ActionHistory;
+
+type
+  TSimulatorTimingPhase = record
+    ID: Int64;
+    Name: string;
+    StartTick: QWord;
+  end;
+
+var
+  RoutineTimingStream: TFileStream;
+  RoutineTimingFileName: string;
+  RoutineTimingStartTick, RoutineTimingGameStartTick: QWord;
+  RoutineTimingGame, RoutineTimingSequence, RoutineTimingCallID,
+    RoutineTimingActiveCallID, RoutineTimingPhaseID: Int64;
+  RoutineTimingPhases: array of TSimulatorTimingPhase;
+
+procedure UpdateRoutineTimingGame(Tick: QWord);
+begin
+  if RoutineTimingGame <> iSimCurr then begin
+    RoutineTimingGame := iSimCurr;
+    RoutineTimingGameStartTick := Tick;
+  end;
+end;
+
+function RoutineTimingName(Routine: TRoutine): string;
+begin
+  case Routine of
+    rtAssignment: Result := 'Assignment';
+    rtPlacement: Result := 'Placement';
+    rtAttack: Result := 'Attack';
+    rtOccupation: Result := 'Occupation';
+    rtFortification: Result := 'Fortification';
+  else
+    Result := 'Unknown';
+  end;
+end;
+
+procedure WriteRoutineTimingLine(const Line: string);
+var
+  Data: UTF8String;
+begin
+  if RoutineTimingStream = nil then Exit;
+  Data := UTF8String(Line + #10);
+  try
+    RoutineTimingStream.WriteBuffer(Data[1], Length(Data));
+  except
+    on E: Exception do begin
+      FreeAndNil(RoutineTimingStream);
+      raise EWriteError.CreateFmt('Cannot write routine timing log "%s": %s',
+        [RoutineTimingFileName, E.Message]);
+    end;
+  end;
+end;
+
+procedure WriteRoutineTimingEvent(const EventName: string; Routine: TRoutine;
+  CallID: Int64; HasDuration: Boolean; DurationMilliseconds: QWord);
+var
+  Obj: TJSONObject;
+  Tick: QWord;
+begin
+  if RoutineTimingStream = nil then Exit;
+  Tick := GetTickCount64;
+  UpdateRoutineTimingGame(Tick);
+  Inc(RoutineTimingSequence);
+  Obj := TJSONObject.Create;
+  try
+    Obj.Add('type', EventName);
+    Obj.Add('sequence', RoutineTimingSequence);
+    Obj.Add('call_id', CallID);
+    Obj.Add('timestamp_local', FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Now));
+    Obj.Add('elapsed_ms', Int64(Tick - RoutineTimingStartTick));
+    Obj.Add('game', iSimCurr);
+    Obj.Add('game_elapsed_ms', Int64(Tick - RoutineTimingGameStartTick));
+    Obj.Add('turn', iTurnCounter);
+    Obj.Add('player_index', iTurn);
+    Obj.Add('player', arPlayer[iTurn].Name);
+    Obj.Add('program', arPlayer[iTurn].PrgFile);
+    Obj.Add('routine', RoutineTimingName(Routine));
+    if HasDuration then
+      Obj.Add('duration_ms', Int64(DurationMilliseconds));
+    WriteRoutineTimingLine(Obj.AsJSON);
+  finally
+    Obj.Free;
+  end;
+end;
+
+procedure WriteSimulatorPhaseEvent(const EventName, PhaseName: string;
+  PhaseID: Int64; DurationMilliseconds: QWord);
+var
+  Obj: TJSONObject;
+  Tick: QWord;
+begin
+  if RoutineTimingStream = nil then Exit;
+  Tick := GetTickCount64;
+  UpdateRoutineTimingGame(Tick);
+  Inc(RoutineTimingSequence);
+  Obj := TJSONObject.Create;
+  try
+    Obj.Add('type', EventName);
+    Obj.Add('sequence', RoutineTimingSequence);
+    Obj.Add('phase_id', PhaseID);
+    Obj.Add('phase', PhaseName);
+    Obj.Add('timestamp_local', FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Now));
+    Obj.Add('elapsed_ms', Int64(Tick - RoutineTimingStartTick));
+    Obj.Add('game', iSimCurr);
+    Obj.Add('game_elapsed_ms', Int64(Tick - RoutineTimingGameStartTick));
+    Obj.Add('turn', iTurnCounter);
+    Obj.Add('player_index', iTurn);
+    Obj.Add('player', arPlayer[iTurn].Name);
+    Obj.Add('program', arPlayer[iTurn].PrgFile);
+    if EventName = 'phase_end' then
+      Obj.Add('duration_ms', Int64(DurationMilliseconds));
+    WriteRoutineTimingLine(Obj.AsJSON);
+  finally
+    Obj.Free;
+  end;
+end;
+
+procedure StartRoutineTimingLog(const FileName: string);
+var
+  Header: TJSONObject;
+begin
+  if RoutineTimingStream <> nil then
+    raise Exception.Create('A routine timing log is already open');
+  RoutineTimingFileName := ExpandFileName(FileName);
+  RoutineTimingStream := TFileStream.Create(RoutineTimingFileName,
+    fmCreate or fmShareDenyWrite);
+  RoutineTimingStartTick := GetTickCount64;
+  RoutineTimingGameStartTick := RoutineTimingStartTick;
+  RoutineTimingGame := -1;
+  RoutineTimingSequence := 0;
+  RoutineTimingCallID := 0;
+  RoutineTimingActiveCallID := 0;
+  RoutineTimingPhaseID := 0;
+  SetLength(RoutineTimingPhases, 0);
+  Header := TJSONObject.Create;
+  try
+    try
+      Header.Add('format', 'TurboRisk.routine-timing');
+      Header.Add('version', 1);
+      Header.Add('type', 'session');
+      Header.Add('timestamp_local',
+        FormatDateTime('yyyy-mm-dd"T"hh:nn:ss.zzz', Now));
+      Header.Add('clock', 'GetTickCount64 milliseconds');
+      WriteRoutineTimingLine(Header.AsJSON);
+    except
+      StopRoutineTimingLog;
+      raise;
+    end;
+  finally
+    Header.Free;
+  end;
+end;
+
+procedure StopRoutineTimingLog;
+begin
+  FreeAndNil(RoutineTimingStream);
+  RoutineTimingFileName := '';
+  RoutineTimingActiveCallID := 0;
+  SetLength(RoutineTimingPhases, 0);
+  RoutineTimingGame := -1;
+end;
+
+procedure LogTRPRoutineStart(Routine: TRoutine);
+begin
+  if RoutineTimingStream = nil then Exit;
+  Inc(RoutineTimingCallID);
+  RoutineTimingActiveCallID := RoutineTimingCallID;
+  WriteRoutineTimingEvent('routine_start', Routine, RoutineTimingActiveCallID,
+    False, 0);
+end;
+
+procedure LogTRPRoutineEnd(Routine: TRoutine; DurationMilliseconds: QWord);
+begin
+  if (RoutineTimingStream = nil) or (RoutineTimingActiveCallID = 0) then Exit;
+  WriteRoutineTimingEvent('routine_end', Routine, RoutineTimingActiveCallID,
+    True, DurationMilliseconds);
+  RoutineTimingActiveCallID := 0;
+end;
+
+procedure LogSimulatorPhaseStart(const PhaseName: string);
+var
+  Phase: TSimulatorTimingPhase;
+begin
+  if RoutineTimingStream = nil then Exit;
+  Inc(RoutineTimingPhaseID);
+  Phase.ID := RoutineTimingPhaseID;
+  Phase.Name := PhaseName;
+  Phase.StartTick := GetTickCount64;
+  SetLength(RoutineTimingPhases, Length(RoutineTimingPhases) + 1);
+  RoutineTimingPhases[High(RoutineTimingPhases)] := Phase;
+  WriteSimulatorPhaseEvent('phase_start', PhaseName, Phase.ID, 0);
+end;
+
+procedure LogSimulatorPhaseEnd(const PhaseName: string);
+var
+  Phase: TSimulatorTimingPhase;
+  Duration: QWord;
+begin
+  if RoutineTimingStream = nil then Exit;
+  if Length(RoutineTimingPhases) = 0 then
+    raise Exception.CreateFmt('No active routine timing phase for %s', [PhaseName]);
+  Phase := RoutineTimingPhases[High(RoutineTimingPhases)];
+  if Phase.Name <> PhaseName then
+    raise Exception.CreateFmt('Mismatched routine timing phase: active %s, ended %s',
+      [Phase.Name, PhaseName]);
+  Duration := GetTickCount64 - Phase.StartTick;
+  WriteSimulatorPhaseEvent('phase_end', PhaseName, Phase.ID, Duration);
+  SetLength(RoutineTimingPhases, Length(RoutineTimingPhases) - 1);
+end;
 
 procedure TfSim.FormShow(Sender: TObject);
 begin
@@ -110,7 +327,8 @@ end;
 function TfSim.RunCLI: Integer;
 var
   iArg, iValue, iGame, iPlayer, iMinPlayers, iMaxPlayers: Integer;
-  sArg, sScheduleFile, sMapName, sGameLogFile, sCPULogFile, sActionLogFile: string;
+  sArg, sScheduleFile, sMapName, sGameLogFile, sCPULogFile, sActionLogFile,
+    sTimingLogFile: string;
   sLine, sPlayer, sNormalizedLine: string;
   Schedule, NormalizedSchedule, GamePlayers, UniquePlayers: TStringList;
   bErrorDump: Boolean;
@@ -150,6 +368,7 @@ var
     WriteLn('  --game-log <file>      Game log (default: TRSimCLI.sgl)');
     WriteLn('  --cpu-log <file>       CPU usage log (default: TRSimCLI.scl)');
     WriteLn('  --action-log <file>    Optional public action history (JSONL, appended)');
+    WriteLn('  --timing-log <file>    Optional per-TRP routine start/end trace (JSONL)');
     WriteLn('  --turn-limit <number>  Maximum turns per game (0: unlimited)');
     WriteLn('  --time-limit <seconds> Maximum seconds per game (0: unlimited)');
     WriteLn('  --seed <number>        Random-number-generator seed');
@@ -173,6 +392,7 @@ begin
   sGameLogFile := '';
   sCPULogFile := '';
   sActionLogFile := '';
+  sTimingLogFile := '';
   bSeedSpecified := False;
   bStatSignificantSample := False;
   bAllowDuplicatePlayers := False;
@@ -198,6 +418,8 @@ begin
         sCPULogFile := NextArgument(sArg)
       else if sArg = '--action-log' then
         sActionLogFile := NextArgument(sArg)
+      else if sArg = '--timing-log' then
+        sTimingLogFile := NextArgument(sArg)
       else if sArg = '--turn-limit' then
         iSimTurnLimit := ReadNonNegativeInteger(sArg)
       else if sArg = '--time-limit' then
@@ -343,11 +565,29 @@ begin
        SameFileName(ExpandFileName(sActionLogFile), ExpandFileName(sScheduleFile)) then
       raise Exception.Create('Action log must not overwrite the schedule');
     if sActionLogFile <> '' then sActionLogFile := ExpandFileName(sActionLogFile);
+    if sTimingLogFile <> '' then begin
+      sTimingLogFile := ExpandFileName(sTimingLogFile);
+      if not DirectoryExists(ExtractFileDir(sTimingLogFile)) then
+        raise Exception.Create('Routine timing log directory does not exist: ' +
+          ExtractFileDir(sTimingLogFile));
+      if SameFileName(sTimingLogFile, sScheduleFile) or
+         SameFileName(sTimingLogFile, sGameLogFile) or
+         SameFileName(sTimingLogFile, sCPULogFile) or
+         ((sActionLogFile <> '') and SameFileName(sTimingLogFile, sActionLogFile)) then
+        raise Exception.Create(
+          'Routine timing log must be separate from the schedule and other logs');
+    end;
     txtActionLogFile.Text := sActionLogFile;
     fCliErrorOccurred := False;
     WriteLn(Format('TRSimCLI: validated %d games, %d unique TRPs (%d-%d per game)',
       [fPlayerSchedule.Count, lstRandom.Count, iMinPlayers, iMaxPlayers]));
-    cmdStartClick(nil);
+    if sTimingLogFile <> '' then
+      StartRoutineTimingLog(sTimingLogFile);
+    try
+      cmdStartClick(nil);
+    finally
+      StopRoutineTimingLog;
+    end;
     if fCliErrorOccurred then
       Result := 1
     else

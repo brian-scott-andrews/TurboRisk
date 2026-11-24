@@ -719,30 +719,7 @@ Descartes:
 
   //	ulog('right before x is 1 to 8');
 	    
-    for X:=1 to 8 do 
-    begin
-      for T:=1 to 42 do  //check each territory 
-      begin
-        if (not TIsMine(T)) then  //if i don't own this territory
-        begin
-          Y:=TBordersCount(T);		   //count the borders
-          for Z:=1 to Y do 	//cycle thru the borders of this territory
-          begin
-            T2:=TBorder(T,Z);  //check each territory bordering T
-            if (not TIsMine(T2)) then  //if i don't own a border of T
-            begin
-              D:=trunc(UBufferGet(T));  //set D to be  whatever score is for this territory
-              D2:=trunc(UBufferGet(T2));  //set D2 to be score for this particular border
-              if (D>(D2+TArmies(T))) then //if score for this T is more than score for border + armies in that border
-              begin
-                D:=D2+TArmies(T)+1; //set score for this T to be border armies + border score + 1
-                UBufferSet(T,D);
-              end;
-            end;
-          end;
-        end;
-      end;
-    end;
+    UPropagateEnemyCosts;
 //	ulog('right after monster nested for loop');
     
     for T:=1 to 42 do begin
@@ -1463,24 +1440,7 @@ Descartes:
       end;
     end;
 
-    for X:=1 to 8 do begin
-      for T:=1 to 42 do begin
-        if (not TIsMine(T)) then begin
-          Y:=TBordersCount(T);
-          for Z:=1 to Y do begin
-            T2:=TBorder(T,Z);
-            if (not TIsMine(T2)) then begin
-              D:=trunc(UBufferGet(T));
-              D2:=trunc(UBufferGet(T2));
-              if (D>(D2+TArmies(T))) then begin
-                D:=D2+TArmies(T)+1;
-                UBufferSet(T,D);
-              end;
-            end;
-          end;
-        end;
-      end;
-    end;
+    UPropagateEnemyCosts;
     
     if (KillPlayer=0) then begin
       CAnalysis(6,PT,PA,ET,EA);

@@ -295,7 +295,7 @@ procedure SetHooverTerritory(iT: integer);
 implementation
 
 uses Forms, SysUtils, IniFiles, Dialogs, Math, DateUtils,
-  Variants, uPSCompiler, ActionHistory, fpjson,
+  Variants, uPSCompiler, ActionHistory, fpjson, AustralianVulnerability,
   Main, Territ, Computer, Stats, Human, Cards, Log, ExpSubr, History, SimRun;
 
 procedure RecordGameAction(Kind, Player, Opponent, FromT, ToT, Armies: Integer;
@@ -379,6 +379,28 @@ begin
   // API callbacks signal custom errors without unwinding the native call trampoline.
   if ScriptExec.ExceptionCode = erCustomError then
     ScriptExec.RaiseCurrentException;
+end;
+
+function ScriptA09Vulnerability(var ArmyMap: TA09ArmyMap;
+  var MineMap: TA09MineMap; AttackContinent, PlayersCount, KillPlayer,
+  BiggestPlayer, SecondArmies: Integer; var AttackMap: TA09ArmyMap): Boolean;
+begin
+  Result := False;
+  if (Length(ArmyMap) <> 43) or (Length(MineMap) <> 43) then begin
+    ScriptExec.CMD_Err2(erCustomError, A09MapSizeError);
+    Exit;
+  end;
+  Result := A09Vulnerability(ArmyMap, MineMap, AttackContinent, PlayersCount,
+    KillPlayer, BiggestPlayer, SecondArmies, AttackMap);
+end;
+
+procedure ScriptA09RelaxValues(var Values: TA09ArmyMap);
+begin
+  if Length(Values) <> 43 then begin
+    ScriptExec.CMD_Err2(erCustomError, 'A09RelaxValues requires a 43-element value map.');
+    Exit;
+  end;
+  A09RelaxValues(Values);
 end;
 
 function ResolveSimPath(const sFileName: string): string;
@@ -495,6 +517,14 @@ var
   I: Integer;
 begin
   if Name = 'SYSTEM' then begin
+    Sender.AddTypeS('TA09ArmyMap', 'array of integer');
+    Sender.AddTypeS('TA09MineMap', 'array of boolean');
+    Sender.AddDelphiFunction('function A09Vulnerability(var ArmyMap: TA09ArmyMap; var MineMap: TA09MineMap; AttackContinent, PlayersCount, KillPlayer, BiggestPlayer, SecondArmies: integer; var AttackMap: TA09ArmyMap): boolean');
+    Sender.AddDelphiFunction('procedure UPropagateEnemyCosts');
+    Sender.AddDelphiFunction('procedure A09RelaxValues(var Values: TA09ArmyMap)');
+    Sender.AddDelphiFunction('procedure A09AddContinentThreat(Continent: integer; var Value, Territory, Neighbor, Match, Borders, BorderIndex: integer)');
+    Sender.AddDelphiFunction('function A09LoneTerritoryValue(Territory, SecondArmies: integer; var LastFront: integer): double');
+    Sender.AddDelphiFunction('procedure A09ConquestAttack(AverageEnemyArmies, SecondArmies: integer; var FromTerritory, ToTerritory, LastFront: integer; var Value: double)');
     Sender.AddDelphiFunction('function HCount: integer');
     Sender.AddDelphiFunction('function HGet(Index, Field: integer): integer');
     for I := 1 to ACTION_FIELD_COUNT do
@@ -1034,6 +1064,12 @@ begin
 
   // Register the external functions to the executer
   ScriptExec.RegisterDelphiFunction(@HCount, 'HCOUNT', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@ScriptA09Vulnerability, 'A09VULNERABILITY', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@UPropagateEnemyCosts, 'UPROPAGATEENEMYCOSTS', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@ScriptA09RelaxValues, 'A09RELAXVALUES', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@A09AddContinentThreat, 'A09ADDCONTINENTTHREAT', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@A09LoneTerritoryValue, 'A09LONETERRITORYVALUE', cdRegister);
+  ScriptExec.RegisterDelphiFunction(@A09ConquestAttack, 'A09CONQUESTATTACK', cdRegister);
   ScriptExec.RegisterDelphiFunction(@HGet, 'HGET', cdRegister);
   // RegisterStandardLibrary_R(ScriptExec); // Register the standard library
   ScriptExec.RegisterDelphiFunction(@TName, 'TNAME', cdRegister);
@@ -1643,7 +1679,7 @@ begin
 end;
 
 // Pass turn to next player
-procedure PassTurn;
+procedure PassTurnInternal;
 var
   iTL: integer;
 begin
@@ -1674,8 +1710,18 @@ begin
   end;
 end;
 
+procedure PassTurn;
+begin
+  StartSimulatorTimingPhase('pass_turn');
+  try
+    PassTurnInternal;
+  finally
+    EndSimulatorTimingPhase('pass_turn');
+  end;
+end;
+
 // Assign new armies
-procedure AssignNewArmies(bCardsOnly: boolean);
+procedure AssignNewArmiesInternal(bCardsOnly: boolean);
 var
   tCont: TContId;
   iInf, iCav, iArt, iJok: integer;
@@ -1743,6 +1789,16 @@ begin
         + ')');
   end;
   UpdateStats;
+end;
+
+procedure AssignNewArmies(bCardsOnly: boolean);
+begin
+  StartSimulatorTimingPhase('assign_new_armies');
+  try
+    AssignNewArmiesInternal(bCardsOnly);
+  finally
+    EndSimulatorTimingPhase('assign_new_armies');
+  end;
 end;
 
 // Perform an attack

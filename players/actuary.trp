@@ -322,7 +322,8 @@ begin
 end;
 
 procedure Attack(var FromTerritory, ToTerritory: integer);
-var T, F, E, H, Owner, A, D, Onward, TC, Stack, From, First, Victim, Force: integer;
+var T, F, E, H, Owner, A, D, Onward, TC, Stack, From, First, Victim, Force, C: integer;
+  Missing: array[1..6] of integer;
   P, V, EV, Best, W: double;
 begin
   FromTerritory:=0; ToTerritory:=0;
@@ -332,6 +333,10 @@ begin
     end;
   W:=AttritionWeight; Best:=0.0; TC:=TargetContinent;
   Stack:=StrongestFront; Force:=EnemyArmies;
+  for C:=1 to 6 do Missing[C]:=0;
+  for T:=1 to 42 do if not TIsMine(T) then begin
+    C:=TContinent(T); Missing[C]:=Missing[C]+1;
+  end;
   for T:=1 to 42 do if TIsMine(T) and (TArmies(T)>1) then
     for F:=1 to TFrontsCount(T) do begin
       E:=TFront(T,F); Owner:=TOwner(E);
@@ -340,7 +345,7 @@ begin
       if P>=0.5 then begin
         V:=0.5;
         if not SConquest then V:=V+CardValue;
-        if (CBonus(TContinent(E))>0) and CompletesContinent(E) then
+        if (CBonus(TContinent(E))>0) and (Missing[TContinent(E)]=1) then
           V:=V+CBonus(TContinent(E))*3.0;
         if (Owner>0) and (COwner(TContinent(E))=Owner) then
           V:=V+CBonus(TContinent(E))*2.0;

@@ -152,14 +152,14 @@ function Add-ResultLine([string]$line, [bool]$isHistorical) {
   $x = $line.Split(',')
   if ($x.Count -lt 14 -or $x[5] -ne '2' -or $x[2] -notin @('1','4')) { return }
   $a = $x[6]; $b = $x[10]
+  if ($a -eq 'brainless V legacy') { $a = 'brainless V' }
+  if ($b -eq 'brainless V legacy') { $b = 'brainless V' }
   if ($x[0] -lt '20261023') {
     if ($a -eq 'actuary' -or $b -eq 'actuary') { return }
     if ($a -eq 'doomstack') { $a = 'challenger' }
     if ($b -eq 'doomstack') { $b = 'challenger' }
   }
   if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
-    if ($a -eq 'brainless V') { $a = 'brainless V legacy' }
-    if ($b -eq 'brainless V') { $b = 'brainless V legacy' }
     if ($a -eq 'brainless vi') { $a = 'brainless vi legacy' }
     if ($b -eq 'brainless vi') { $b = 'brainless vi legacy' }
   }
@@ -512,14 +512,14 @@ foreach ($line in (Read-SharedLines $masterPath)) {
   $x = $line.Split(',')
   if ($x.Count -lt 14 -or $x[5] -ne '2' -or $x[2] -notin @('1','4')) { continue }
   $a = $x[6]; $b = $x[10]
+  if ($a -eq 'brainless V legacy') { $a = 'brainless V' }
+  if ($b -eq 'brainless V legacy') { $b = 'brainless V' }
   if ($x[0] -lt '20261023') {
     if ($a -eq 'actuary' -or $b -eq 'actuary') { continue }
     if ($a -eq 'doomstack') { $a = 'challenger' }
     if ($b -eq 'doomstack') { $b = 'challenger' }
   }
   if (($x[0] + $x[1]) -lt $brainlessVersionCutoff) {
-    if ($a -eq 'brainless V') { $a = 'brainless V legacy' }
-    if ($b -eq 'brainless V') { $b = 'brainless V legacy' }
     if ($a -eq 'brainless vi') { $a = 'brainless vi legacy' }
     if ($b -eq 'brainless vi') { $b = 'brainless vi legacy' }
   }
@@ -593,8 +593,8 @@ $reportLines.Add('an arbitrary future opponent; small-sample matchups can make i
 $reportLines.Add('')
 $reportLines.Add('The source matrix is deduplicated and excludes pre-2026-10-23 Actuary results.')
 $reportLines.Add('Pre-stalemate Doomstack results are labeled challenger.')
-$reportLines.Add('Pre-restoration V and pre-route-planner VI results use the')
-$reportLines.Add('brainless V legacy and brainless vi legacy labels.')
+$reportLines.Add('Pre-restoration V results are pooled with brainless V under the safety-fix policy.')
+$reportLines.Add('Pre-route-planner VI results retain the brainless vi legacy label.')
 $reportLines.Add('Time-limit results count as ties.')
 $reportLines.Add('')
 $reportLines.Add('Bot                  Opponents overperforming')

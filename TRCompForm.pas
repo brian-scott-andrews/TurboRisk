@@ -325,6 +325,7 @@ begin
     'PMe PName PProgram PActive PAlive PHuman PArmiesCount PNewArmies PTerritoriesCount PCardCount PCardTurnInValue');
   AddApiCategory('Status',
     'SConquest SPlayersCount SAlivePlayersCount SCardsBasedOnCombo');
+  AddApiCategory('Evaluators', 'A09Vulnerability');
   AddApiCategory('Utilities',
     'UMessage ULog UBufferSet UBufferGet URandom UTakeSnapshot UDialog UAbortGame ULogOff ULogOn UMessageOff UMessageOn UDialogOff UDialogOn USnapShotOff USnapShotOn');
   fApiTree.FullExpand;

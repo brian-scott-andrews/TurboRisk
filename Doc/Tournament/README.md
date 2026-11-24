@@ -14,22 +14,25 @@ Raw historical master rows are retained. It also excludes games involving Actuar
 dated before 23 October 2026. Doomstack results from before that date are
 retained under the name `challenger` to distinguish the pre-stalemate version
 from the current `doomstack`; results from 23 October onward retain the
-`doomstack` name. Brainless V results before 27 October 2026 11:00 are labeled
-`brainless V legacy`; the 2-player matrix similarly labels pre-route-planner
-VI samples `brainless vi legacy`. Their benchmark aliases are preserved only in
+`doomstack` name. Brainless V results from before and after the 27 October
+restoration are pooled under `brainless V`, including the explicit
+`brainless V legacy` result alias. Their placement and attack strategy is
+unchanged; ineffective planner work and movement safety fixes do not create a
+strategy boundary. Pre-route-planner VI samples remain labeled
+`brainless vi legacy`. The historical benchmark aliases are preserved only in
 `bot-archive\brainless\`, not in `players\`. The current VI route-planner results are included in the 2-player
 matrix and summarized across 2–10 players in
 `bot-archive\brainless\README.md`. Restored V has only incidental 2-player
 games against the route-planner VI from that run, not a dedicated V rerun.
 
-Safety-only fixes do not reset historical matrix coverage. Valid completed and
-timed-out games before the Brainless IV/V/VI movement guards, Zotob invalid-target
+Safety-only fixes do not reset historical matrix coverage. Valid completed,
+time-limited and turn-limited games before the Brainless IV/V/VI movement guards, Zotob invalid-target
 guards, and Raptorbot placement-selection correction remain eligible. The
 explicit `brainless_iv pre-occupation-fix` result alias is pooled with IV for
 display only; raw master attribution is preserved. These are pooled strategy
-results, not proof that fixes have no effect on outcomes. Error, turn-limit and
+results, not proof that fixes have no effect on outcomes. Error and
 watchdog-without-result attempts remain excluded. Genuine strategy boundaries
-(including restored V versus legacy V, route-planning VI versus legacy VI, and
+(including route-planning VI versus legacy VI and
 Challenger versus Doomstack) remain separate. The optional cutoff CSV is empty
 until another strategic version boundary requires an additional cutoff.
 
@@ -40,20 +43,37 @@ current matrix, pre-stalemate Doomstack results there are still labeled
 `doomstack`. Those cells must not be interpreted as measurements of only the current
 versions.
 
-Both files are self-contained pages (open them in any browser). Each cell
-shows the row bot's average score against the column bot by finish order, and
-its tooltip gives an approximate 95% Jeffreys-prior credible interval. Games
-that hit the time limit count as a tie (0.5 each); turn-limit and error
-results are excluded.
+Both files are self-contained pages (open them in any browser). The current
+matrix retains finish-order scoring for completed games. In games stopped by
+a time or turn limit, each player with zero ending territories receives a loss
+(0); only players still owning territories receive a tie (0.5). This uses the
+saved final board, not the player's last-turn counter. Opposite matrix
+directions need not sum to 100%, since two eliminated players both lose.
+Player hover totals distinguish overall wins, losses and ties from stopping
+reasons. Cell tooltips retain approximate 95% Jeffreys-prior credible intervals.
+Raw historical records and the archived matrix snapshot remain unchanged;
+the archive retains its original scoring policy.
 
-The **Exclude ties** checkbox removes timeout ties and equal-elimination-turn
-pair ties from displayed cells, sample sizes, intervals, row/column sorting
+Recorded-seed timeout recovery overlays preserve the raw master and keep a
+ledger linking each completed replay to its original timeout. The derived
+matrix input replaces that outcome once rather than adding a second appearance.
+Unresolved retries retain the original outcome; new-seed reruns are not treated
+as replacements. Recovering a seed alone does not verify identical historical
+rules or opponent versions. An applied overlay is identified on the matrix page.
+
+A historical roster containing both V and its legacy alias retains both seats
+when replayed with current V. These are self-play appearances, not distinct
+opponents; duplicate-player permission applies only to this verified alias
+collapse, not to ordinary tournament rosters.
+
+The **Exclude ties** checkbox removes the row bot's surviving-at-limit ties
+and equal-elimination-turn completed-game ties from displayed cells, sample sizes, intervals, row/column sorting
 and averages. All-tie cells become empty. The default retains half-point ties.
 Two-player averages retain equal weighting across opponents with eligible data;
 multiplayer averages retain observation weighting. Player hover totals remain
-all recorded games, explicitly labeled. Excluding ties gives performance
-conditional on a decisive pair result, not a way to count timeouts as losses
-or to infer outright multiplayer win rates.
+all recorded games, explicitly labeled. Eliminated players' limited-game
+losses remain included, so opposite directions may have different sample sizes
+when ties are excluded. These scores are not outright multiplayer win rates.
 
 ### Archived matrix coverage
 
